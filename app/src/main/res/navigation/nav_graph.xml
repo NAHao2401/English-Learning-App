@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:id="@+id/nav_graph"
+	app:startDestination="@id/homeFragment">
+
+	<fragment
+		android:id="@+id/homeFragment"
+		android:name="com.example.englishlearningapp.ui.home.HomeFragment"
+		android:label="@string/menu_home" />
+
+	<fragment
+		android:id="@+id/learnFragment"
+		android:name="com.example.englishlearningapp.ui.learn.LearnFragment"
+		android:label="@string/menu_learn" />
+
+	<fragment
+		android:id="@+id/scanFragment"
+		android:name="com.example.englishlearningapp.ui.scan.ScanFragment"
+		android:label="@string/menu_scan" />
+
+	<fragment
+		android:id="@+id/vocabFragment"
+		android:name="com.example.englishlearningapp.ui.vocab.VocabFragment"
+		android:label="@string/menu_vocab" />
+
+	<fragment
+		android:id="@+id/profileFragment"
+		android:name="com.example.englishlearningapp.ui.profile.ProfileFragment"
+		android:label="@string/menu_profile" />
+</navigation>
+

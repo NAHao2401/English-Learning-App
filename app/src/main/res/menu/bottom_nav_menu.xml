@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/homeFragment"
+        android:icon="@drawable/ic_home"
+        android:title="@string/menu_home" />
+
+    <item
+        android:id="@+id/learnFragment"
+        android:icon="@drawable/ic_menu_book"
+        android:title="@string/menu_learn" />
+
+    <item
+        android:id="@+id/scanFragment"
+        android:icon="@drawable/ic_camera_alt"
+        android:iconTint="@color/colorAccent"
+        android:title="@string/menu_scan" />
+
+    <item
+        android:id="@+id/vocabFragment"
+        android:icon="@drawable/ic_style"
+        android:title="@string/menu_vocab" />
+
+    <item
+        android:id="@+id/profileFragment"
+        android:icon="@drawable/ic_person"
+        android:title="@string/menu_profile" />
+</menu>
+
+

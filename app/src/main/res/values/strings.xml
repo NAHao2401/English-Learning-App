@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">English Learning App</string>
+    <string name="menu_home">Home</string>
+    <string name="menu_learn">Learn</string>
+    <string name="menu_vocab">Vocab</string>
+    <string name="menu_profile">Profile</string>
+    <string name="menu_scan">Scan</string>
+    <string name="title_home">Home Screen</string>
+    <string name="title_learn">Learn Screen</string>
+    <string name="title_scan">Scan Screen</string>
+    <string name="title_vocab">Vocab Screen</string>
+    <string name="title_profile">Profile Screen</string>
 </resources>
