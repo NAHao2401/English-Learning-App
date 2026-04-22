@@ -17,4 +17,10 @@ object AppPreferences {
     val IS_SOUND_ENABLED = booleanPreferencesKey("is_sound_enabled")
 
     val HAS_COMPLETED_ONBOARDING = booleanPreferencesKey("has_completed_onboarding")
+
+    val ACCESS_TOKEN = stringPreferencesKey("access_token")
+
+    val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
+
+    val USER_NAME = stringPreferencesKey("user_name")
 }
