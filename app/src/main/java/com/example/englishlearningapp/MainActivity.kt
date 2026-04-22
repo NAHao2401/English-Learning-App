@@ -4,44 +4,39 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.*
+import com.example.englishlearningapp.features.auth.ui.LoginScreen
+import com.example.englishlearningapp.features.auth.ui.RegisterScreen
+import com.example.englishlearningapp.features.auth.viewmodel.AuthViewModel
 import com.example.englishlearningapp.ui.theme.EnglishLearningAppTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val authViewModel = AuthViewModel(this)
+
         setContent {
             EnglishLearningAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
+                var showRegister by remember { mutableStateOf(false) }
+
+                if (showRegister) {
+                    RegisterScreen(
+                        viewModel = authViewModel,
+                        onNavigateToLogin = { showRegister = false },
+                        onRegisterSuccess = { showRegister = false }
+                    )
+                } else {
+                    LoginScreen(
+                        viewModel = authViewModel,
+                        onNavigateToRegister = { showRegister = true },
+                        onLoginSuccess = {
+
+                        }
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    EnglishLearningAppTheme {
-        Greeting("Android")
     }
 }

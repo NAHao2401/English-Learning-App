@@ -36,6 +36,18 @@ class AppDataStore(private val context: Context) {
         preferences[AppPreferences.HAS_COMPLETED_ONBOARDING] ?: false
     }
 
+    val accessToken: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[AppPreferences.ACCESS_TOKEN] ?: ""
+    }
+
+    val refreshToken: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[AppPreferences.REFRESH_TOKEN] ?: ""
+    }
+
+    val userName: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[AppPreferences.USER_NAME] ?: ""
+    }
+
     suspend fun saveUserId(userId: Int) {
         context.dataStore.edit { preferences ->
             preferences[AppPreferences.USER_ID] = userId
@@ -83,6 +95,23 @@ class AppDataStore(private val context: Context) {
     suspend fun clearAll() {
         context.dataStore.edit { preferences ->
             preferences.clear()
+        }
+    }
+
+    suspend fun saveAuthSession(
+        userId: Int,
+        userName: String,
+        userEmail: String,
+        accessToken: String,
+        refreshToken: String? = null
+    ) {
+        context.dataStore.edit { preferences ->
+            preferences[AppPreferences.USER_ID] = userId
+            preferences[AppPreferences.USER_NAME] = userName
+            preferences[AppPreferences.USER_EMAIL] = userEmail
+            preferences[AppPreferences.ACCESS_TOKEN] = accessToken
+            preferences[AppPreferences.REFRESH_TOKEN] = refreshToken ?: ""
+            preferences[AppPreferences.IS_LOGGED_IN] = true
         }
     }
 }
