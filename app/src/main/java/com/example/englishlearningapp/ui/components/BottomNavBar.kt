@@ -32,6 +32,16 @@ fun BottomNavBar(navController: NavHostController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    val bottomBarRoutes = listOf(
+        Screen.Home.route,
+        Screen.Learn.route,
+        Screen.Scan.route,
+        Screen.Vocab.route,
+        Screen.Profile.route,
+    )
+
+    if (currentRoute !in bottomBarRoutes) return
+
     val items = listOf(
         BottomNavItem(
             label = "Home",
@@ -73,7 +83,7 @@ fun BottomNavBar(navController: NavHostController) {
                 selected = selected,
                 onClick = {
                     navController.navigate(item.route) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        popUpTo(Screen.Home.route) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
@@ -85,7 +95,7 @@ fun BottomNavBar(navController: NavHostController) {
                     selectedTextColor = Green500,
                     unselectedIconColor = InactiveIcon,
                     unselectedTextColor = InactiveIcon,
-                    indicatorColor = NavBarBackground,
+                    indicatorColor = Green500.copy(alpha = 0.15f),
                 ),
             )
         }

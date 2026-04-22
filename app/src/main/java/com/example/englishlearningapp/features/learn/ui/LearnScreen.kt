@@ -1,4 +1,4 @@
-package com.example.englishlearningapp.ui.scan
+package com.example.englishlearningapp.features.learn.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -12,7 +12,7 @@ import com.example.englishlearningapp.ui.theme.DarkBackground
 import com.example.englishlearningapp.ui.theme.TextPrimary
 
 @Composable
-fun ScanScreen() {
+fun LearnScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -20,7 +20,7 @@ fun ScanScreen() {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "Scan Screen",
+            text = "Learn Screen",
             color = TextPrimary,
             style = MaterialTheme.typography.headlineMedium,
         )

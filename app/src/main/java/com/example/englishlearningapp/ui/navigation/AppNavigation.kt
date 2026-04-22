@@ -5,13 +5,17 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.englishlearningapp.ui.home.HomeScreen
-import com.example.englishlearningapp.ui.learn.LearnScreen
-import com.example.englishlearningapp.ui.profile.ProfileScreen
-import com.example.englishlearningapp.ui.scan.ScanScreen
-import com.example.englishlearningapp.ui.vocab.VocabScreen
+import com.example.englishlearningapp.features.auth.ui.LoginScreen
+import com.example.englishlearningapp.features.auth.ui.RegisterScreen
+import com.example.englishlearningapp.features.home.ui.HomeScreen
+import com.example.englishlearningapp.features.learn.ui.LearnScreen
+import com.example.englishlearningapp.features.profile.ui.ProfileScreen
+import com.example.englishlearningapp.features.scan.ui.ScanScreen
+import com.example.englishlearningapp.features.vocab.ui.VocabScreen
 
 sealed class Screen(val route: String) {
+    object Login : Screen("login")
+    object Register : Screen("register")
     object Home : Screen("home")
     object Learn : Screen("learn")
     object Scan : Screen("scan")
@@ -23,12 +27,38 @@ sealed class Screen(val route: String) {
 fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
+    startDestination: String = Screen.Login.route,
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Home.route,
+        startDestination = startDestination,
         modifier = modifier,
     ) {
+        composable(Screen.Login.route) {
+            LoginScreen(
+                onNavigateToRegister = {
+                    navController.navigate(Screen.Register.route)
+                },
+                onLoginSuccess = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
+            )
+        }
+        composable(Screen.Register.route) {
+            RegisterScreen(
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route)
+                },
+                onRegisterSuccess = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
+            )
+        }
+
         composable(Screen.Home.route) { HomeScreen() }
         composable(Screen.Learn.route) { LearnScreen() }
         composable(Screen.Scan.route) { ScanScreen() }

@@ -1,4 +1,4 @@
-package com.example.englishlearningapp.ui.learn
+package com.example.englishlearningapp.features.learn.viewmodel
 
 import androidx.lifecycle.ViewModel
 

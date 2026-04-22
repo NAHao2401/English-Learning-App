@@ -1,4 +1,4 @@
-package com.example.englishlearningapp.ui.vocab
+package com.example.englishlearningapp.features.vocab.viewmodel
 
 import androidx.lifecycle.ViewModel
 

@@ -1,4 +1,4 @@
-package com.example.englishlearningapp.ui.profile
+package com.example.englishlearningapp.features.vocab.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -12,7 +12,7 @@ import com.example.englishlearningapp.ui.theme.DarkBackground
 import com.example.englishlearningapp.ui.theme.TextPrimary
 
 @Composable
-fun ProfileScreen() {
+fun VocabScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -20,7 +20,7 @@ fun ProfileScreen() {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "Profile Screen",
+            text = "Vocab Screen",
             color = TextPrimary,
             style = MaterialTheme.typography.headlineMedium,
         )

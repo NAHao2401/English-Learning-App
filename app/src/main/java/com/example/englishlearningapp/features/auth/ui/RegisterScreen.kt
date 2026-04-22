@@ -53,13 +53,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import com.example.englishlearningapp.features.auth.viewmodel.AuthViewModel
 
 @Composable
 fun RegisterScreen(
-    viewModel: AuthViewModel,
     onNavigateToLogin: () -> Unit,
-    onRegisterSuccess: () -> Unit
+    onRegisterSuccess: () -> Unit,
+    viewModel: AuthViewModel? = null,
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -68,11 +69,13 @@ fun RegisterScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
-    val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val authViewModel = viewModel ?: remember(context) { AuthViewModel(context) }
+    val uiState by authViewModel.uiState.collectAsState()
     val colorScheme = MaterialTheme.colorScheme
 
     LaunchedEffect(Unit) {
-        viewModel.clearError()
+        authViewModel.clearError()
     }
 
     val pageBackground = Brush.verticalGradient(
@@ -321,7 +324,7 @@ fun RegisterScreen(
 
                             Button(
                                 onClick = {
-                                    viewModel.register(name, email, password, confirmPassword)
+                                    authViewModel.register(name, email, password, confirmPassword)
                                 },
                                 enabled = !uiState.isLoading,
                                 modifier = Modifier
@@ -381,7 +384,7 @@ fun RegisterScreen(
 
                         RegisterSignInPrompt(
                             onNavigateToLogin = {
-                                viewModel.clearError()
+                                authViewModel.clearError()
                                 onNavigateToLogin()
                             },
                             primaryText = secondaryText,

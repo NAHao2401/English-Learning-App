@@ -1,4 +1,4 @@
-package com.example.englishlearningapp.ui.home
+package com.example.englishlearningapp.features.home.viewmodel
 
 import androidx.lifecycle.ViewModel
 

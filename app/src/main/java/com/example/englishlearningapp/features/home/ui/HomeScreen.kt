@@ -1,4 +1,4 @@
-package com.example.englishlearningapp.ui.learn
+package com.example.englishlearningapp.features.home.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -12,7 +12,7 @@ import com.example.englishlearningapp.ui.theme.DarkBackground
 import com.example.englishlearningapp.ui.theme.TextPrimary
 
 @Composable
-fun LearnScreen() {
+fun HomeScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -20,7 +20,7 @@ fun LearnScreen() {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "Learn Screen",
+            text = "Home Screen",
             color = TextPrimary,
             style = MaterialTheme.typography.headlineMedium,
         )

@@ -1,4 +1,4 @@
-package com.example.englishlearningapp.ui.home
+package com.example.englishlearningapp.features.profile.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -12,7 +12,7 @@ import com.example.englishlearningapp.ui.theme.DarkBackground
 import com.example.englishlearningapp.ui.theme.TextPrimary
 
 @Composable
-fun HomeScreen() {
+fun ProfileScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -20,7 +20,7 @@ fun HomeScreen() {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "Home Screen",
+            text = "Profile Screen",
             color = TextPrimary,
             style = MaterialTheme.typography.headlineMedium,
         )

@@ -1,4 +1,4 @@
-package com.example.englishlearningapp.ui.profile
+package com.example.englishlearningapp.features.profile.viewmodel
 
 import androidx.lifecycle.ViewModel
 

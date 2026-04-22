@@ -1,4 +1,4 @@
-package com.example.englishlearningapp.ui.scan
+package com.example.englishlearningapp.features.scan.viewmodel
 
 import androidx.lifecycle.ViewModel
 

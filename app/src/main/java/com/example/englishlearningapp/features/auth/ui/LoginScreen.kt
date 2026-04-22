@@ -52,18 +52,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import com.example.englishlearningapp.features.auth.viewmodel.AuthViewModel
 
 @Composable
 fun LoginScreen(
-    viewModel: AuthViewModel,
     onNavigateToRegister: () -> Unit,
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
+    viewModel: AuthViewModel? = null,
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val authViewModel = viewModel ?: remember(context) { AuthViewModel(context) }
+    val uiState by authViewModel.uiState.collectAsState()
     val colorScheme = MaterialTheme.colorScheme
 
     val pageBackground = Brush.verticalGradient(
@@ -273,7 +276,7 @@ fun LoginScreen(
                             }
 
                             Button(
-                                onClick = { viewModel.login(email, password) },
+                                onClick = { authViewModel.login(email, password) },
                                 enabled = !uiState.isLoading,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -332,7 +335,7 @@ fun LoginScreen(
 
                         SignUpPrompt(
                             onNavigateToRegister = {
-                                viewModel.clearError()
+                                authViewModel.clearError()
                                 onNavigateToRegister()
                             },
                             primaryText = secondaryText,
