@@ -28,7 +28,7 @@ class AuthViewModel(context: Context) : ViewModel() {
             val result = repository.login(email, password)
 
             _uiState.value = if (result.isSuccess) {
-                AuthUiState(isSuccess = true)
+                AuthUiState(isLoginSuccess = true)
             } else {
                 AuthUiState(errorMessage = result.exceptionOrNull()?.message ?: "Login failed")
             }
@@ -52,7 +52,7 @@ class AuthViewModel(context: Context) : ViewModel() {
             val result = repository.register(name, email, password)
 
             _uiState.value = if (result.isSuccess) {
-                AuthUiState(isSuccess = true)
+                AuthUiState(isRegisterSuccess = true)
             } else {
                 AuthUiState(errorMessage = result.exceptionOrNull()?.message ?: "Register failed")
             }

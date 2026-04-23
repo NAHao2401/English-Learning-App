@@ -1,5 +1,7 @@
 package com.example.englishlearningapp.features.auth.ui
 
+import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,6 +30,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,6 +47,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -89,8 +94,10 @@ fun RegisterScreen(
     val fieldBackground = Color(0xFFF7FAFF)
     val accentBlue = colorScheme.primary
 
-    LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess) {
+    val context = LocalContext.current
+
+    LaunchedEffect(uiState.isRegisterSuccess) {
+        if (uiState.isRegisterSuccess) {
             onRegisterSuccess()
         }
     }
@@ -362,20 +369,36 @@ fun RegisterScreen(
                             strokeColor = subtleStroke
                         )
 
-                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+
                             RegisterSocialButton(
-                                label = "Sign up with Google",
+                                label = "Continue with Google",
                                 iconText = "G",
                                 iconContainerColor = accentBlue,
                                 primaryText = primaryText,
-                                strokeColor = Color(0xFFE4EDFF)
+                                strokeColor = Color(0xFFE4EDFF),
+                                onClick = {
+                                    Toast.makeText(
+                                        context,
+                                        "Google login is coming soon",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             )
+
                             RegisterSocialButton(
-                                label = "Sign up with Apple",
+                                label = "Continue with Apple",
                                 iconText = "A",
                                 iconContainerColor = primaryText,
                                 primaryText = primaryText,
-                                strokeColor = Color(0xFFE4EDFF)
+                                strokeColor = Color(0xFFE4EDFF),
+                                onClick = {
+                                    Toast.makeText(
+                                        context,
+                                        "Apple login is coming soon",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             )
                         }
 
@@ -589,22 +612,21 @@ private fun RegisterSocialButton(
     iconText: String,
     iconContainerColor: Color,
     primaryText: Color,
-    strokeColor: Color
+    strokeColor: Color,
+    onClick: () -> Unit
 ) {
-    Surface(
+    OutlinedButton(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        color = Color.White.copy(alpha = 0.92f),
-        shape = RoundedCornerShape(20.dp),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp
+        border = BorderStroke(1.dp, strokeColor),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, strokeColor, RoundedCornerShape(20.dp))
                 .padding(horizontal = 20.dp, vertical = 15.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
@@ -614,20 +636,15 @@ private fun RegisterSocialButton(
             ) {
                 Text(
                     text = iconText,
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
+                    color = Color.White
                 )
             }
-            Spacer(modifier = Modifier.size(16.dp))
+
+            Spacer(modifier = Modifier.width(12.dp))
+
             Text(
                 text = label,
-                color = primaryText,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                ),
-                textAlign = TextAlign.Center
+                color = primaryText
             )
         }
     }

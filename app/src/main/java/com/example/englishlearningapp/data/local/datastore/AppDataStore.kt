@@ -20,6 +20,22 @@ class AppDataStore(private val context: Context) {
         preferences[AppPreferences.USER_EMAIL] ?: ""
     }
 
+    val userName: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[AppPreferences.USER_NAME] ?: ""
+    }
+
+    val accessToken: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[AppPreferences.ACCESS_TOKEN] ?: ""
+    }
+
+    val refreshToken: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[AppPreferences.REFRESH_TOKEN] ?: ""
+    }
+
+    val tokenType: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[AppPreferences.TOKEN_TYPE] ?: ""
+    }
+
     val isLoggedIn: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[AppPreferences.IS_LOGGED_IN] ?: false
     }
@@ -34,18 +50,6 @@ class AppDataStore(private val context: Context) {
 
     val hasCompletedOnboarding: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[AppPreferences.HAS_COMPLETED_ONBOARDING] ?: false
-    }
-
-    val accessToken: Flow<String> = context.dataStore.data.map { preferences ->
-        preferences[AppPreferences.ACCESS_TOKEN] ?: ""
-    }
-
-    val refreshToken: Flow<String> = context.dataStore.data.map { preferences ->
-        preferences[AppPreferences.REFRESH_TOKEN] ?: ""
-    }
-
-    val userName: Flow<String> = context.dataStore.data.map { preferences ->
-        preferences[AppPreferences.USER_NAME] ?: ""
     }
 
     suspend fun saveUserId(userId: Int) {
@@ -103,6 +107,7 @@ class AppDataStore(private val context: Context) {
         userName: String,
         userEmail: String,
         accessToken: String,
+        tokenType: String,
         refreshToken: String? = null
     ) {
         context.dataStore.edit { preferences ->
@@ -110,8 +115,20 @@ class AppDataStore(private val context: Context) {
             preferences[AppPreferences.USER_NAME] = userName
             preferences[AppPreferences.USER_EMAIL] = userEmail
             preferences[AppPreferences.ACCESS_TOKEN] = accessToken
+            preferences[AppPreferences.TOKEN_TYPE] = tokenType
             preferences[AppPreferences.REFRESH_TOKEN] = refreshToken ?: ""
             preferences[AppPreferences.IS_LOGGED_IN] = true
+        }
+    }
+
+    suspend fun logout() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(AppPreferences.USER_ID)
+            preferences.remove(AppPreferences.USER_NAME)
+            preferences.remove(AppPreferences.USER_EMAIL)
+            preferences.remove(AppPreferences.ACCESS_TOKEN)
+            preferences.remove(AppPreferences.TOKEN_TYPE)
+            preferences[AppPreferences.IS_LOGGED_IN] = false
         }
     }
 }
