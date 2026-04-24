@@ -8,7 +8,15 @@ object AppPreferences {
 
     val USER_ID = intPreferencesKey("user_id")
 
+    val USER_NAME = stringPreferencesKey("user_name")
+
     val USER_EMAIL = stringPreferencesKey("user_email")
+
+    val ACCESS_TOKEN = stringPreferencesKey("access_token")
+
+    val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
+
+    val TOKEN_TYPE = stringPreferencesKey("token_type")
 
     val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
 
@@ -17,10 +25,4 @@ object AppPreferences {
     val IS_SOUND_ENABLED = booleanPreferencesKey("is_sound_enabled")
 
     val HAS_COMPLETED_ONBOARDING = booleanPreferencesKey("has_completed_onboarding")
-
-    val ACCESS_TOKEN = stringPreferencesKey("access_token")
-
-    val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
-
-    val USER_NAME = stringPreferencesKey("user_name")
 }
