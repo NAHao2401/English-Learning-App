@@ -31,6 +31,17 @@ interface UserVocabularyDao {
     fun getSavedUserVocabularies(userId: Int): Flow<List<UserVocabularyEntity>>
 
     @Query("""
+        SELECT v.* FROM vocabularies v
+        INNER JOIN user_vocabularies uv ON v.id = uv.vocabulary_id
+        WHERE uv.user_id = :userId AND uv.is_saved = 1
+        ORDER BY v.word ASC
+    """)
+    fun getSavedVocabularies(userId: Int): Flow<List<com.example.englishlearningapp.data.local.db.entity.VocabularyEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertUserVocabulary(entity: UserVocabularyEntity)
+
+    @Query("""
         SELECT * FROM user_vocabularies
         WHERE user_id = :userId AND vocabulary_id = :vocabularyId
         LIMIT 1

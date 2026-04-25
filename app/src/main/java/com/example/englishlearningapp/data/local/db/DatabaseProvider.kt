@@ -17,6 +17,7 @@ object DatabaseProvider {
                 AppDatabase::class.java,
                 "english_learning_db"
             )
+                .addCallback(DatabaseSeeder.callback(context.applicationContext))
                 // XÓA DB nếu version thay đổi (dễ dev, không cần migration)
                 .fallbackToDestructiveMigration()
                 .build()

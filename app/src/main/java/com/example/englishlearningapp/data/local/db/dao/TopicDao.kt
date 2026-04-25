@@ -2,6 +2,7 @@ package com.example.englishlearningapp.data.local.db.dao
 
 import androidx.room.*
 import com.example.englishlearningapp.data.local.db.entity.TopicEntity
+import com.example.englishlearningapp.data.local.db.entity.TopicWithCount
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -27,4 +28,17 @@ interface TopicDao {
 
     @Query("SELECT * FROM topics WHERE name LIKE '%' || :keyword || '%' ORDER BY name ASC")
     fun searchTopics(keyword: String): Flow<List<TopicEntity>>
+
+    @Query("SELECT COUNT(*) FROM topics WHERE name = :name AND level = :level")
+    suspend fun getTopicCountByNameAndLevelSync(name: String, level: String): Int
+
+    @Query(
+        """
+        SELECT t.*, COUNT(v.id) as wordCount FROM topics t
+        LEFT JOIN vocabularies v ON t.id = v.topic_id
+        GROUP BY t.id
+        ORDER BY t.name ASC
+        """
+    )
+    fun getTopicsWithWordCount(): Flow<List<TopicWithCount>>
 }

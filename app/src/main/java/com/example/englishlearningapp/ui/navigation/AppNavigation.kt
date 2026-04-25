@@ -2,6 +2,7 @@ package com.example.englishlearningapp.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,6 +37,7 @@ fun AppNavHost(
     ) {
         composable(Screen.Login.route) {
             LoginScreen(
+                viewModel = viewModel(),
                 onNavigateToRegister = {
                     navController.navigate(Screen.Register.route)
                 },
@@ -43,26 +45,28 @@ fun AppNavHost(
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
-                },
+                }
             )
         }
+
         composable(Screen.Register.route) {
             RegisterScreen(
+                viewModel = viewModel(),
                 onNavigateToLogin = {
                     navController.navigate(Screen.Login.route)
                 },
                 onRegisterSuccess = {
                     navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
+                        popUpTo(Screen.Register.route) { inclusive = true }
                     }
-                },
+                }
             )
         }
 
         composable(Screen.Home.route) { HomeScreen() }
         composable(Screen.Learn.route) { LearnScreen() }
         composable(Screen.Scan.route) { ScanScreen() }
-        composable(Screen.Vocab.route) { VocabScreen() }
+        composable(Screen.Vocab.route) { VocabScreen(navController = navController) }
         composable(Screen.Profile.route) { ProfileScreen() }
     }
 }
