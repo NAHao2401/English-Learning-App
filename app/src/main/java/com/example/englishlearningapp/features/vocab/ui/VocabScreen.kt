@@ -1,8 +1,7 @@
 package com.example.englishlearningapp.features.vocab.ui
 
 import android.widget.Toast
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,9 +19,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
@@ -39,11 +39,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -51,13 +49,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -66,15 +68,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.englishlearningapp.data.local.db.entity.TopicWithCount
-import com.example.englishlearningapp.data.local.db.entity.VocabularyEntity
+import com.example.englishlearningapp.data.local.db.entity.UserEntity
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
+import com.example.englishlearningapp.ui.navigation.Screen
+import androidx.core.graphics.toColorInt
 
 private val DarkBg = Color(0xFF1A1A1A)
 private val CardBg = Color(0xFF2A2A2A)
 private val DividerBg = Color(0xFF3A3A3A)
 private val PrimaryGreen = Color(0xFF4CAF50)
 private val OrangeAccent = Color(0xFFFF8C00)
+private const val LEARNED_COUNT = 7
+private const val REVIEW_DUE_COUNT = 2
 
 data class CefrLevel(
     val id: Int,
@@ -92,23 +99,9 @@ fun VocabScreen(
 ) {
     val context = LocalContext.current
     val topics by viewModel.topics.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    val searchResults by viewModel.searchResults.collectAsState()
+    val currentUser by viewModel.currentUser.collectAsState()
     val savedVocabs by viewModel.savedVocabs.collectAsState()
-    val vocabCountByLevel by viewModel.vocabCountByLevel.collectAsState()
-
     val savedIds = remember(savedVocabs) { savedVocabs.map { it.id }.toSet() }
-    val cefrLevels = remember(vocabCountByLevel) {
-        listOf(
-            CefrLevel(0, "Pre\nBeginner", "A0 - Từ Vựng Cho\nNgười Mất Gốc", vocabCountByLevel["A0"] ?: 0, 0, null),
-            CefrLevel(1, "Beginner", "Cấp độ A1", vocabCountByLevel["A1"] ?: 0, 0, null),
-            CefrLevel(2, "Elementary", "Cấp độ A2", vocabCountByLevel["A2"] ?: 0, 0, null),
-            CefrLevel(3, "Intermediate", "Cấp độ B1", vocabCountByLevel["B1"] ?: 0, 0, null),
-            CefrLevel(4, "Upper Int.", "Cấp độ B2", vocabCountByLevel["B2"] ?: 0, 0, null),
-            CefrLevel(5, "Advanced", "Cấp độ C1", vocabCountByLevel["C1"] ?: 0, 0, null),
-            CefrLevel(6, "Mastery", "Cấp độ C2", vocabCountByLevel["C2"] ?: 0, 0, null)
-        )
-    }
     val levelCounts = remember {
         listOf(
             "Mới học" to 0,
@@ -118,9 +111,6 @@ fun VocabScreen(
             "Thông thạo" to 5
         )
     }
-
-    val learnedCount = 7
-    val reviewDueCount = 2
 
     Scaffold(
         containerColor = DarkBg,
@@ -134,58 +124,14 @@ fun VocabScreen(
             contentPadding = PaddingValues(16.dp)
         ) {
             item(key = "search_section") {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { viewModel.updateSearch(it) },
-                        placeholder = { Text("Tìm kiếm từ vựng...", color = Color.Gray) },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
-                        trailingIcon = {
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { viewModel.updateSearch("") }) {
-                                    Icon(Icons.Default.Clear, contentDescription = null, tint = Color.Gray)
-                                }
-                            }
-                        },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = CardBg,
-                            focusedContainerColor = CardBg,
-                            unfocusedBorderColor = Color.Transparent,
-                            focusedBorderColor = PrimaryGreen,
-                            cursorColor = PrimaryGreen,
-                            unfocusedTextColor = Color.White,
-                            focusedTextColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-
-                    AnimatedVisibility(visible = searchQuery.length >= 2) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 300.dp)
-                                .background(CardBg, RoundedCornerShape(12.dp))
-                                .verticalScroll(rememberScrollState())
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            searchResults.forEach { vocab ->
-                                SearchResultItem(
-                                    vocab = vocab,
-                                    isSaved = savedIds.contains(vocab.id),
-                                    onToggleSave = { viewModel.toggleSave(vocab.id, savedIds.contains(vocab.id)) }
-                                )
-                            }
-                        }
-                    }
-                }
+                SearchBarWithResults(
+                    viewModel = viewModel,
+                    savedIds = savedIds
+                )
             }
 
             item(key = "learning_progress") {
                 LearningProgressCard(
-                    learnedCount = learnedCount,
-                    reviewDueCount = reviewDueCount,
                     levelCounts = levelCounts,
                     onLearnedClick = {
                         navController.navigateSafely("learned_words") {
@@ -202,7 +148,6 @@ fun VocabScreen(
 
             item(key = "practice_section") {
                 PracticeSectionCard(
-                    learnedCount = learnedCount,
                     onSentencePractice = {
                         navController.navigateSafely("sentence_practice") {
                             Toast.makeText(context, "Luyện đặt câu chưa sẵn sàng", Toast.LENGTH_SHORT).show()
@@ -211,57 +156,276 @@ fun VocabScreen(
                 )
             }
 
-            item(key = "cefr_header") {
-                SectionHeader(
-                    title = "Từ vựng CEFR",
-                    subtitle = "${cefrLevels.size} thư mục",
-                    onClick = {
-                        navController.navigateSafely("cefr_list") {
-                            Toast.makeText(context, "Danh mục CEFR chưa sẵn sàng", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+            item(key = "my_folder_section") {
+                MyFolderCard(
+                    user = currentUser,
+                    savedCount = savedVocabs.size,
+                    reviewDueCount = 0,
+                    onCardClick = { navController.navigate(Screen.UserTopics.route) },
+                    onStudyClick = { navController.navigate(Screen.UserTopics.route) }
                 )
             }
 
-            item(key = "cefr_list") {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            item(key = "cefr_section") {
+                CefrSection(
+                    navController = navController,
+                    context = context,
+                    viewModel = viewModel
+                )
+            }
+
+            item(key = "topic_section") {
+                TopicSection(
+                    topics = topics,
+                    navController = navController,
+                    context = context,
+                    viewModel = viewModel
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchBarWithResults(
+    viewModel: VocabViewModel,
+    savedIds: Set<Int>
+) {
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val searchResults by viewModel.searchResults.collectAsState()
+
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = viewModel::updateSearch,
+            placeholder = { Text("Tìm kiếm từ vựng...", color = Color.Gray) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
+            trailingIcon = {
+                if (searchQuery.isNotEmpty()) {
+                    IconButton(onClick = { viewModel.updateSearch("") }) {
+                        Icon(Icons.Default.Clear, contentDescription = null, tint = Color.Gray)
+                    }
+                }
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = CardBg,
+                focusedContainerColor = CardBg,
+                unfocusedBorderColor = Color.Transparent,
+                focusedBorderColor = PrimaryGreen,
+                cursorColor = PrimaryGreen,
+                unfocusedTextColor = Color.White,
+                focusedTextColor = Color.White
+            ),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        // Fixed-height container prevents layout thrashing when results appear/disappear
+        val showResults = searchQuery.length >= 2
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 300.dp)
+                .background(
+                    if (showResults) CardBg else Color.Transparent,
+                    RoundedCornerShape(12.dp)
+                )
+        ) {
+            if (showResults && searchResults.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 300.dp)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
                     items(
-                        items = cefrLevels,
-                        key = { it.id }
-                    ) { level ->
-                        CefrLevelCard(level = level) {
-                            navController.navigateSafely("topic_detail/${level.id}?isCefr=true") {
-                                Toast.makeText(context, "Chi tiết CEFR chưa sẵn sàng", Toast.LENGTH_SHORT).show()
-                            }
+                        items = searchResults,
+                        key = { it.id },
+                        contentType = { "search_result" }
+                    ) { vocab ->
+                        val isSaved = savedIds.contains(vocab.id)
+                        val onToggleSaveCallback = remember(vocab.id, isSaved) {
+                            { viewModel.toggleSave(vocab.id, isSaved) }
+                        }
+                        SearchResultItem(
+                            word = vocab.word,
+                            pronunciation = vocab.pronunciation,
+                            meaning = vocab.meaning,
+                            isSaved = isSaved,
+                            onToggleSave = onToggleSaveCallback
+                        )
+                    }
+                }
+            } else if (showResults) {
+                Text(
+                    "Không tìm thấy",
+                    color = Color.Gray,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(16.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun MyFolderCard(
+    user: UserEntity?,
+    savedCount: Int,
+    reviewDueCount: Int,
+    onCardClick: () -> Unit,
+    onStudyClick: () -> Unit
+) {
+    Card(
+        onClick = onCardClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = CardBg),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF1B3A2D)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (!user?.avatarUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = user!!.avatarUrl,
+                            contentDescription = "Avatar",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Text(
+                            text = user?.name?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                            color = PrimaryGreen,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 22.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Thư mục của tôi",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = PrimaryGreen,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(Modifier.width(3.dp))
+                            Text(
+                                text = "0/$savedCount đã học",
+                                color = Color.LightGray,
+                                fontSize = 12.sp
+                            )
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.NightsStay,
+                                contentDescription = null,
+                                tint = Color.Gray,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(Modifier.width(3.dp))
+                            Text(
+                                text = "$reviewDueCount cần luyện tập",
+                                color = Color.LightGray,
+                                fontSize = 12.sp
+                            )
                         }
                     }
                 }
-            }
 
-            item(key = "topic_header") {
-                SectionHeader(
-                    title = "Từ vựng theo chủ đề",
-                    subtitle = "${topics.size} thư mục",
-                    onClick = {
-                        navController.navigateSafely("topics") {
-                            Toast.makeText(context, "Danh mục chủ đề chưa sẵn sàng", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = Color.Gray
                 )
             }
 
-            item(key = "topic_list") {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    items(
-                        items = topics,
-                        key = { it.topic.id }
-                    ) { topicWithCount ->
-                        TopicCard(topicWithCount = topicWithCount) {
-                            viewModel.selectTopic(topicWithCount.topic.id)
-                            navController.navigateSafely("topic_detail/${topicWithCount.topic.id}") {
-                                Toast.makeText(context, "Chi tiết chủ đề chưa sẵn sàng", Toast.LENGTH_SHORT).show()
-                            }
-                        }
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Button(
+                onClick = onStudyClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0)),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "🃏  Học từ mới",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CefrSection(
+    navController: NavController,
+    context: android.content.Context,
+    viewModel: VocabViewModel
+) {
+    val vocabCountByLevel by viewModel.vocabCountByLevel.collectAsState()
+    val cefrLevels = remember(vocabCountByLevel) {
+        listOf(
+            CefrLevel(0, "Pre\nBeginner", "A0 - Từ Vựng Cho\nNgười Mất Gốc", vocabCountByLevel["A0"] ?: 0, 0, null),
+            CefrLevel(1, "Beginner", "Cấp độ A1", vocabCountByLevel["A1"] ?: 0, 0, null),
+            CefrLevel(2, "Elementary", "Cấp độ A2", vocabCountByLevel["A2"] ?: 0, 0, null),
+            CefrLevel(3, "Intermediate", "Cấp độ B1", vocabCountByLevel["B1"] ?: 0, 0, null),
+            CefrLevel(4, "Upper Int.", "Cấp độ B2", vocabCountByLevel["B2"] ?: 0, 0, null),
+            CefrLevel(5, "Advanced", "Cấp độ C1", vocabCountByLevel["C1"] ?: 0, 0, null),
+            CefrLevel(6, "Mastery", "Cấp độ C2", vocabCountByLevel["C2"] ?: 0, 0, null)
+        )
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SectionHeader(
+            title = "Từ vựng CEFR",
+            subtitle = "${cefrLevels.size} thư mục",
+            onClick = {
+                navController.navigateSafely("cefr_list") {
+                    Toast.makeText(context, "Danh mục CEFR chưa sẵn sàng", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(
+                items = cefrLevels,
+                key = { it.id },
+                contentType = { "cefr" }
+            ) { level ->
+                CefrLevelCard(level = level) {
+                    navController.navigateSafely("topic_detail/${level.id}?isCefr=true") {
+                        Toast.makeText(context, "Chi tiết CEFR chưa sẵn sàng", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -270,9 +434,58 @@ fun VocabScreen(
 }
 
 @Composable
+private fun TopicSection(
+    topics: List<TopicWithCount>,
+    navController: NavController,
+    context: android.content.Context,
+    viewModel: VocabViewModel
+) {
+    var displayedTopicCount by remember { mutableStateOf(8) }
+    val paginatedTopics = remember(topics, displayedTopicCount) { topics.take(displayedTopicCount) }
+    val scrollState = rememberScrollState()
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SectionHeader(
+            title = "Từ vựng theo chủ đề",
+            subtitle = "${topics.size} thư mục",
+            onClick = {
+                navController.navigateSafely("topics") {
+                    Toast.makeText(context, "Danh mục chủ đề chưa sẵn sàng", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+
+        Row(
+            modifier = Modifier.horizontalScroll(scrollState),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            paginatedTopics.forEach { topicWithCount ->
+                TopicCard(topicWithCount = topicWithCount) {
+                    viewModel.selectTopic(topicWithCount.topic.id)
+                    navController.navigateSafely("topic_detail/${topicWithCount.topic.id}") {
+                        Toast.makeText(context, "Chi tiết chủ đề chưa sẵn sàng", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+
+        if (paginatedTopics.size < topics.size) {
+            Button(
+                onClick = { displayedTopicCount += 8 },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Xem thêm chủ đề", color = Color.White, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
 private fun LearningProgressCard(
-    learnedCount: Int,
-    reviewDueCount: Int,
     levelCounts: List<Pair<String, Int>>,
     onLearnedClick: () -> Unit,
     onPracticeClick: () -> Unit
@@ -286,7 +499,7 @@ private fun LearningProgressCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "$learnedCount từ đã học",
+                    text = "$LEARNED_COUNT từ đã học",
                     style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 )
                 Spacer(Modifier.weight(1f))
@@ -295,14 +508,12 @@ private fun LearningProgressCard(
 
             Spacer(Modifier.height(12.dp))
 
-            val scrollState = rememberScrollState()
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(scrollState),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                levelCounts.forEach { (label, count) ->
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(
+                    items = levelCounts,
+                    key = { it.first },
+                    contentType = { "progress_ring" }
+                ) { (label, count) ->
                     CircularProgressRing(label = label, count = count)
                 }
             }
@@ -313,7 +524,7 @@ private fun LearningProgressCard(
                 Text("🌻", fontSize = 20.sp)
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    "$reviewDueCount từ cần luyện tập",
+                    "$REVIEW_DUE_COUNT từ cần luyện tập",
                     color = OrangeAccent,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp
@@ -349,7 +560,6 @@ private fun LearningProgressCard(
 
 @Composable
 private fun PracticeSectionCard(
-    learnedCount: Int,
     onSentencePractice: () -> Unit
 ) {
     Card(
@@ -360,7 +570,7 @@ private fun PracticeSectionCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Text("Học phải đi đôi với hành.", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Spacer(Modifier.height(4.dp))
-            Text("0/$learnedCount từ đã đặt câu", color = PrimaryGreen, fontSize = 14.sp)
+            Text("0/$LEARNED_COUNT từ đã đặt câu", color = PrimaryGreen, fontSize = 14.sp)
             Spacer(Modifier.height(12.dp))
             Button(
                 onClick = onSentencePractice,
@@ -396,13 +606,20 @@ private fun SectionHeader(title: String, subtitle: String, onClick: () -> Unit) 
 fun CircularProgressRing(label: String, count: Int) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.size(52.dp)) {
-            CircularProgressIndicator(
-                progress = { 0f },
-                color = PrimaryGreen,
-                trackColor = DividerBg,
-                strokeWidth = 4.dp,
-                modifier = Modifier.fillMaxSize()
-            )
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val strokeWidth = 4.dp.toPx()
+                val radius = (size.minDimension - strokeWidth) / 2f
+                drawCircle(
+                    color = DividerBg,
+                    radius = radius,
+                    style = Stroke(width = strokeWidth)
+                )
+                drawCircle(
+                    color = PrimaryGreen,
+                    radius = radius,
+                    style = Stroke(width = strokeWidth)
+                )
+            }
             Text(
                 text = count.toString(),
                 color = Color.White,
@@ -425,15 +642,18 @@ fun CircularProgressRing(label: String, count: Int) {
 
 @Composable
 fun CefrLevelCard(level: CefrLevel, onClick: () -> Unit) {
-    val brush = when (level.id) {
-        0 -> Brush.verticalGradient(listOf(Color(0xFF555555), CardBg))
-        1 -> Brush.verticalGradient(listOf(Color(0xFF1E4C31), CardBg))
-        2 -> Brush.verticalGradient(listOf(Color(0xFF16566A), CardBg))
-        3 -> Brush.verticalGradient(listOf(Color(0xFF1A3E66), CardBg))
-        4 -> Brush.verticalGradient(listOf(Color(0xFF472066), CardBg))
-        5 -> Brush.verticalGradient(listOf(Color(0xFF6A4315), CardBg))
-        else -> Brush.verticalGradient(listOf(Color(0xFF6A1B1B), CardBg))
+    val bgColor = remember(level.id) {
+        when (level.id) {
+            0 -> Color(0xFF555555)
+            1 -> Color(0xFF1E4C31)
+            2 -> Color(0xFF16566A)
+            3 -> Color(0xFF1A3E66)
+            4 -> Color(0xFF472066)
+            5 -> Color(0xFF6A4315)
+            else -> Color(0xFF6A1B1B)
+        }
     }
+    val badgeColor = remember(level.badge) { cefrBadgeColor(level.badge) }
 
     Card(
         onClick = onClick,
@@ -441,23 +661,22 @@ fun CefrLevelCard(level: CefrLevel, onClick: () -> Unit) {
         modifier = Modifier
             .width(160.dp)
             .height(140.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBg)
+        colors = CardDefaults.cardColors(containerColor = bgColor)
     ) {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(brush)
-                .padding(12.dp)
+                .padding(12.dp),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                Text(
-                    text = level.badge,
-                    color = cefrBadgeColor(level.badge),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    lineHeight = 14.sp
-                )
-                Spacer(Modifier.weight(1f))
+            Text(
+                text = level.badge,
+                color = badgeColor,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                lineHeight = 14.sp
+            )
+            Column {
                 Text(
                     text = level.name,
                     color = Color.White,
@@ -484,35 +703,29 @@ fun CefrLevelCard(level: CefrLevel, onClick: () -> Unit) {
     }
 }
 
-fun levelCodeColor(level: String?): Color = when (level) {
-    "A0" -> Color(0xFF9E9E9E)
-    "A1" -> Color(0xFF4CAF50)
-    "A2" -> Color(0xFF00BCD4)
-    "B1" -> Color(0xFF2196F3)
-    "B2" -> Color(0xFF9C27B0)
-    "C1" -> Color(0xFFFF9800)
-    "C2" -> Color(0xFFF44336)
-    else -> Color(0xFF9E9E9E)
-}
 
 @Composable
 fun TopicCard(topicWithCount: TopicWithCount, onClick: () -> Unit) {
-    val bgColor = when (topicWithCount.topic.level) {
-        "A0" -> Color(0xFF2A2A2A)
-        "A1" -> Color(0xFF1B3A2D)
-        "A2" -> Color(0xFF1A3340)
-        "B1" -> Color(0xFF1A2E40)
-        "B2" -> Color(0xFF2D1B3A)
-        "C1" -> Color(0xFF3A2A1A)
-        "C2" -> Color(0xFF3A1B1B)
-        else -> CardBg
+    val bgColor = remember(topicWithCount.topic.level) {
+        when (topicWithCount.topic.level) {
+            "A0" -> Color(0xFF2A2A2A)
+            "A1" -> Color(0xFF1B3A2D)
+            "A2" -> Color(0xFF1A3340)
+            "B1" -> Color(0xFF1A2E40)
+            "B2" -> Color(0xFF2D1B3A)
+            "C1" -> Color(0xFF3A2A1A)
+            "C2" -> Color(0xFF3A1B1B)
+            else -> CardBg
+        }
     }
 
-    val topicIconText = topicWithCount.topic.iconUrl?.takeUnless { it.startsWith("#") } ?: "📚"
-    val topicAccentColor = topicWithCount.topic.iconUrl
-        ?.takeIf { it.startsWith("#") }
-        ?.let { Color(android.graphics.Color.parseColor(it)) }
-        ?: levelCodeColor(topicWithCount.topic.level)
+    val topicIconText = remember(topicWithCount.topic.iconUrl) { topicWithCount.topic.iconUrl?.takeUnless { it.startsWith("#") } ?: "📚" }
+    val topicAccentColor = remember(topicWithCount.topic.iconUrl, topicWithCount.topic.level) {
+        topicWithCount.topic.iconUrl
+            ?.takeIf { it.startsWith("#") }
+            ?.let { Color(it.toColorInt()) }
+            ?: levelCodeColor(topicWithCount.topic.level)
+    }
 
     Card(
         onClick = onClick,
@@ -568,7 +781,9 @@ fun TopicCard(topicWithCount: TopicWithCount, onClick: () -> Unit) {
 
 @Composable
 fun SearchResultItem(
-    vocab: VocabularyEntity,
+    word: String,
+    pronunciation: String?,
+    meaning: String,
     isSaved: Boolean,
     onToggleSave: () -> Unit
 ) {
@@ -580,11 +795,11 @@ fun SearchResultItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(vocab.word, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                Text(vocab.pronunciation ?: "", color = Color.Gray, fontSize = 12.sp)
+                Text(word, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(pronunciation ?: "", color = Color.Gray, fontSize = 12.sp)
             }
             Text(
-                vocab.meaning,
+                meaning,
                 color = Color.LightGray,
                 fontSize = 13.sp,
                 modifier = Modifier.weight(1f)

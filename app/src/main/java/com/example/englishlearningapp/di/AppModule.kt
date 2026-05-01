@@ -12,6 +12,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.example.englishlearningapp.data.remote.api.RetrofitClient
+import com.example.englishlearningapp.data.remote.api.VocabApiService
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -36,5 +38,12 @@ object AppModule {
     @Provides
     fun provideUserVocabularyDao(database: AppDatabase): UserVocabularyDao {
         return database.userVocabularyDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideVocabApiService(@ApplicationContext context: Context): VocabApiService {
+        RetrofitClient.initialize(context)
+        return RetrofitClient.vocabApiService
     }
 }

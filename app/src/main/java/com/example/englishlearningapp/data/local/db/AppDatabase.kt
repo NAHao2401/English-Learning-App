@@ -45,7 +45,7 @@ import com.example.englishlearningapp.data.local.db.entity.XpHistoryEntity
         ProgressEntity::class,
         XpHistoryEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

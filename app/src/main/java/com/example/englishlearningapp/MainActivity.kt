@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     AppNavHost(
                         navController = navController,
-                        startDestination = Screen.Home.route,
+                        startDestination = Screen.Login.route,
                         modifier = Modifier.padding(innerPadding),
                     )
                 }
