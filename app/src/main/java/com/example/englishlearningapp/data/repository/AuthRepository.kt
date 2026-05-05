@@ -10,7 +10,7 @@ import org.json.JSONObject
 class AuthRepository(context: Context) {
 
     private val authApi = RetrofitClient.authApiService
-    private val appDataStore = AppDataStore(context)
+    private val appDataStore = AppDataStore(context.applicationContext)
 
     suspend fun login(email: String, password: String): Result<Unit> {
         return try {
@@ -46,12 +46,7 @@ class AuthRepository(context: Context) {
             val response = authApi.register(RegisterRequest(name, email, password))
 
             if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null) {
-                    Result.success(Unit)
-                } else {
-                    Result.failure(Exception("Response body is null"))
-                }
+                Result.success(Unit)
             } else {
                 val errorBody = response.errorBody()?.string()
                 val message = parseErrorMessage(errorBody) ?: "Register failed"
@@ -62,10 +57,19 @@ class AuthRepository(context: Context) {
         }
     }
 
+    suspend fun logout() {
+        appDataStore.logout()
+    }
+
     private fun parseErrorMessage(errorBody: String?): String? {
         return try {
             if (errorBody.isNullOrBlank()) return null
-            JSONObject(errorBody).optString("detail")
+            val json = JSONObject(errorBody)
+            when {
+                json.has("message") -> json.optString("message")
+                json.has("detail") -> json.optString("detail")
+                else -> null
+            }
         } catch (_: Exception) {
             null
         }

@@ -30,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,7 +54,8 @@ fun HomeScreen(
     onProgressClick: () -> Unit = {},
     onAiScanClick: () -> Unit = {},
     onSpeakingClick: () -> Unit = {},
-    onContinueLearningClick: () -> Unit = {}
+    onContinueLearningClick: () -> Unit = {},
+    onLogoutClick: () -> Unit = {}
 ) {
     val featureItems = listOf(
         HomeFeatureItem("Lessons", Icons.Default.AutoStories, onLessonsClick),
@@ -79,7 +81,10 @@ fun HomeScreen(
                 contentPadding = PaddingValues(bottom = 120.dp)
             ) {
                 item {
-                    HomeHeader(userName = userName)
+                    HomeHeader(
+                        userName = userName,
+                        onLogoutClick = onLogoutClick
+                    )
                 }
 
                 item {
@@ -152,15 +157,31 @@ fun HomeScreen(
 }
 
 @Composable
-fun HomeHeader(userName: String) {
+fun HomeHeader(
+    userName: String,
+    onLogoutClick: () -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text(
-            text = "Welcome back, $userName 👋",
-            style = MaterialTheme.typography.headlineSmall
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Welcome back, $userName 👋",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.weight(1f)
+            )
+
+            TextButton(onClick = onLogoutClick) {
+                Text("Logout")
+            }
+        }
+
         Spacer(modifier = Modifier.height(6.dp))
+
         Text(
             text = "Let’s continue your English learning journey today.",
             style = MaterialTheme.typography.bodyMedium,

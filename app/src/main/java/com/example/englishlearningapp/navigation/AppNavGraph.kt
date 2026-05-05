@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.englishlearningapp.core.session.SessionManager
 import com.example.englishlearningapp.data.local.datastore.AppDataStore
 import com.example.englishlearningapp.features.auth.ui.LoginScreen
 import com.example.englishlearningapp.features.auth.ui.RegisterScreen
@@ -35,15 +36,26 @@ fun AppNavGraph(
     val authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModelFactory(context.applicationContext)
     )
-
     val lessonViewModel: LessonViewModel = viewModel()
     val progressViewModel: ProgressViewModel = viewModel()
 
     val appDataStore = AppDataStore(context.applicationContext)
     val userName by appDataStore.userName.collectAsState(initial = "Learner")
 
+    val authUiState by authViewModel.uiState.collectAsState()
     val lessonUiState by lessonViewModel.uiState.collectAsState()
     val progressUiState by progressViewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        SessionManager.unauthorizedEvent.collect {
+            navController.navigate(Screen.Login.route) {
+                popUpTo(navController.graph.id) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -60,6 +72,7 @@ fun AppNavGraph(
                         popUpTo(Screen.Login.route) {
                             inclusive = true
                         }
+                        launchSingleTop = true
                     }
                 }
             )
@@ -88,6 +101,16 @@ fun AppNavGraph(
                 },
                 onContinueLearningClick = {
                     navController.navigate(Screen.TopicList.route)
+                },
+                onLogoutClick = {
+                    authViewModel.logout {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(navController.graph.id) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
                 }
             )
         }
