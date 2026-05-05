@@ -2,8 +2,6 @@ package com.example.englishlearningapp.data.remote.api
 
 import android.content.Context
 import com.example.englishlearningapp.data.local.datastore.AppDataStore
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -13,44 +11,39 @@ object RetrofitClient {
     private const val BASE_URL = "http://127.0.0.1:8000/"
 
     @Volatile
-    private var initialized = false
+    private var appDataStoreInstance: AppDataStore? = null
+    private var applicationContext: Context? = null
 
-    private lateinit var appDataStore: AppDataStore
-
+    /**
+     * Initialize RetrofitClient with application context.
+     * This should be called as early as possible, ideally in Application.onCreate()
+     */
     fun initialize(context: Context) {
-        if (initialized) return
         synchronized(this) {
-            if (initialized) return
-            appDataStore = AppDataStore(context.applicationContext)
-            initialized = true
+            if (appDataStoreInstance == null) {
+                applicationContext = context.applicationContext
+                appDataStoreInstance = AppDataStore(context.applicationContext)
+            }
         }
     }
 
-    private fun authClient(): OkHttpClient {
-        return OkHttpClient.Builder()
-            .addInterceptor { chain ->
-                val requestBuilder = chain.request().newBuilder()
-                val token = runBlocking {
-                    if (!initialized) "" else appDataStore.accessToken.first()
-                }
-                val tokenType = runBlocking {
-                    if (!initialized) "" else appDataStore.tokenType.first()
-                }
-
-                if (token.isNotBlank()) {
-                    val authScheme = if (tokenType.isNotBlank()) tokenType else "Bearer"
-                    requestBuilder.addHeader("Authorization", "$authScheme $token")
-                }
-
-                chain.proceed(requestBuilder.build())
-            }
-            .build()
-    }
-
+    /**
+     * Lazy initialization of Retrofit instance.
+     * Automatically initializes on first access.
+     */
     private val retrofit: Retrofit by lazy {
+        val context = applicationContext ?: throw IllegalStateException(
+            "RetrofitClient not initialized. Call RetrofitClient.initialize(context) first, " +
+            "or ensure it's called before accessing any API services."
+        )
+
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(AuthInterceptor(context))
+            .build()
+
         Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .client(authClient())
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -61,5 +54,13 @@ object RetrofitClient {
 
     val vocabApiService: VocabApiService by lazy {
         retrofit.create(VocabApiService::class.java)
+    }
+
+    val lessonApiService: LessonApiService by lazy {
+        retrofit.create(LessonApiService::class.java)
+    }
+
+    val progressApiService: ProgressApiService by lazy {
+        retrofit.create(ProgressApiService::class.java)
     }
 }

@@ -5,6 +5,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.example.englishlearningapp.features.auth.ui.LoginScreen
 import com.example.englishlearningapp.features.auth.ui.RegisterScreen
 import com.example.englishlearningapp.features.home.ui.HomeScreen
@@ -14,7 +16,15 @@ import com.example.englishlearningapp.features.scan.ui.ScanScreen
 import com.example.englishlearningapp.features.vocab.ui.ReviewScreen
 import com.example.englishlearningapp.features.vocab.ui.SavedVocabScreen
 import com.example.englishlearningapp.features.vocab.ui.VocabScreen
+import com.example.englishlearningapp.features.lesson.ui.TopicListScreen
+import com.example.englishlearningapp.features.lesson.ui.LessonListScreen
+import com.example.englishlearningapp.features.lesson.ui.LessonDetailScreen
+import com.example.englishlearningapp.features.lesson.ui.LessonResultScreen
+import com.example.englishlearningapp.features.lesson.viewmodel.LessonViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import androidx.compose.runtime.LaunchedEffect
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")
@@ -30,6 +40,15 @@ sealed class Screen(val route: String) {
     object UserTopicDetail : Screen("user_topic_detail/{userTopicId}")
     object Flashcard : Screen("flashcard/{topicId}")
     object Profile : Screen("profile")
+    // Lesson routes
+    object TopicList : Screen("topics")
+    object LessonList : Screen("lessons/{topicId}") {
+        fun createRoute(topicId: Int): String = "lessons/$topicId"
+    }
+    object LessonDetail : Screen("lesson-detail/{lessonId}") {
+        fun createRoute(lessonId: Int): String = "lesson-detail/$lessonId"
+    }
+    object LessonResult : Screen("lesson-result")
 }
 
 @Composable
@@ -38,6 +57,9 @@ fun AppNavHost(
     modifier: Modifier = Modifier,
     startDestination: String = Screen.Login.route,
 ) {
+    val lessonViewModel: LessonViewModel = hiltViewModel()
+    val lessonUiState = lessonViewModel.uiState.collectAsState().value
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -71,7 +93,30 @@ fun AppNavHost(
             )
         }
 
-        composable(Screen.Home.route) { HomeScreen() }
+        composable(Screen.Home.route) {
+            HomeScreen(
+                onLessonsClick = {
+                    navController.navigate(Screen.TopicList.route)
+                },
+                onVocabularyClick = {
+                    navController.navigate(Screen.Vocab.route)
+                },
+                onProgressClick = {
+                    // Navigate to Progress screen (tạo mới nếu cần)
+                    navController.navigate("progress")
+                },
+                onAiScanClick = {
+                    navController.navigate(Screen.Scan.route)
+                },
+                onSpeakingClick = {
+                    // Navigate to Speaking screen (tạo mới nếu cần)
+                    navController.navigate(Screen.Learn.route)
+                },
+                onContinueLearningClick = {
+                    navController.navigate(Screen.TopicList.route)
+                }
+            )
+        }
         composable(Screen.Learn.route) { LearnScreen() }
         composable(Screen.Scan.route) { ScanScreen() }
         composable(Screen.Vocab.route) { VocabScreen(navController = navController) }
@@ -103,6 +148,103 @@ fun AppNavHost(
             )
         }
         composable(Screen.Profile.route) { ProfileScreen() }
+
+        // --- Lesson Routes ---
+        composable(Screen.TopicList.route) {
+            LaunchedEffect(Unit) {
+                lessonViewModel.loadTopics()
+            }
+
+            TopicListScreen(
+                topics = lessonUiState.topics,
+                isLoading = lessonUiState.isLoading,
+                errorMessage = lessonUiState.errorMessage,
+                onTopicClick = { topicId ->
+                    navController.navigate(Screen.LessonList.createRoute(topicId))
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = Screen.LessonList.route,
+            arguments = listOf(
+                navArgument("topicId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val topicId = backStackEntry.arguments?.getInt("topicId") ?: return@composable
+
+            LaunchedEffect(topicId) {
+                lessonViewModel.loadLessonsByTopic(topicId)
+            }
+
+            LessonListScreen(
+                lessons = lessonUiState.lessons,
+                isLoading = lessonUiState.isLoading,
+                errorMessage = lessonUiState.errorMessage,
+                onLessonClick = { lessonId ->
+                    navController.navigate(Screen.LessonDetail.createRoute(lessonId))
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = Screen.LessonDetail.route,
+            arguments = listOf(
+                navArgument("lessonId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val lessonId = backStackEntry.arguments?.getInt("lessonId") ?: return@composable
+
+            LaunchedEffect(lessonId) {
+                lessonViewModel.loadQuestions(lessonId)
+            }
+
+            LessonDetailScreen(
+                questions = lessonUiState.questions,
+                selectedAnswers = lessonUiState.selectedAnswers,
+                isLoading = lessonUiState.isLoading,
+                errorMessage = lessonUiState.errorMessage,
+                onSelectAnswer = { questionId, answer ->
+                    lessonViewModel.selectAnswer(questionId, answer)
+                },
+                onSubmitClick = {
+                    lessonViewModel.submitLesson(
+                        lessonId = lessonId,
+                        onSuccess = {
+                            navController.navigate(Screen.LessonResult.route)
+                        }
+                    )
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.LessonResult.route) {
+            LessonResultScreen(
+                result = lessonUiState.submitResult,
+                onRetryClick = {
+                    navController.popBackStack()
+                },
+                onContinueClick = {
+                    navController.navigate(Screen.TopicList.route) {
+                        popUpTo(Screen.TopicList.route) { inclusive = true }
+                    }
+                },
+                onProgressClick = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.TopicList.route) { inclusive = true }
+                    }
+                }
+            )
+        }
     }
 }
 
