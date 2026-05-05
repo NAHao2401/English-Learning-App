@@ -8,6 +8,7 @@ import com.example.englishlearningapp.data.remote.api.response.TopicResponse
 data class LessonUiState(
     val topics: List<TopicResponse> = emptyList(),
     val lessons: List<LessonResponse> = emptyList(),
+    val selectedLesson: LessonResponse? = null,
     val questions: List<QuestionResponse> = emptyList(),
     val selectedAnswers: Map<Int, String> = emptyMap(),
     val submitResult: SubmitLessonResponse? = null,

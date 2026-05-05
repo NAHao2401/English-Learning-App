@@ -52,7 +52,9 @@ fun LessonResultScreen(
         Text("Correct: ${result.correct_count}/${result.total_questions}")
         Text("Wrong: ${result.wrong_count}")
         Text("XP earned: +${result.xp_earned}")
+        Text("Streak: ${result.streak_count} days")
         Text("Completion: ${result.completion_percent}%")
+        Text(result.message)
 
         Spacer(modifier = Modifier.height(24.dp))
 

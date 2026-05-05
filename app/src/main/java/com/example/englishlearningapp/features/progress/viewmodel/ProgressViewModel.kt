@@ -1,39 +1,48 @@
 package com.example.englishlearningapp.features.progress.viewmodel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.englishlearningapp.data.remote.api.response.ProgressSummaryResponse
 import com.example.englishlearningapp.data.repository.ProgressRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ProgressViewModel : ViewModel() {
 
     private val repository = ProgressRepository()
 
-    var summary by mutableStateOf<ProgressSummaryResponse?>(null)
-        private set
+    private val _uiState = MutableStateFlow(ProgressUiState())
+    val uiState: StateFlow<ProgressUiState> = _uiState.asStateFlow()
 
-    var isLoading by mutableStateOf(false)
-        private set
-
-    var errorMessage by mutableStateOf<String?>(null)
-        private set
-
-    fun loadProgressSummary() {
+    fun loadProgress() {
         viewModelScope.launch {
-            isLoading = true
-            errorMessage = null
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                errorMessage = null
+            )
 
-            val result = repository.getProgressSummary()
+            val summaryResult = repository.getProgressSummary()
+            val lessonsResult = repository.getLessonProgresses()
 
-            result
-                .onSuccess { summary = it }
-                .onFailure { errorMessage = it.message }
-
-            isLoading = false
+            _uiState.value = if (summaryResult.isSuccess && lessonsResult.isSuccess) {
+                _uiState.value.copy(
+                    summary = summaryResult.getOrNull(),
+                    lessonProgresses = lessonsResult.getOrNull() ?: emptyList(),
+                    isLoading = false
+                )
+            } else {
+                _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = summaryResult.exceptionOrNull()?.message
+                        ?: lessonsResult.exceptionOrNull()?.message
+                        ?: "Cannot load progress"
+                )
+            }
         }
+    }
+
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(errorMessage = null)
     }
 }

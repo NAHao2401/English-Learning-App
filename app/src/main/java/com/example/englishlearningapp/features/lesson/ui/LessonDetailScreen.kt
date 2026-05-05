@@ -106,12 +106,22 @@ fun LessonDetailScreen(
             }
         }
 
+        val canSubmit = questions.isNotEmpty() &&
+                selectedAnswers.size == questions.size &&
+                !isLoading
+
         Button(
             onClick = onSubmitClick,
             modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading && questions.isNotEmpty()
+            enabled = canSubmit
         ) {
-            Text("Check")
+            Text(
+                text = if (selectedAnswers.size < questions.size) {
+                    "Answer all questions"
+                } else {
+                    "Check"
+                }
+            )
         }
     }
 }

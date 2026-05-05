@@ -1,119 +1,191 @@
 package com.example.englishlearningapp.features.lesson.viewmodel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.englishlearningapp.data.remote.api.response.LessonResponse
-import com.example.englishlearningapp.data.remote.api.response.QuestionResponse
-import com.example.englishlearningapp.data.remote.api.response.SubmitLessonResponse
-import com.example.englishlearningapp.data.remote.api.response.TopicResponse
 import com.example.englishlearningapp.data.repository.LessonRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class LessonViewModel : ViewModel() {
 
     private val repository = LessonRepository()
 
-    var topics by mutableStateOf<List<TopicResponse>>(emptyList())
-        private set
-
-    var lessons by mutableStateOf<List<LessonResponse>>(emptyList())
-        private set
-
-    var questions by mutableStateOf<List<QuestionResponse>>(emptyList())
-        private set
-
-    var selectedAnswers by mutableStateOf<Map<Int, String>>(emptyMap())
-        private set
-
-    var submitResult by mutableStateOf<SubmitLessonResponse?>(null)
-        private set
-
-    var isLoading by mutableStateOf(false)
-        private set
-
-    var errorMessage by mutableStateOf<String?>(null)
-        private set
+    private val _uiState = MutableStateFlow(LessonUiState())
+    val uiState: StateFlow<LessonUiState> = _uiState.asStateFlow()
 
     fun loadTopics() {
         viewModelScope.launch {
-            isLoading = true
-            errorMessage = null
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                errorMessage = null
+            )
 
             val result = repository.getTopics()
 
-            result
-                .onSuccess { topics = it }
-                .onFailure { errorMessage = it.message }
-
-            isLoading = false
+            _uiState.value = result.fold(
+                onSuccess = { topics ->
+                    _uiState.value.copy(
+                        topics = topics,
+                        isLoading = false
+                    )
+                },
+                onFailure = { error ->
+                    _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = error.message
+                    )
+                }
+            )
         }
     }
 
     fun loadLessonsByTopic(topicId: Int) {
         viewModelScope.launch {
-            isLoading = true
-            errorMessage = null
-            lessons = emptyList()
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                errorMessage = null,
+                lessons = emptyList()
+            )
 
-            val result = repository.getLessonsByTopic(topicId)
+            val result = repository.getLessons(
+                topicId = topicId,
+                page = 1,
+                limit = 20
+            )
 
-            result
-                .onSuccess { lessons = it }
-                .onFailure { errorMessage = it.message }
+            _uiState.value = result.fold(
+                onSuccess = { lessons ->
+                    _uiState.value.copy(
+                        lessons = lessons,
+                        isLoading = false
+                    )
+                },
+                onFailure = { error ->
+                    _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = error.message
+                    )
+                }
+            )
+        }
+    }
 
-            isLoading = false
+    fun loadLessonDetail(lessonId: Int) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                errorMessage = null,
+                selectedLesson = null
+            )
+
+            val result = repository.getLessonDetail(lessonId)
+
+            _uiState.value = result.fold(
+                onSuccess = { lesson ->
+                    _uiState.value.copy(
+                        selectedLesson = lesson,
+                        isLoading = false
+                    )
+                },
+                onFailure = { error ->
+                    _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = error.message
+                    )
+                }
+            )
         }
     }
 
     fun loadQuestions(lessonId: Int) {
         viewModelScope.launch {
-            isLoading = true
-            errorMessage = null
-            questions = emptyList()
-            selectedAnswers = emptyMap()
-            submitResult = null
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                errorMessage = null,
+                questions = emptyList(),
+                selectedAnswers = emptyMap(),
+                submitResult = null
+            )
 
             val result = repository.getLessonQuestions(lessonId)
 
-            result
-                .onSuccess { questions = it }
-                .onFailure { errorMessage = it.message }
-
-            isLoading = false
+            _uiState.value = result.fold(
+                onSuccess = { questions ->
+                    _uiState.value.copy(
+                        questions = questions,
+                        isLoading = false
+                    )
+                },
+                onFailure = { error ->
+                    _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = error.message
+                    )
+                }
+            )
         }
     }
 
     fun selectAnswer(questionId: Int, answer: String) {
-        selectedAnswers = selectedAnswers + (questionId to answer)
+        _uiState.value = _uiState.value.copy(
+            selectedAnswers = _uiState.value.selectedAnswers + (questionId to answer)
+        )
     }
 
-    fun submitLesson(lessonId: Int, onSuccess: () -> Unit) {
+    fun submitLesson(
+        lessonId: Int,
+        onSuccess: () -> Unit
+    ) {
+        val state = _uiState.value
+
+        if (state.questions.isNotEmpty() &&
+            state.selectedAnswers.size < state.questions.size
+        ) {
+            _uiState.value = state.copy(
+                errorMessage = "Please answer all questions before submitting"
+            )
+            return
+        }
+
         viewModelScope.launch {
-            isLoading = true
-            errorMessage = null
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                errorMessage = null
+            )
 
             val result = repository.submitLesson(
                 lessonId = lessonId,
-                answers = selectedAnswers
+                answers = _uiState.value.selectedAnswers
             )
 
-            result
-                .onSuccess {
-                    submitResult = it
-                    onSuccess()
+            _uiState.value = result.fold(
+                onSuccess = { submitResult ->
+                    _uiState.value.copy(
+                        submitResult = submitResult,
+                        isLoading = false
+                    )
+                },
+                onFailure = { error ->
+                    _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = error.message
+                    )
                 }
-                .onFailure {
-                    errorMessage = it.message
-                }
+            )
 
-            isLoading = false
+            if (result.isSuccess) {
+                onSuccess()
+            }
         }
     }
 
     fun clearError() {
-        errorMessage = null
+        _uiState.value = _uiState.value.copy(errorMessage = null)
+    }
+
+    fun clearLessonState() {
+        _uiState.value = LessonUiState()
     }
 }

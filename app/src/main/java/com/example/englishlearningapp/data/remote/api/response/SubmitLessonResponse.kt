@@ -8,5 +8,7 @@ data class SubmitLessonResponse(
     val score: Int,
     val xp_earned: Int,
     val completion_percent: Int,
-    val passed: Boolean
+    val passed: Boolean,
+    val streak_count: Int,
+    val message: String
 )
