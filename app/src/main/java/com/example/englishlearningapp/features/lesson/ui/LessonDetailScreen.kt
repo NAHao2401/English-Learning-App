@@ -587,7 +587,7 @@ private fun BottomActionBar(
             ) {
                 OutlinedButton(
                     onClick = {},
-                    enabled = false,
+                    enabled = true,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(18.dp),
                     contentPadding = PaddingValues(vertical = 14.dp)
