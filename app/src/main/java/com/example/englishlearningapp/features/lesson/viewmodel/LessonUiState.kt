@@ -12,6 +12,10 @@ data class LessonUiState(
     val questions: List<QuestionResponse> = emptyList(),
     val selectedAnswers: Map<Int, String> = emptyMap(),
     val submitResult: SubmitLessonResponse? = null,
+
+    val backendCompletionPercent: Int = 0,
+    val isSavingAnswer: Boolean = false,
+
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 )

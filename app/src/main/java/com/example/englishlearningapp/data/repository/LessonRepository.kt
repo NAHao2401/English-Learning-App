@@ -2,10 +2,10 @@ package com.example.englishlearningapp.data.repository
 
 import com.example.englishlearningapp.core.util.ErrorParser
 import com.example.englishlearningapp.data.remote.api.RetrofitClient
-import com.example.englishlearningapp.data.remote.api.request.SubmitAnswerRequest
-import com.example.englishlearningapp.data.remote.api.request.SubmitLessonRequest
+import com.example.englishlearningapp.data.remote.api.request.SaveAnswerRequest
 import com.example.englishlearningapp.data.remote.api.response.LessonResponse
 import com.example.englishlearningapp.data.remote.api.response.QuestionResponse
+import com.example.englishlearningapp.data.remote.api.response.SaveAnswerResponse
 import com.example.englishlearningapp.data.remote.api.response.SubmitLessonResponse
 import com.example.englishlearningapp.data.remote.api.response.TopicResponse
 
@@ -24,7 +24,6 @@ class LessonRepository {
                     errorBody = response.errorBody()?.string(),
                     fallbackMessage = "Cannot load topics"
                 )
-
                 Result.failure(Exception(message))
             }
         } catch (e: Exception) {
@@ -53,7 +52,6 @@ class LessonRepository {
                     errorBody = response.errorBody()?.string(),
                     fallbackMessage = "Cannot load lessons"
                 )
-
                 Result.failure(Exception(message))
             }
         } catch (e: Exception) {
@@ -78,7 +76,6 @@ class LessonRepository {
                     errorBody = response.errorBody()?.string(),
                     fallbackMessage = "Cannot load lesson detail"
                 )
-
                 Result.failure(Exception(message))
             }
         } catch (e: Exception) {
@@ -97,7 +94,40 @@ class LessonRepository {
                     errorBody = response.errorBody()?.string(),
                     fallbackMessage = "Cannot load questions"
                 )
+                Result.failure(Exception(message))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception(e.message ?: "Network error"))
+        }
+    }
 
+    suspend fun saveAnswer(
+        lessonId: Int,
+        questionId: Int,
+        answer: String
+    ): Result<SaveAnswerResponse> {
+        return try {
+            val response = lessonApi.saveAnswer(
+                lessonId = lessonId,
+                request = SaveAnswerRequest(
+                    question_id = questionId,
+                    answer = answer
+                )
+            )
+
+            if (response.isSuccessful) {
+                val body = response.body()
+
+                if (body != null) {
+                    Result.success(body)
+                } else {
+                    Result.failure(Exception("Save answer response body is null"))
+                }
+            } else {
+                val message = ErrorParser.parse(
+                    errorBody = response.errorBody()?.string(),
+                    fallbackMessage = "Cannot save answer"
+                )
                 Result.failure(Exception(message))
             }
         } catch (e: Exception) {
@@ -106,20 +136,10 @@ class LessonRepository {
     }
 
     suspend fun submitLesson(
-        lessonId: Int,
-        answers: Map<Int, String>
+        lessonId: Int
     ): Result<SubmitLessonResponse> {
         return try {
-            val request = SubmitLessonRequest(
-                answers = answers.map { entry ->
-                    SubmitAnswerRequest(
-                        question_id = entry.key,
-                        answer = entry.value
-                    )
-                }
-            )
-
-            val response = lessonApi.submitLesson(lessonId, request)
+            val response = lessonApi.submitLesson(lessonId)
 
             if (response.isSuccessful) {
                 val body = response.body()
@@ -134,7 +154,6 @@ class LessonRepository {
                     errorBody = response.errorBody()?.string(),
                     fallbackMessage = "Cannot submit lesson"
                 )
-
                 Result.failure(Exception(message))
             }
         } catch (e: Exception) {

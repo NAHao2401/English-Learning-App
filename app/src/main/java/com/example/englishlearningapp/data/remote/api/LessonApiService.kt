@@ -1,9 +1,10 @@
 package com.example.englishlearningapp.data.remote.api
 
-import com.example.englishlearningapp.data.remote.api.request.SubmitLessonRequest
+import com.example.englishlearningapp.data.remote.api.request.SaveAnswerRequest
 import com.example.englishlearningapp.data.remote.api.response.LessonResponse
 import com.example.englishlearningapp.data.remote.api.response.PaginatedResponse
 import com.example.englishlearningapp.data.remote.api.response.QuestionResponse
+import com.example.englishlearningapp.data.remote.api.response.SaveAnswerResponse
 import com.example.englishlearningapp.data.remote.api.response.SubmitLessonResponse
 import com.example.englishlearningapp.data.remote.api.response.TopicResponse
 import retrofit2.Response
@@ -36,9 +37,14 @@ interface LessonApiService {
         @Path("lessonId") lessonId: Int
     ): Response<List<QuestionResponse>>
 
+    @POST("lessons/{lessonId}/answers")
+    suspend fun saveAnswer(
+        @Path("lessonId") lessonId: Int,
+        @Body request: SaveAnswerRequest
+    ): Response<SaveAnswerResponse>
+
     @POST("lessons/{lessonId}/submit")
     suspend fun submitLesson(
-        @Path("lessonId") lessonId: Int,
-        @Body request: SubmitLessonRequest
+        @Path("lessonId") lessonId: Int
     ): Response<SubmitLessonResponse>
 }
