@@ -3,6 +3,8 @@ package com.example.englishlearningapp.features.lesson.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.englishlearningapp.data.repository.LessonRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,6 +16,8 @@ class LessonViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(LessonUiState())
     val uiState: StateFlow<LessonUiState> = _uiState.asStateFlow()
+
+    private val saveAnswerJobs = mutableMapOf<Int, Job>()
 
     fun loadTopics() {
         viewModelScope.launch {
@@ -86,6 +90,7 @@ class LessonViewModel : ViewModel() {
                 onSuccess = { lesson ->
                     _uiState.value.copy(
                         selectedLesson = lesson,
+                        backendCompletionPercent = lesson.completion_percent,
                         isLoading = false
                     )
                 },
@@ -128,10 +133,72 @@ class LessonViewModel : ViewModel() {
         }
     }
 
-    fun selectAnswer(questionId: Int, answer: String) {
+    fun selectAnswer(
+        lessonId: Int,
+        questionId: Int,
+        answer: String
+    ) {
         _uiState.value = _uiState.value.copy(
-            selectedAnswers = _uiState.value.selectedAnswers + (questionId to answer)
+            selectedAnswers = _uiState.value.selectedAnswers + (questionId to answer),
+            errorMessage = null
         )
+
+        saveAnswerJobs[questionId]?.cancel()
+
+        saveAnswerJobs[questionId] = viewModelScope.launch {
+            delay(500)
+
+            val trimmedAnswer = answer.trim()
+
+            if (trimmedAnswer.isBlank()) {
+                return@launch
+            }
+
+            _uiState.value = _uiState.value.copy(isSavingAnswer = true)
+
+            val result = repository.saveAnswer(
+                lessonId = lessonId,
+                questionId = questionId,
+                answer = trimmedAnswer
+            )
+
+            _uiState.value = result.fold(
+                onSuccess = { saveResult ->
+                    _uiState.value.copy(
+                        backendCompletionPercent = saveResult.completion_percent,
+                        isSavingAnswer = false,
+                        errorMessage = null
+                    )
+                },
+                onFailure = { error ->
+                    _uiState.value.copy(
+                        isSavingAnswer = false,
+                        errorMessage = error.message
+                    )
+                }
+            )
+        }
+    }
+
+    private suspend fun syncAllAnswersBeforeSubmit(
+        lessonId: Int,
+        answers: Map<Int, String>
+    ): Result<Unit> {
+        for ((questionId, answer) in answers) {
+            val result = repository.saveAnswer(
+                lessonId = lessonId,
+                questionId = questionId,
+                answer = answer
+            )
+
+            if (result.isFailure) {
+                return Result.failure(
+                    result.exceptionOrNull() ?: Exception("Cannot save answers")
+                )
+            }
+        }
+
+        return Result.success(Unit)
     }
 
     fun submitLesson(
@@ -144,7 +211,7 @@ class LessonViewModel : ViewModel() {
             state.selectedAnswers.size < state.questions.size
         ) {
             _uiState.value = state.copy(
-                errorMessage = "Please answer all questions before submitting"
+                errorMessage = "Please answer all questions before completing the lesson"
             )
             return
         }
@@ -155,15 +222,29 @@ class LessonViewModel : ViewModel() {
                 errorMessage = null
             )
 
-            val result = repository.submitLesson(
+            val syncResult = syncAllAnswersBeforeSubmit(
                 lessonId = lessonId,
-                answers = _uiState.value.selectedAnswers
+                answers = state.selectedAnswers
+            )
+
+            if (syncResult.isFailure) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = syncResult.exceptionOrNull()?.message
+                        ?: "Cannot save answers before submitting lesson"
+                )
+                return@launch
+            }
+
+            val result = repository.submitLesson(
+                lessonId = lessonId
             )
 
             _uiState.value = result.fold(
                 onSuccess = { submitResult ->
                     _uiState.value.copy(
                         submitResult = submitResult,
+                        backendCompletionPercent = submitResult.completion_percent,
                         isLoading = false
                     )
                 },

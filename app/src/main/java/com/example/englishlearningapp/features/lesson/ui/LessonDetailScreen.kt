@@ -69,6 +69,7 @@ fun LessonDetailScreen(
     questions: List<QuestionResponse>,
     selectedAnswers: Map<Int, String>,
     isLoading: Boolean,
+    isSavingAnswer: Boolean,
     errorMessage: String?,
     onSelectAnswer: (Int, String) -> Unit,
     onSubmitClick: () -> Unit,
@@ -133,6 +134,7 @@ fun LessonDetailScreen(
                 answeredCount = answeredCount,
                 totalQuestions = totalQuestions,
                 isLoading = isLoading,
+                isSavingAnswer = isSavingAnswer,
                 onSubmitClick = onSubmitClick
             )
         }
@@ -543,9 +545,10 @@ private fun BottomActionBar(
     answeredCount: Int,
     totalQuestions: Int,
     isLoading: Boolean,
+    isSavingAnswer: Boolean,
     onSubmitClick: () -> Unit
 ) {
-    val hasAnyAnswer = answeredCount > 0
+    val allAnswered = totalQuestions > 0 && answeredCount == totalQuestions
 
     Surface(
         tonalElevation = 8.dp,
@@ -569,10 +572,10 @@ private fun BottomActionBar(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = if (answeredCount == totalQuestions && totalQuestions > 0) {
-                    "You've answered all questions. Submit your lesson now."
-                } else {
-                    "You can continue answering before submitting."
+                text = when {
+                    isSavingAnswer -> "Saving your answer..."
+                    allAnswered -> "You've answered all questions. Complete your lesson now."
+                    else -> "Your answers are saved as you go."
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = Color(0xFF7B778C),
@@ -582,44 +585,26 @@ private fun BottomActionBar(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            Button(
+                onClick = onSubmitClick,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = allAnswered && !isLoading && !isSavingAnswer,
+                shape = RoundedCornerShape(18.dp),
+                contentPadding = PaddingValues(vertical = 14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF7B61FF),
+                    contentColor = Color.White
+                )
             ) {
-                OutlinedButton(
-                    onClick = {},
-                    enabled = true,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(18.dp),
-                    contentPadding = PaddingValues(vertical = 14.dp)
-                ) {
-                    Text("Draft")
-                }
-
-                Button(
-                    onClick = onSubmitClick,
-                    modifier = Modifier.weight(1f),
-                    enabled = hasAnyAnswer && !isLoading,
-                    shape = RoundedCornerShape(18.dp),
-                    contentPadding = PaddingValues(vertical = 14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF7B61FF),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(
-                        text = if (answeredCount == totalQuestions && totalQuestions > 0) {
-                            "Complete lesson"
-                        } else {
-                            "Submit current answers"
-                        },
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                        contentDescription = null
-                    )
-                }
+                Text(
+                    text = "Complete lesson",
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                    contentDescription = null
+                )
             }
         }
     }

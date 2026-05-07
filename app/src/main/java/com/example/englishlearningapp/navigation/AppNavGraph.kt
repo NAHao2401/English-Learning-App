@@ -44,7 +44,6 @@ fun AppNavGraph(
     val appDataStore = AppDataStore(context.applicationContext)
     val userName by appDataStore.userName.collectAsState(initial = "Learner")
 
-    val authUiState by authViewModel.uiState.collectAsState()
     val lessonUiState by lessonViewModel.uiState.collectAsState()
     val progressUiState by progressViewModel.uiState.collectAsState()
 
@@ -180,9 +179,14 @@ fun AppNavGraph(
                 questions = lessonUiState.questions,
                 selectedAnswers = lessonUiState.selectedAnswers,
                 isLoading = lessonUiState.isLoading,
+                isSavingAnswer = lessonUiState.isSavingAnswer,
                 errorMessage = lessonUiState.errorMessage,
                 onSelectAnswer = { questionId, answer ->
-                    lessonViewModel.selectAnswer(questionId, answer)
+                    lessonViewModel.selectAnswer(
+                        lessonId = lessonId,
+                        questionId = questionId,
+                        answer = answer
+                    )
                 },
                 onSubmitClick = {
                     lessonViewModel.submitLesson(
