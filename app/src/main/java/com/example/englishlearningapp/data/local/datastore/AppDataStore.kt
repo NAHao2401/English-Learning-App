@@ -37,7 +37,9 @@ class AppDataStore(private val context: Context) {
     }
 
     val isLoggedIn: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[AppPreferences.IS_LOGGED_IN] ?: false
+        val loggedIn = preferences[AppPreferences.IS_LOGGED_IN] ?: false
+        val token = preferences[AppPreferences.ACCESS_TOKEN].orEmpty()
+        loggedIn && token.isNotBlank()
     }
 
     val isDarkMode: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -121,14 +123,19 @@ class AppDataStore(private val context: Context) {
         }
     }
 
-    suspend fun logout() {
+    suspend fun clearAuthSession() {
         context.dataStore.edit { preferences ->
             preferences.remove(AppPreferences.USER_ID)
             preferences.remove(AppPreferences.USER_NAME)
             preferences.remove(AppPreferences.USER_EMAIL)
             preferences.remove(AppPreferences.ACCESS_TOKEN)
+            preferences.remove(AppPreferences.REFRESH_TOKEN)
             preferences.remove(AppPreferences.TOKEN_TYPE)
             preferences[AppPreferences.IS_LOGGED_IN] = false
         }
+    }
+
+    suspend fun logout() {
+        clearAuthSession()
     }
 }

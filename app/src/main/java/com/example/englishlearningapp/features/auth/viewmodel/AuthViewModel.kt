@@ -2,6 +2,7 @@ package com.example.englishlearningapp.features.auth.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.englishlearningapp.data.local.datastore.AppDataStore
 import com.example.englishlearningapp.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,6 +59,14 @@ class AuthViewModel @Inject constructor(
             } else {
                 AuthUiState(errorMessage = result.exceptionOrNull()?.message ?: "Register failed")
             }
+        }
+    }
+
+    fun logout(onLoggedOut: () -> Unit = {}) {
+        viewModelScope.launch {
+            repository.logout()
+            _uiState.value = AuthUiState()
+            onLoggedOut()
         }
     }
 

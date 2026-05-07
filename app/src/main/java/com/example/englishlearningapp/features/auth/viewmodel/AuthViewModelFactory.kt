@@ -1,5 +1,6 @@
 package com.example.englishlearningapp.features.auth.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 
@@ -10,7 +11,7 @@ import androidx.lifecycle.ViewModelProvider
  * Kept for backward compatibility / to avoid breaking imports in other files.
  */
 @Deprecated("Use Hilt dependency injection instead")
-class AuthViewModelFactory : ViewModelProvider.Factory {
+class AuthViewModelFactory(applicationContext: Context) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
