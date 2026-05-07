@@ -43,6 +43,9 @@ class VocabViewModel @Inject constructor(
     private val _difficultyFilter = MutableStateFlow<String?>(null)
     private val _vocabCountByLevel = MutableStateFlow<Map<String, Int>>(emptyMap())
     private val _currentUser = MutableStateFlow<UserEntity?>(null)
+    private val _currentLevelVocabs = MutableStateFlow<List<VocabularyEntity>>(emptyList())
+    private val _levelVocabularyError = MutableStateFlow<String?>(null)
+    private val _isLoadingLevelVocabs = MutableStateFlow(false)
 
     val topics: StateFlow<List<TopicWithCount>> = repository.getTopicsWithWordCount()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -50,6 +53,12 @@ class VocabViewModel @Inject constructor(
     val vocabCountByLevel: StateFlow<Map<String, Int>> = _vocabCountByLevel.asStateFlow()
 
     val currentUser: StateFlow<UserEntity?> = _currentUser.asStateFlow()
+
+    val currentLevelVocabs: StateFlow<List<VocabularyEntity>> = _currentLevelVocabs.asStateFlow()
+
+    val levelVocabularyError: StateFlow<String?> = _levelVocabularyError.asStateFlow()
+
+    val isLoadingLevelVocabs: StateFlow<Boolean> = _isLoadingLevelVocabs.asStateFlow()
 
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
@@ -138,6 +147,22 @@ class VocabViewModel @Inject constructor(
 
     fun updateSearch(query: String) {
         _searchQuery.value = query
+    }
+
+    fun loadVocabsByLevel(level: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isLoadingLevelVocabs.value = true
+            _levelVocabularyError.value = null
+            try {
+                val result = repository.getVocabsByLevel(level)
+                _currentLevelVocabs.value = result.getOrElse {
+                    _levelVocabularyError.value = it.message ?: "Không thể tải từ vựng theo level"
+                    emptyList()
+                }
+            } finally {
+                _isLoadingLevelVocabs.value = false
+            }
+        }
     }
 
     fun toggleSave(vocabId: Int, currentlySaved: Boolean) {

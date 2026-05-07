@@ -85,6 +85,7 @@ private const val REVIEW_DUE_COUNT = 2
 
 data class CefrLevel(
     val id: Int,
+    val levelCode: String,
     val badge: String,
     val name: String,
     val wordCount: Int,
@@ -166,6 +167,7 @@ fun VocabScreen(
                 )
             }
 
+            // Tạm thời tắt các section gây lag để kiểm tra hiệu năng
             item(key = "cefr_section") {
                 CefrSection(
                     navController = navController,
@@ -396,38 +398,48 @@ private fun CefrSection(
     val vocabCountByLevel by viewModel.vocabCountByLevel.collectAsState()
     val cefrLevels = remember(vocabCountByLevel) {
         listOf(
-            CefrLevel(0, "Pre\nBeginner", "A0 - Từ Vựng Cho\nNgười Mất Gốc", vocabCountByLevel["A0"] ?: 0, 0, null),
-            CefrLevel(1, "Beginner", "Cấp độ A1", vocabCountByLevel["A1"] ?: 0, 0, null),
-            CefrLevel(2, "Elementary", "Cấp độ A2", vocabCountByLevel["A2"] ?: 0, 0, null),
-            CefrLevel(3, "Intermediate", "Cấp độ B1", vocabCountByLevel["B1"] ?: 0, 0, null),
-            CefrLevel(4, "Upper Int.", "Cấp độ B2", vocabCountByLevel["B2"] ?: 0, 0, null),
-            CefrLevel(5, "Advanced", "Cấp độ C1", vocabCountByLevel["C1"] ?: 0, 0, null),
-            CefrLevel(6, "Mastery", "Cấp độ C2", vocabCountByLevel["C2"] ?: 0, 0, null)
+            CefrLevel(0, "A0", "Pre\nBeginner", "A0 - Từ Vựng Cho\nNgười Mất Gốc", vocabCountByLevel["A0"] ?: 0, 0, null),
+            CefrLevel(1, "A1", "Beginner", "Cấp độ A1", vocabCountByLevel["A1"] ?: 0, 0, null),
+            CefrLevel(2, "A2", "Elementary", "Cấp độ A2", vocabCountByLevel["A2"] ?: 0, 0, null),
+            CefrLevel(3, "B1", "Intermediate", "Cấp độ B1", vocabCountByLevel["B1"] ?: 0, 0, null),
+            CefrLevel(4, "B2", "Upper Int.", "Cấp độ B2", vocabCountByLevel["B2"] ?: 0, 0, null),
+            CefrLevel(5, "C1", "Advanced", "Cấp độ C1", vocabCountByLevel["C1"] ?: 0, 0, null),
+            CefrLevel(6, "C2", "Mastery", "Cấp độ C2", vocabCountByLevel["C2"] ?: 0, 0, null)
         )
+    }
+    val onHeaderClick = remember {
+        {
+            navController.navigateSafely("cefr_list") {
+                Toast.makeText(context, "Danh mục CEFR chưa sẵn sàng", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionHeader(
             title = "Từ vựng CEFR",
             subtitle = "${cefrLevels.size} thư mục",
-            onClick = {
-                navController.navigateSafely("cefr_list") {
-                    Toast.makeText(context, "Danh mục CEFR chưa sẵn sàng", Toast.LENGTH_SHORT).show()
-                }
-            }
+            onClick = onHeaderClick
         )
 
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = 0.dp)
+        ) {
             items(
                 items = cefrLevels,
                 key = { it.id },
                 contentType = { "cefr" }
             ) { level ->
-                CefrLevelCard(level = level) {
-                    navController.navigateSafely("topic_detail/${level.id}?isCefr=true") {
-                        Toast.makeText(context, "Chi tiết CEFR chưa sẵn sàng", Toast.LENGTH_SHORT).show()
+                val onCardClick = remember(level.levelCode) {
+                    {
+                        navController.navigateSafely(Screen.CefrLevelDetail.createRoute(level.levelCode)) {
+                            Toast.makeText(context, "Chi tiết CEFR chưa sẵn sàng", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
+                CefrLevelCard(level = level, onClick = onCardClick)
             }
         }
     }
@@ -442,30 +454,40 @@ private fun TopicSection(
 ) {
     var displayedTopicCount by remember { mutableStateOf(8) }
     val paginatedTopics = remember(topics, displayedTopicCount) { topics.take(displayedTopicCount) }
-    val scrollState = rememberScrollState()
+    val onHeaderClick = remember {
+        {
+            navController.navigateSafely("topics") {
+                Toast.makeText(context, "Danh mục chủ đề chưa sẵn sàng", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionHeader(
             title = "Từ vựng theo chủ đề",
             subtitle = "${topics.size} thư mục",
-            onClick = {
-                navController.navigateSafely("topics") {
-                    Toast.makeText(context, "Danh mục chủ đề chưa sẵn sàng", Toast.LENGTH_SHORT).show()
-                }
-            }
+            onClick = onHeaderClick
         )
 
-        Row(
-            modifier = Modifier.horizontalScroll(scrollState),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = 0.dp)
         ) {
-            paginatedTopics.forEach { topicWithCount ->
-                TopicCard(topicWithCount = topicWithCount) {
-                    viewModel.selectTopic(topicWithCount.topic.id)
-                    navController.navigateSafely("topic_detail/${topicWithCount.topic.id}") {
-                        Toast.makeText(context, "Chi tiết chủ đề chưa sẵn sàng", Toast.LENGTH_SHORT).show()
+            items(
+                items = paginatedTopics,
+                key = { it.topic.id },
+                contentType = { "topic" }
+            ) { topicWithCount ->
+                val onCardClick = remember(topicWithCount.topic.id) {
+                    {
+                        viewModel.selectTopic(topicWithCount.topic.id)
+                        navController.navigateSafely("topic_detail/${topicWithCount.topic.id}") {
+                            Toast.makeText(context, "Chi tiết chủ đề chưa sẵn sàng", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
+                TopicCard(topicWithCount = topicWithCount, onClick = onCardClick)
             }
         }
 

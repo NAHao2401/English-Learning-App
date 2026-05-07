@@ -1,5 +1,6 @@
 package com.example.englishlearningapp.data.repository
 
+import com.example.englishlearningapp.data.remote.api.RetrofitClient
 import com.example.englishlearningapp.data.local.db.dao.TopicDao
 import com.example.englishlearningapp.data.local.db.dao.UserVocabularyDao
 import com.example.englishlearningapp.data.local.db.dao.VocabularyDao
@@ -7,6 +8,7 @@ import com.example.englishlearningapp.data.local.db.entity.TopicEntity
 import com.example.englishlearningapp.data.local.db.entity.TopicWithCount
 import com.example.englishlearningapp.data.local.db.entity.UserVocabularyEntity
 import com.example.englishlearningapp.data.local.db.entity.VocabularyEntity
+import com.example.englishlearningapp.data.remote.api.response.VocabularyResponse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -53,6 +55,15 @@ class VocabRepository @Inject constructor(
 		return vocabularyDao.getVocabulariesByIds(ids)
 	}
 
+	suspend fun getVocabsByLevel(level: String): Result<List<VocabularyEntity>> {
+		return try {
+			val response = RetrofitClient.vocabApiService.getAllVocabularies(level)
+			Result.success(response.map { it.toEntity() })
+		} catch (e: Exception) {
+			Result.failure(Exception(e.message ?: "Network error"))
+		}
+	}
+
 	suspend fun toggleSave(userId: Int, vocabId: Int, save: Boolean) {
 		val existing = userVocabularyDao.getUserVocabulary(userId, vocabId)
 		val entity = if (existing != null) {
@@ -69,5 +80,18 @@ class VocabRepository @Inject constructor(
 
 	suspend fun isSaved(userId: Int, vocabId: Int): Boolean {
 		return userVocabularyDao.getUserVocabulary(userId, vocabId)?.isSaved ?: false
+	}
+
+	private fun VocabularyResponse.toEntity(): VocabularyEntity {
+		return VocabularyEntity(
+			id = id,
+			topicId = topicId,
+			word = word,
+			meaning = meaning,
+			pronunciation = pronunciation,
+			exampleSentence = exampleSentence,
+			audioUrl = audioUrl,
+			difficulty = difficulty
+		)
 	}
 }

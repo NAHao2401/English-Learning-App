@@ -15,6 +15,8 @@ import com.example.englishlearningapp.features.profile.ui.ProfileScreen
 import com.example.englishlearningapp.features.scan.ui.ScanScreen
 import com.example.englishlearningapp.features.vocab.ui.ReviewScreen
 import com.example.englishlearningapp.features.vocab.ui.SavedVocabScreen
+import com.example.englishlearningapp.features.vocab.ui.CefrDetailScreen
+import com.example.englishlearningapp.features.vocab.ui.CefrLevelDetailScreen
 import com.example.englishlearningapp.features.vocab.ui.VocabScreen
 import com.example.englishlearningapp.features.lesson.ui.TopicListScreen
 import com.example.englishlearningapp.features.lesson.ui.LessonListScreen
@@ -37,6 +39,12 @@ sealed class Screen(val route: String) {
     object SavedVocab : Screen("saved_vocab")
     object Review : Screen("review")
     object TopicDetail : Screen("topic_detail/{topicId}")
+    object CefrDetail : Screen("cefr_detail/{level}") {
+        fun createRoute(level: String): String = "cefr_detail/$level"
+    }
+    object CefrLevelDetail : Screen("cefr_level_detail/{level}") {
+        fun createRoute(level: String): String = "cefr_level_detail/$level"
+    }
     object UserTopicDetail : Screen("user_topic_detail/{userTopicId}")
     object Flashcard : Screen("flashcard/{topicId}")
     object Profile : Screen("profile")
@@ -148,6 +156,28 @@ fun AppNavHost(
             )
         }
         composable(Screen.Profile.route) { ProfileScreen() }
+
+        composable(
+            route = Screen.CefrDetail.route,
+            arguments = listOf(navArgument("level") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val level = backStackEntry.arguments?.getString("level") ?: return@composable
+            CefrDetailScreen(
+                navController = navController,
+                level = level
+            )
+        }
+
+        composable(
+            route = Screen.CefrLevelDetail.route,
+            arguments = listOf(navArgument("level") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val level = backStackEntry.arguments?.getString("level") ?: return@composable
+            CefrLevelDetailScreen(
+                navController = navController,
+                level = level
+            )
+        }
 
         // --- Lesson Routes ---
         composable(Screen.TopicList.route) {
