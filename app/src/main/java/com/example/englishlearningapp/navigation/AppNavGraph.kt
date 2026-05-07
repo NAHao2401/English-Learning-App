@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.englishlearningapp.core.session.SessionManager
 import com.example.englishlearningapp.data.local.datastore.AppDataStore
+import com.example.englishlearningapp.data.local.db.DatabaseProvider
 import com.example.englishlearningapp.features.auth.ui.LoginScreen
 import com.example.englishlearningapp.features.auth.ui.RegisterScreen
 import com.example.englishlearningapp.features.auth.viewmodel.AuthViewModel
@@ -25,6 +26,9 @@ import com.example.englishlearningapp.features.lesson.ui.TopicListScreen
 import com.example.englishlearningapp.features.lesson.viewmodel.LessonViewModel
 import com.example.englishlearningapp.features.progress.ui.ProgressScreen
 import com.example.englishlearningapp.features.progress.viewmodel.ProgressViewModel
+import com.example.englishlearningapp.features.speaking.ui.SpeakingScreen
+import com.example.englishlearningapp.features.speaking.viewmodel.SpeakingViewModel
+import com.example.englishlearningapp.features.speaking.viewmodel.SpeakingViewModelFactory
 
 @Composable
 fun AppNavGraph(
@@ -40,6 +44,7 @@ fun AppNavGraph(
     val progressViewModel: ProgressViewModel = viewModel()
 
     val appDataStore = AppDataStore(context.applicationContext)
+    val appDatabase = DatabaseProvider.getDatabase(context.applicationContext)
     val userName by appDataStore.userName.collectAsState(initial = "Learner")
 
     val lessonUiState by lessonViewModel.uiState.collectAsState()
@@ -97,6 +102,9 @@ fun AppNavGraph(
                 },
                 onProgressClick = {
                     navController.navigate(Screen.Progress.route)
+                },
+                onSpeakingClick = {
+                    navController.navigate(Screen.Speaking.route)
                 },
                 onContinueLearningClick = {
                     navController.navigate(Screen.TopicList.route)
@@ -229,6 +237,21 @@ fun AppNavGraph(
                 isLoading = progressUiState.isLoading,
                 errorMessage = progressUiState.errorMessage,
                 onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.Speaking.route) {
+            val factory = SpeakingViewModelFactory(
+                context = context.applicationContext,
+                speakingPracticeDao = appDatabase.speakingPracticeDao()
+            )
+            val speakingViewModel: SpeakingViewModel = viewModel(factory = factory)
+
+            SpeakingScreen(
+                viewModel = speakingViewModel,
+                onNavigateBack = {
                     navController.popBackStack()
                 }
             )
