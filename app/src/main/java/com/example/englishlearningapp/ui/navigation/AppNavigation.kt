@@ -1,17 +1,21 @@
 package com.example.englishlearningapp.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import com.example.englishlearningapp.features.auth.ui.LoginScreen
 import com.example.englishlearningapp.features.auth.ui.RegisterScreen
 import com.example.englishlearningapp.features.home.ui.HomeScreen
 import com.example.englishlearningapp.features.learn.ui.LearnScreen
 import com.example.englishlearningapp.features.profile.ui.ProfileScreen
+import com.example.englishlearningapp.features.progress.ui.ProgressScreen
+import com.example.englishlearningapp.features.progress.viewmodel.ProgressViewModel
 import com.example.englishlearningapp.features.scan.ui.ScanScreen
 import com.example.englishlearningapp.features.vocab.ui.ReviewScreen
 import com.example.englishlearningapp.features.vocab.ui.SavedVocabScreen
@@ -26,7 +30,6 @@ import com.example.englishlearningapp.features.lesson.viewmodel.LessonViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import androidx.compose.runtime.LaunchedEffect
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")
@@ -38,6 +41,7 @@ sealed class Screen(val route: String) {
     object UserTopics : Screen("user_topics")
     object SavedVocab : Screen("saved_vocab")
     object Review : Screen("review")
+    object Progress : Screen("progress")
     object TopicDetail : Screen("topic_detail/{topicId}")
     object CefrDetail : Screen("cefr_detail/{level}") {
         fun createRoute(level: String): String = "cefr_detail/$level"
@@ -67,6 +71,8 @@ fun AppNavHost(
 ) {
     val lessonViewModel: LessonViewModel = hiltViewModel()
     val lessonUiState = lessonViewModel.uiState.collectAsState().value
+    val progressViewModel: ProgressViewModel = viewModel()
+    val progressUiState = progressViewModel.uiState.collectAsState().value
 
     NavHost(
         navController = navController,
@@ -110,8 +116,7 @@ fun AppNavHost(
                     navController.navigate(Screen.Vocab.route)
                 },
                 onProgressClick = {
-                    // Navigate to Progress screen (tạo mới nếu cần)
-                    navController.navigate("progress")
+                    navController.navigate(Screen.Progress.route)
                 },
                 onAiScanClick = {
                     navController.navigate(Screen.Scan.route)
@@ -156,6 +161,21 @@ fun AppNavHost(
             )
         }
         composable(Screen.Profile.route) { ProfileScreen() }
+
+        composable(Screen.Progress.route) {
+            LaunchedEffect(Unit) {
+                progressViewModel.loadProgress()
+            }
+
+            ProgressScreen(
+                summary = progressUiState.summary,
+                isLoading = progressUiState.isLoading,
+                errorMessage = progressUiState.errorMessage,
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
 
         composable(
             route = Screen.CefrDetail.route,
@@ -239,9 +259,14 @@ fun AppNavHost(
                 questions = lessonUiState.questions,
                 selectedAnswers = lessonUiState.selectedAnswers,
                 isLoading = lessonUiState.isLoading,
+                isSavingAnswer = lessonUiState.isSavingAnswer,
                 errorMessage = lessonUiState.errorMessage,
                 onSelectAnswer = { questionId, answer ->
-                    lessonViewModel.selectAnswer(questionId, answer)
+                    lessonViewModel.selectAnswer(
+                        lessonId = lessonId,
+                        questionId = questionId,
+                        answer = answer
+                    )
                 },
                 onSubmitClick = {
                     lessonViewModel.submitLesson(

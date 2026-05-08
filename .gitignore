@@ -19,3 +19,5 @@ captures/
 .env.*
 secret.properties
 keystore.properties
+*.md
+.vscode/

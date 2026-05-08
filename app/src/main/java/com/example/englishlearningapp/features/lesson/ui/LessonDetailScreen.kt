@@ -35,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -495,12 +496,27 @@ private fun TextInputAnswerSection(
         onValueChange = onValueChange,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
+        textStyle = MaterialTheme.typography.bodyLarge.copy(
+            color = Color(0xFF242235)
+        ),
         placeholder = {
-            Text("Type your answer here")
+            Text(
+                text = "Type your answer here",
+                color = Color(0xFF7B778C)
+            )
         },
         singleLine = false,
         minLines = 3,
-        maxLines = 5
+        maxLines = 5,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = Color(0xFF242235),
+            unfocusedTextColor = Color(0xFF242235),
+            focusedPlaceholderColor = Color(0xFF7B778C),
+            unfocusedPlaceholderColor = Color(0xFF7B778C),
+            focusedBorderColor = Color(0xFF7B61FF),
+            unfocusedBorderColor = Color(0xFFE7E3F0),
+            cursorColor = Color(0xFF7B61FF)
+        )
     )
 }
 
