@@ -20,8 +20,11 @@ import com.example.englishlearningapp.features.scan.ui.ScanScreen
 import com.example.englishlearningapp.features.vocab.ui.ReviewScreen
 import com.example.englishlearningapp.features.vocab.ui.SavedVocabScreen
 import com.example.englishlearningapp.features.vocab.ui.CefrDetailScreen
+import com.example.englishlearningapp.features.vocab.ui.ReviewQuizScreen
 import com.example.englishlearningapp.features.vocab.ui.CefrLevelDetailScreen
 import com.example.englishlearningapp.features.vocab.ui.VocabScreen
+import com.example.englishlearningapp.features.vocab.ui.LearnedWordsScreen
+import com.example.englishlearningapp.features.vocab.ui.StudyFlashcardSessionScreen
 import com.example.englishlearningapp.features.lesson.ui.TopicListScreen
 import com.example.englishlearningapp.features.lesson.ui.LessonListScreen
 import com.example.englishlearningapp.features.lesson.ui.LessonDetailScreen
@@ -51,6 +54,9 @@ sealed class Screen(val route: String) {
     }
     object UserTopicDetail : Screen("user_topic_detail/{userTopicId}")
     object Flashcard : Screen("flashcard/{topicId}")
+    object StudyFlashcard : Screen("study_flashcard/{topicId}") {
+        fun createRoute(topicId: Int): String = "study_flashcard/$topicId"
+    }
     object Profile : Screen("profile")
     // Lesson routes
     object TopicList : Screen("topics")
@@ -133,6 +139,13 @@ fun AppNavHost(
         composable(Screen.Learn.route) { LearnScreen() }
         composable(Screen.Scan.route) { ScanScreen() }
         composable(Screen.Vocab.route) { VocabScreen(navController = navController) }
+        composable("learned_words") { LearnedWordsScreen(navController = navController, viewModel = hiltViewModel()) }
+        composable("review_quiz") {
+            ReviewQuizScreen(
+                navController = navController,
+                viewModel = hiltViewModel()
+            )
+        }
         composable(Screen.UserTopics.route) { com.example.englishlearningapp.features.usertopic.ui.UserTopicListScreen(navController = navController) }
         composable(Screen.SavedVocab.route) { SavedVocabScreen(navController = navController) }
         composable(Screen.Review.route) { ReviewScreen(navController = navController) }
@@ -157,6 +170,17 @@ fun AppNavHost(
             val topicId = topicIdArg?.toIntOrNull() ?: return@composable
             com.example.englishlearningapp.features.vocab.ui.FlashcardScreen(
                 navController = navController,
+                topicId = topicId
+            )
+        }
+        composable(
+            route = Screen.StudyFlashcard.route,
+            arguments = listOf(navArgument("topicId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val topicId = backStackEntry.arguments?.getInt("topicId") ?: return@composable
+            StudyFlashcardSessionScreen(
+                navController = navController,
+                viewModel = hiltViewModel(),
                 topicId = topicId
             )
         }

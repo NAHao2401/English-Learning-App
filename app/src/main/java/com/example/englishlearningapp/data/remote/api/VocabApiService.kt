@@ -6,6 +6,11 @@ import com.example.englishlearningapp.data.remote.api.response.UserTopicResponse
 import com.example.englishlearningapp.data.remote.api.response.UserTopicCreateRequest
 import com.example.englishlearningapp.data.remote.api.response.SaveVocabularyRequest
 import com.example.englishlearningapp.data.remote.api.response.SavedVocabularyResponse
+import com.example.englishlearningapp.data.remote.api.response.RateVocabRequest
+import com.example.englishlearningapp.data.remote.api.response.TopicStudyResponse
+import com.example.englishlearningapp.data.remote.api.response.UserVocabularyResponse
+import com.example.englishlearningapp.data.remote.api.response.VocabOverviewResponse
+import com.example.englishlearningapp.data.remote.api.response.LearnedVocabListResponse
 import retrofit2.http.GET
 import retrofit2.http.DELETE
 import retrofit2.http.Path
@@ -23,6 +28,12 @@ interface VocabApiService {
 
     @GET("vocabularies/topic/{topic_id}")
     suspend fun getVocabulariesByTopic(@Path("topic_id") topicId: Int): List<VocabularyResponse>
+
+    @GET("vocabularies/progress/topic/{topicId}")
+    suspend fun getTopicProgress(@Path("topicId") topicId: Int): Map<Int, UserVocabularyResponse>
+
+    @GET("vocabularies/progress/topic/{topicId}/study")
+    suspend fun getStudySession(@Path("topicId") topicId: Int): TopicStudyResponse
 
     // User topics (My folders)
     @GET("vocabularies/user-topics")
@@ -42,6 +53,15 @@ interface VocabApiService {
 
     @POST("vocabularies/save")
     suspend fun saveVocabulary(@Body request: SaveVocabularyRequest): SavedVocabularyResponse
+
+    @POST("vocabularies/progress/rate")
+    suspend fun rateVocabulary(@Body request: RateVocabRequest): UserVocabularyResponse
+
+    @GET("vocabularies/overview")
+    suspend fun getVocabOverview(): VocabOverviewResponse
+
+    @GET("vocabularies/learned")
+    suspend fun getLearnedVocabs(): LearnedVocabListResponse
 }
 
 

@@ -25,5 +25,8 @@ data class TopicEntity(
     val level: String? = null,
 
     @ColumnInfo(name = "created_at")
-    val createdAt: Long? = null
+    val createdAt: Long? = null,
+
+    @ColumnInfo(name = "remote_topic_id")
+    val remoteTopicId: Int? = null
 )

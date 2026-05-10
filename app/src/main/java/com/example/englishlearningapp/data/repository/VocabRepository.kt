@@ -9,6 +9,7 @@ import com.example.englishlearningapp.data.local.db.entity.TopicWithCount
 import com.example.englishlearningapp.data.local.db.entity.UserVocabularyEntity
 import com.example.englishlearningapp.data.local.db.entity.VocabularyEntity
 import com.example.englishlearningapp.data.remote.api.response.VocabularyResponse
+import com.example.englishlearningapp.data.remote.api.VocabApiService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -20,6 +21,7 @@ class VocabRepository @Inject constructor(
 	private val vocabularyDao: VocabularyDao,
 	private val userVocabularyDao: UserVocabularyDao,
 	private val topicDao: TopicDao,
+	private val vocabApiService: VocabApiService
 ) {
 
 	fun getTopics(): Flow<List<TopicEntity>> {
@@ -80,6 +82,28 @@ class VocabRepository @Inject constructor(
 
 	suspend fun isSaved(userId: Int, vocabId: Int): Boolean {
 		return userVocabularyDao.getUserVocabulary(userId, vocabId)?.isSaved ?: false
+	}
+
+	suspend fun syncTopicsFromApi(): Result<Unit> {
+		return try {
+			val remoteTopics = vocabApiService.getTopics()
+			val localTopics = topicDao.getAllTopics().firstOrNull() ?: emptyList()
+			
+			// Match local topics with remote topics by name and update with remoteTopicId
+			remoteTopics.forEach { remoteTopic ->
+				val matchingLocalTopic = localTopics.find { 
+					it.name.equals(remoteTopic.name, ignoreCase = true) 
+				}
+				if (matchingLocalTopic != null) {
+					val updatedTopic = matchingLocalTopic.copy(remoteTopicId = remoteTopic.id)
+					topicDao.updateTopic(updatedTopic)
+				}
+			}
+			
+			Result.success(Unit)
+		} catch (e: Exception) {
+			Result.failure(Exception(e.message ?: "Failed to sync topics from API"))
+		}
 	}
 
 	private fun VocabularyResponse.toEntity(): VocabularyEntity {

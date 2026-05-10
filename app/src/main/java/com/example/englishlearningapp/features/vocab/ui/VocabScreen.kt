@@ -3,6 +3,8 @@ package com.example.englishlearningapp.features.vocab.ui
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,10 +47,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -58,12 +62,16 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -71,6 +79,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.englishlearningapp.data.local.db.entity.TopicWithCount
 import com.example.englishlearningapp.data.local.db.entity.UserEntity
+import com.example.englishlearningapp.data.remote.api.response.VocabOverviewResponse
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 import com.example.englishlearningapp.ui.navigation.Screen
 import androidx.core.graphics.toColorInt
@@ -102,6 +111,8 @@ fun VocabScreen(
     val topics by viewModel.topics.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
     val savedVocabs by viewModel.savedVocabs.collectAsState()
+    val vocabOverview by viewModel.vocabOverview.collectAsState()
+    val isLoadingOverview by viewModel.isLoadingOverview.collectAsState()
     val savedIds = remember(savedVocabs) { savedVocabs.map { it.id }.toSet() }
     val levelCounts = remember {
         listOf(
@@ -111,6 +122,10 @@ fun VocabScreen(
             "Thuộc lòng" to 0,
             "Thông thạo" to 5
         )
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadVocabOverview()
     }
 
     Scaffold(
@@ -133,15 +148,16 @@ fun VocabScreen(
 
             item(key = "learning_progress") {
                 LearningProgressCard(
-                    levelCounts = levelCounts,
-                    onLearnedClick = {
+                    overview    = vocabOverview,
+                    isLoading   = isLoadingOverview,
+                    onCardClick = {
                         navController.navigateSafely("learned_words") {
                             Toast.makeText(context, "Danh sách từ đã học chưa sẵn sàng", Toast.LENGTH_SHORT).show()
                         }
                     },
-                    onPracticeClick = {
-                        navController.navigateSafely("flashcard") {
-                            Toast.makeText(context, "Flashcard chưa sẵn sàng", Toast.LENGTH_SHORT).show()
+                    onStudyClick = {
+                        navController.navigateSafely("review_session") {
+                            Toast.makeText(context, "Luyện tập chưa sẵn sàng", Toast.LENGTH_SHORT).show()
                         }
                     }
                 )
@@ -479,10 +495,11 @@ private fun TopicSection(
                 key = { it.topic.id },
                 contentType = { "topic" }
             ) { topicWithCount ->
-                val onCardClick = remember(topicWithCount.topic.id) {
+                val remoteTopicId = topicWithCount.topic.remoteTopicId ?: topicWithCount.topic.id
+                val onCardClick = remember(remoteTopicId) {
                     {
                         viewModel.selectTopic(topicWithCount.topic.id)
-                        navController.navigateSafely("topic_detail/${topicWithCount.topic.id}") {
+                        navController.navigateSafely("topic_detail/$remoteTopicId") {
                             Toast.makeText(context, "Chi tiết chủ đề chưa sẵn sàng", Toast.LENGTH_SHORT).show()
                         }
                     }
@@ -508,72 +525,183 @@ private fun TopicSection(
 
 @Composable
 private fun LearningProgressCard(
-    levelCounts: List<Pair<String, Int>>,
-    onLearnedClick: () -> Unit,
-    onPracticeClick: () -> Unit
+    overview      : VocabOverviewResponse?,
+    isLoading     : Boolean,
+    onCardClick   : () -> Unit,
+    onStudyClick  : () -> Unit
 ) {
+    val learned  = overview?.learnedCount    ?: 0
+    val dueCount = overview?.dueReviewCount  ?: 0
+    val stats    = overview?.masteryStats
+
     Card(
-        colors = CardDefaults.cardColors(containerColor = CardBg),
-        shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth(),
-        onClick = onLearnedClick
+        colors   = CardDefaults.cardColors(containerColor = CardBg),
+        shape    = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "$LEARNED_COUNT từ đã học",
-                    style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                )
+
+            // ── Header row: "N từ đã học" + > arrow ──
+            Row(
+                modifier          = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onCardClick),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (isLoading) {
+                    // Shimmer placeholder
+                    Box(
+                        Modifier
+                            .width(80.dp).height(28.dp)
+                            .background(Color(0xFF3A3A3A), RoundedCornerShape(6.dp))
+                    )
+                } else {
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(SpanStyle(
+                                color      = PrimaryGreen,
+                                fontSize   = 28.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            )) { append("$learned") }
+                            withStyle(SpanStyle(
+                                color    = Color.White,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )) { append(" từ đã học") }
+                        }
+                    )
+                }
                 Spacer(Modifier.weight(1f))
-                Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.Gray)
+                Icon(
+                    Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = Color.Gray,
+                    modifier = Modifier
+                )
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(14.dp))
 
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(
-                    items = levelCounts,
-                    key = { it.first },
-                    contentType = { "progress_ring" }
-                ) { (label, count) ->
-                    CircularProgressRing(label = label, count = count)
+            // ── 5 mastery ring icons ──
+            val masteryData = listOf(
+                Triple(stats?.level1 ?: 0, "Chưa biết",    1),
+                Triple(stats?.level2 ?: 0, "Mới học",      2),
+                Triple(stats?.level3 ?: 0, "Nhớ tạm",      3),
+                Triple(stats?.level4 ?: 0, "Nhớ lâu",      4),
+                Triple(stats?.level5 ?: 0, "Thông thạo",   5),
+            )
+
+            val scrollState = rememberScrollState()
+            Row(
+                modifier              = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(scrollState),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                masteryData.forEach { (count, label, filledSegments) ->
+                    MasteryRingIcon(
+                        count         = count,
+                        label         = label,
+                        filledSegments = filledSegments
+                    )
                 }
             }
 
             Spacer(Modifier.height(16.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("🌻", fontSize = 20.sp)
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    "$REVIEW_DUE_COUNT từ cần luyện tập",
-                    color = OrangeAccent,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 15.sp
-                )
-                Spacer(Modifier.width(4.dp))
-                Icon(Icons.Default.Info, contentDescription = null, tint = OrangeAccent, modifier = Modifier.size(16.dp))
-            }
+            // ── Due review section ──
+            if (dueCount > 0) {
+                // 🌻 "N từ cần luyện tập" orange row
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("🌻", fontSize = 18.sp)
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        "$dueCount từ cần luyện tập",
+                        color      = OrangeAccent,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize   = 14.sp
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Icon(
+                        Icons.Default.Info,
+                        contentDescription = null,
+                        modifier = Modifier.size(15.dp),
+                        tint = OrangeAccent
+                    )
+                }
+                Spacer(Modifier.height(10.dp))
 
-            Spacer(Modifier.height(10.dp))
-
-            Button(
-                onClick = onPracticeClick,
-                colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.WaterDrop, contentDescription = null, tint = Color.White)
-                    Spacer(Modifier.width(8.dp))
-                    Column {
-                        Text("Luyện tập", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        Text("Thẻ ghi nhớ", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
+                // Orange "Luyện tập" button
+                Button(
+                    onClick  = onStudyClick,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    colors   = ButtonDefaults.buttonColors(
+                        containerColor = OrangeAccent
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier          = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.WaterDrop,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Luyện tập", color = Color.White,
+                                 fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text("Thẻ ghi nhớ", color = Color.White.copy(.75f),
+                                 fontSize = 11.sp)
+                        }
+                        Icon(
+                            Icons.Default.Menu,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
                     }
-                    Spacer(Modifier.weight(1f))
-                    Icon(Icons.Default.Menu, contentDescription = null, tint = Color.White)
+                }
+            } else {
+                // 🌻 "Khu vườn tươi tốt" green row
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("🌻", fontSize = 18.sp)
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        "Khu vườn của bạn đang tươi tốt",
+                        color      = PrimaryGreen,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize   = 14.sp
+                    )
+                }
+                Spacer(Modifier.height(10.dp))
+
+                // Gray "Không có từ nào cần luyện tập" bar
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color    = Color(0xFF1E1E1E),
+                    shape    = RoundedCornerShape(10.dp)
+                ) {
+                    Row(
+                        modifier          = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Không có từ nào cần luyện tập",
+                            color    = Color(0xFF7A7A7A),
+                            fontSize = 14.sp,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Icon(
+                            Icons.Default.Menu,
+                            contentDescription = null,
+                            tint = Color(0xFF7A7A7A)
+                        )
+                    }
                 }
             }
         }
@@ -629,35 +757,105 @@ fun CircularProgressRing(label: String, count: Int) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.size(52.dp)) {
             Canvas(modifier = Modifier.fillMaxSize()) {
-                val strokeWidth = 4.dp.toPx()
-                val radius = (size.minDimension - strokeWidth) / 2f
-                drawCircle(
-                    color = DividerBg,
-                    radius = radius,
-                    style = Stroke(width = strokeWidth)
-                )
-                drawCircle(
-                    color = PrimaryGreen,
-                    radius = radius,
-                    style = Stroke(width = strokeWidth)
-                )
+                val strokeWidth  = 4.dp.toPx()
+                val segmentSweep = 60f
+                val gapSweep     = 12f
+
+                repeat(5) { i ->
+                    val startAngle = -90f + i * (segmentSweep + gapSweep)
+                    val filled = count > 0
+
+                    drawArc(
+                        color      = if (filled) PrimaryGreen else DividerBg,
+                        startAngle = startAngle,
+                        sweepAngle = segmentSweep,
+                        useCenter  = false,
+                        style      = Stroke(
+                            width = strokeWidth,
+                            cap   = StrokeCap.Round
+                        )
+                    )
+                }
             }
+
             Text(
-                text = count.toString(),
-                color = Color.White,
+                text       = count.toString(),
+                color      = Color.White,
                 fontWeight = FontWeight.Bold,
-                fontSize = 15.sp
+                fontSize   = 16.sp
             )
         }
-        Spacer(Modifier.height(4.dp))
+
+        Spacer(Modifier.height(3.dp))
+
         Text(
-            text = label,
-            color = Color.Gray,
+            text     = label,
+            color    = Color.Gray,
             fontSize = 10.sp,
             textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.width(52.dp)
+            maxLines  = 1,
+            overflow  = TextOverflow.Ellipsis,
+            modifier = Modifier.width(56.dp)
+        )
+    }
+}
+
+@Composable
+fun MasteryRingIcon(
+    count         : Int,
+    label         : String,
+    filledSegments: Int = 0,
+    modifier      : Modifier = Modifier
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier            = modifier.width(56.dp)
+    ) {
+        Box(
+            modifier         = Modifier.size(56.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val strokeWidth  = 4.dp.toPx()
+                val segmentSweep = 60f
+                val gapSweep     = 12f
+
+                repeat(5) { i ->
+                    val startAngle = -90f + i * (segmentSweep + gapSweep)
+                    val filled = i < filledSegments
+
+                    drawArc(
+                        color      = if (filled) PrimaryGreen
+                                     else DividerBg,
+                        startAngle = startAngle,
+                        sweepAngle = segmentSweep,
+                        useCenter  = false,
+                        style      = Stroke(
+                            width = strokeWidth,
+                            cap   = StrokeCap.Round
+                        )
+                    )
+                }
+            }
+
+            Text(
+                text       = count.toString(),
+                color      = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize   = 16.sp
+            )
+        }
+
+        Spacer(Modifier.height(3.dp))
+
+        Text(
+            text     = label,
+            color    = Color.Gray,
+            fontSize = 10.sp,
+            textAlign = TextAlign.Center,
+            maxLines  = 1,
+            overflow  = TextOverflow.Ellipsis,
+            modifier  = Modifier.fillMaxWidth()
         )
     }
 }

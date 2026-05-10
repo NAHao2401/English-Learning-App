@@ -248,13 +248,14 @@ fun CefrLevelDetailScreen(
                             val targetName = normalize(item.topic.name)
                             val targetLevel = (item.topic.level ?: "").uppercase()
 
-                            val resolvedTopicId = localTopics
+                            val resolvedLocalTopic = localTopics
                                 .firstOrNull {
                                     normalize(it.topic.name) == targetName &&
                                         (it.topic.level ?: "").uppercase() == targetLevel
                                 }
                                 ?.topic
-                                ?.id
+
+                            val resolvedTopicId = resolvedLocalTopic?.remoteTopicId ?: resolvedLocalTopic?.id
 
                             Box(
                                 modifier = Modifier.fillMaxWidth(),

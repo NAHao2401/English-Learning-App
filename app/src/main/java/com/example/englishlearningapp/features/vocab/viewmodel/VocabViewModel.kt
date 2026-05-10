@@ -8,12 +8,20 @@ import com.example.englishlearningapp.data.local.db.entity.UserEntity
 import com.example.englishlearningapp.data.local.db.entity.VocabularyEntity
 import com.example.englishlearningapp.data.repository.VocabRepository
 import com.example.englishlearningapp.data.local.datastore.AppDataStore
+import com.example.englishlearningapp.data.remote.api.VocabApiService
+import com.example.englishlearningapp.data.remote.api.response.RateVocabRequest
+import com.example.englishlearningapp.data.remote.api.response.TopicStudyResponse
+import com.example.englishlearningapp.data.remote.api.response.UserVocabularyResponse
+import com.example.englishlearningapp.data.remote.api.response.VocabularyResponse
+import com.example.englishlearningapp.data.remote.api.response.VocabOverviewResponse
+import com.example.englishlearningapp.data.remote.api.response.LearnedVocabListResponse
 import dagger.hilt.android.qualifiers.ApplicationContext
 import android.content.Context
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +33,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -34,6 +43,7 @@ import javax.inject.Inject
 class VocabViewModel @Inject constructor(
     private val appDatabase: AppDatabase,
     private val repository: VocabRepository,
+    private val vocabApiService: VocabApiService,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -46,6 +56,29 @@ class VocabViewModel @Inject constructor(
     private val _currentLevelVocabs = MutableStateFlow<List<VocabularyEntity>>(emptyList())
     private val _levelVocabularyError = MutableStateFlow<String?>(null)
     private val _isLoadingLevelVocabs = MutableStateFlow(false)
+    private val _topicVocabs = MutableStateFlow<List<VocabularyResponse>>(emptyList())
+    private val _topicVocabError = MutableStateFlow<String?>(null)
+    private val _isLoadingTopicVocabs = MutableStateFlow(false)
+    private val _studySession = MutableStateFlow<TopicStudyResponse?>(null)
+    val studySession: StateFlow<TopicStudyResponse?> = _studySession.asStateFlow()
+
+    private val _topicProgress = MutableStateFlow<Map<Int, UserVocabularyResponse>>(emptyMap())
+    val topicProgress: StateFlow<Map<Int, UserVocabularyResponse>> = _topicProgress.asStateFlow()
+
+    private val _isRating = MutableStateFlow(false)
+    val isRating: StateFlow<Boolean> = _isRating.asStateFlow()
+
+    private val _vocabOverview = MutableStateFlow<VocabOverviewResponse?>(null)
+    val vocabOverview: StateFlow<VocabOverviewResponse?> = _vocabOverview.asStateFlow()
+
+    private val _isLoadingOverview = MutableStateFlow(false)
+    val isLoadingOverview: StateFlow<Boolean> = _isLoadingOverview.asStateFlow()
+
+    private val _learnedVocabs = MutableStateFlow<LearnedVocabListResponse?>(null)
+    val learnedVocabs: StateFlow<LearnedVocabListResponse?> = _learnedVocabs.asStateFlow()
+
+    private val _isLoadingLearned = MutableStateFlow(false)
+    val isLoadingLearned: StateFlow<Boolean> = _isLoadingLearned.asStateFlow()
 
     val topics: StateFlow<List<TopicWithCount>> = repository.getTopicsWithWordCount()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -59,6 +92,21 @@ class VocabViewModel @Inject constructor(
     val levelVocabularyError: StateFlow<String?> = _levelVocabularyError.asStateFlow()
 
     val isLoadingLevelVocabs: StateFlow<Boolean> = _isLoadingLevelVocabs.asStateFlow()
+
+    val topicVocabs: StateFlow<List<VocabularyResponse>> = combine(
+        _topicVocabs,
+        _difficultyFilter
+    ) { vocabs, difficulty ->
+        if (difficulty == null) {
+            vocabs
+        } else {
+            vocabs.filter { it.difficulty == difficulty }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val topicVocabError: StateFlow<String?> = _topicVocabError.asStateFlow()
+
+    val isLoadingTopicVocabs: StateFlow<Boolean> = _isLoadingTopicVocabs.asStateFlow()
 
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
@@ -106,6 +154,8 @@ class VocabViewModel @Inject constructor(
     init {
         loadVocabCountByLevel()
         loadCurrentUser()
+        syncTopicsFromApi()
+        loadVocabOverview()
     }
 
     fun loadTopics() {
@@ -137,8 +187,79 @@ class VocabViewModel @Inject constructor(
         }
     }
 
+    private fun syncTopicsFromApi() {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.syncTopicsFromApi()
+        }
+    }
+
     fun selectTopic(topicId: Int) {
         _selectedTopicId.value = topicId
+    }
+
+    fun loadTopicDetail(topicId: Int) {
+        viewModelScope.launch {
+            _isLoadingTopicVocabs.value = true
+            _topicVocabError.value = null
+            try {
+                val vocabsDeferred = async { vocabApiService.getVocabulariesByTopic(topicId) }
+                val progressDeferred = async {
+                    try {
+                        vocabApiService.getTopicProgress(topicId)
+                    } catch (_: Exception) {
+                        emptyMap()
+                    }
+                }
+                val studyDeferred = async {
+                    try {
+                        vocabApiService.getStudySession(topicId)
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
+
+                _selectedTopicId.value = topicId
+                _topicVocabs.value = vocabsDeferred.await()
+                _topicProgress.value = progressDeferred.await()
+                _studySession.value = studyDeferred.await()
+            } catch (_: Exception) {
+                _topicVocabError.value = "Không thể tải dữ liệu."
+            } finally {
+                _isLoadingTopicVocabs.value = false
+            }
+        }
+    }
+
+    fun loadStudySession(topicId: Int) {
+        viewModelScope.launch {
+            _isLoadingTopicVocabs.value = true
+            _topicVocabError.value = null
+            try {
+                _studySession.value = null
+                _selectedTopicId.value = topicId
+                val progressDeferred = async {
+                    try {
+                        vocabApiService.getTopicProgress(topicId)
+                    } catch (_: Exception) {
+                        emptyMap()
+                    }
+                }
+                val studyDeferred = async {
+                    try {
+                        vocabApiService.getStudySession(topicId)
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
+                _topicProgress.value = progressDeferred.await()
+                _studySession.value = studyDeferred.await() ?: TopicStudyResponse(topicId = topicId)
+            } catch (_: Exception) {
+                _topicVocabError.value = "Không thể tải dữ liệu."
+                _studySession.value = TopicStudyResponse(topicId = topicId)
+            } finally {
+                _isLoadingTopicVocabs.value = false
+            }
+        }
     }
 
     fun setDifficultyFilter(difficulty: String?) {
@@ -203,6 +324,114 @@ class VocabViewModel @Inject constructor(
             }
         }
     }
+
+    fun rateVocabulary(
+        vocabularyId: Int,
+        rating: Int,
+        onSuccess: () -> Unit
+    ) {
+        viewModelScope.launch {
+            _isRating.value = true
+            try {
+                val result = vocabApiService.rateVocabulary(
+                    RateVocabRequest(vocabularyId, rating)
+                )
+
+                val updated = _topicProgress.value.toMutableMap()
+                updated[vocabularyId] = result
+                _topicProgress.value = updated
+
+                val currentSession = _studySession.value
+                if (currentSession != null) {
+                    _studySession.value = currentSession.copy(
+                        newWords = currentSession.newWords.filter { it.id != vocabularyId },
+                        dueReviewWords = currentSession.dueReviewWords.filter { it.id != vocabularyId },
+                        learnedCount = currentSession.learnedCount + 1
+                    )
+                }
+
+                onSuccess()
+            } catch (_: Exception) {
+                onSuccess()
+            } finally {
+                _isRating.value = false
+            }
+        }
+    }
+
+    // Rate answer during quiz: adjust mastery up/down and send rating
+    fun rateQuizAnswer(
+        vocabularyId: Int,
+        currentMastery: Int,
+        isCorrect: Boolean,
+        onDone: () -> Unit = {}
+    ) {
+        val newRating = if (isCorrect) {
+            minOf(currentMastery + 1, 5)
+        } else {
+            maxOf(currentMastery - 1, 1)
+        }
+
+        viewModelScope.launch {
+            try {
+                vocabApiService.rateVocabulary(
+                    RateVocabRequest(vocabularyId, newRating)
+                )
+            } catch (e: Exception) {
+                // silently ignore
+            } finally {
+                onDone()
+            }
+        }
+    }
+
+    fun loadVocabOverview() {
+        viewModelScope.launch {
+            _isLoadingOverview.value = true
+            try {
+                _vocabOverview.value = vocabApiService.getVocabOverview()
+            } catch (e: Exception) {
+                // silently fail — show 0s
+                _vocabOverview.value = VocabOverviewResponse()
+            } finally {
+                _isLoadingOverview.value = false
+            }
+        }
+    }
+
+    fun loadLearnedVocabs() {
+        viewModelScope.launch {
+            _isLoadingLearned.value = true
+            try {
+                _learnedVocabs.value = vocabApiService.getLearnedVocabs()
+            } catch (e: Exception) {
+                // handle error silently
+                _learnedVocabs.value = LearnedVocabListResponse()
+            } finally {
+                _isLoadingLearned.value = false
+            }
+        }
+    }
+
+    val newWordCount: StateFlow<Int> = _studySession
+        .map { it?.newWords?.size ?: 0 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+
+    val hasMoreNewWords: StateFlow<Boolean> = _studySession
+        .map { (it?.newWords?.size ?: 0) > 0 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    val learnedCount: StateFlow<Int> = _studySession
+        .map { it?.learnedCount ?: 0 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+
+    val totalWords: StateFlow<Int> = _studySession
+        .map { it?.totalWords ?: 0 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+
+    val studyBatch: StateFlow<List<VocabularyResponse>> = _studySession
+        .map { it?.newWords?.take(8) ?: emptyList() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     // Ensure vocab pool is loaded for generating wrong options
     fun ensureVocabPool() {
