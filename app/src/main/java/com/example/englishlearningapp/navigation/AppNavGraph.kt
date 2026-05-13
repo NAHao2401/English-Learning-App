@@ -90,8 +90,20 @@ fun AppNavGraph(
         }
 
         composable(Screen.Home.route) {
+            LaunchedEffect(Unit) {
+                progressViewModel.loadProgress()
+            }
+
             HomeScreen(
                 userName = userName.ifBlank { "Learner" },
+                totalXp = progressUiState.summary?.total_xp ?: 0,
+                streakCount = progressUiState.summary?.streak_count ?: 0,
+                completedLessons = progressUiState.summary?.completed_lessons ?: 0,
+                totalLessons = progressUiState.summary?.total_lessons ?: 0,
+                completionPercent = progressUiState.summary?.completion_percent ?: 0,
+                currentLevel = progressUiState.summary?.current_level ?: "Beginner",
+                isProgressLoading = progressUiState.isLoading,
+                progressErrorMessage = progressUiState.errorMessage,
                 onLessonsClick = {
                     navController.navigate(Screen.TopicList.route)
                 },
