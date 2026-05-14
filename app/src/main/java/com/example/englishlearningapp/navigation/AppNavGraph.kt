@@ -18,6 +18,7 @@ import com.example.englishlearningapp.features.auth.ui.LoginScreen
 import com.example.englishlearningapp.features.auth.ui.RegisterScreen
 import com.example.englishlearningapp.features.auth.viewmodel.AuthViewModel
 import com.example.englishlearningapp.features.auth.viewmodel.AuthViewModelFactory
+import com.example.englishlearningapp.features.chat.ui.ChatScreen
 import com.example.englishlearningapp.features.home.ui.HomeScreen
 import com.example.englishlearningapp.features.lesson.ui.LessonDetailScreen
 import com.example.englishlearningapp.features.lesson.ui.LessonListScreen
@@ -118,7 +119,8 @@ fun AppNavGraph(
                             launchSingleTop = true
                         }
                     }
-                }
+                },
+                onNavigateToChat = { navController.navigate(Screen.Chat.route) }
             )
         }
 
@@ -254,6 +256,12 @@ fun AppNavGraph(
                 onNavigateBack = {
                     navController.popBackStack()
                 }
+            )
+        }
+
+        composable(Screen.Chat.route) {
+            ChatScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

@@ -27,4 +27,6 @@ sealed class Screen(val route: String) {
     data object Progress : Screen("progress")
 
     data object Speaking : Screen("speaking")
+
+    data object Chat : Screen("chat")
 }
