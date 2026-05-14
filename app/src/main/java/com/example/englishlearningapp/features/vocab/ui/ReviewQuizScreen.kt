@@ -10,8 +10,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.mutableIntStateOf
@@ -26,52 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.englishlearningapp.data.remote.api.response.LearnedVocabItem
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
-
-data class ReviewQuizQuestion(
-    val vocabId: Int,
-    val word: String,
-    val pronunciation: String?,
-    val correctAnswer: String,
-    val options: List<String>,
-    val correctIndex: Int,
-    val masteryLevel: Int
-)
-
-fun buildQuizQuestions(
-    dueItems: List<LearnedVocabItem>,
-    allItems: List<LearnedVocabItem>
-): List<ReviewQuizQuestion> {
-    return dueItems.map { item ->
-        val correctAnswer = item.meaning
-
-        val wrongPool = allItems
-            .filter { it.vocabularyId != item.vocabularyId }
-            .map { it.meaning }
-            .shuffled()
-            .distinct()
-            .take(3)
-
-        val wrongOptions = wrongPool.toMutableList()
-        while (wrongOptions.size < 3) {
-            wrongOptions.add("(không có đáp án)")
-        }
-
-        val allOptions = (wrongOptions + correctAnswer).shuffled()
-        val correctIndex = allOptions.indexOf(correctAnswer)
-
-        ReviewQuizQuestion(
-            vocabId = item.vocabularyId,
-            word = item.word,
-            pronunciation = item.pronunciation,
-            correctAnswer = correctAnswer,
-            options = allOptions,
-            correctIndex = correctIndex,
-            masteryLevel = item.masteryLevel
-        )
-    }.shuffled()
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -136,78 +94,81 @@ fun ReviewQuizScreen(
     }
 
     if (showResult) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF1A1A1A)),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(32.dp)) {
-                val emoji = when {
-                    correctCount == questions.size -> "🎉"
-                    correctCount >= questions.size * 0.7 -> "👍"
-                    else -> "💪"
-                }
-                Text(emoji, fontSize = 64.sp)
-                Spacer(Modifier.height(16.dp))
-                Text("Kết quả ôn tập", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp)
-                Spacer(Modifier.height(12.dp))
-
-                Box(modifier = Modifier.size(120.dp).background(Color(0xFF1B3A2D), shape = CircleShape), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("$correctCount", color = Color(0xFF4CAF50), fontWeight = FontWeight.ExtraBold, fontSize = 40.sp)
-                        Text("/ ${questions.size}", color = Color.Gray, fontSize = 14.sp)
-                    }
-                }
-
-                Spacer(Modifier.height(12.dp))
-                Text(text = when {
-                    correctCount == questions.size -> "Hoàn hảo! Bạn nhớ tất cả các từ! 🌟"
-                    correctCount >= questions.size * 0.7 -> "Tốt lắm! Tiếp tục cố gắng nhé! 👏"
-                    else -> "Luyện tập thêm để nhớ lâu hơn! 💪"
-                }, color = Color.LightGray, fontSize = 15.sp, textAlign = TextAlign.Center)
-
-                Spacer(Modifier.height(32.dp))
-
-                Button(
-                    onClick = {
-                        viewModel.loadLearnedVocabs()
-                        navController.navigateUp()
-                    },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Hoàn thành", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                }
+        QuizResultScreen(
+            correctCount = correctCount,
+            totalCount = questions.size,
+            onFinish = {
+                viewModel.loadLearnedVocabs()
+                navController.navigateUp()
             }
-        }
+        )
         return
     }
 
     Scaffold(
         containerColor = Color(0xFF1A1A1A),
         topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF4CAF50)),
-                navigationIcon = { IconButton(onClick = { navController.navigateUp() }) { Icon(Icons.Default.ArrowBack, contentDescription = null, tint = Color.White) } },
-                title = { Text("Ôn tập", color = Color.White, fontWeight = FontWeight.Bold) },
-                actions = { Text("${currentIndex + 1}/${questions.size}", color = Color.White, fontSize = 14.sp, modifier = Modifier.padding(end = 16.dp)) }
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                IconButton(onClick = { navController.navigateUp() }) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp,
+                            end = 16.dp,
+                            bottom = 8.dp, // Chỉ padding phía dưới
+                            top = 0.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Spacer(Modifier.width(16.dp))
+                    LinearProgressIndicator(
+                        progress = { (currentIndex + 1f) / questions.size },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp)),
+                        color = Color(0xFF4CAF50),
+                        trackColor = Color(0xFF3A3A3A)
+                    )
+                    Text(
+                        "${currentIndex + 1}/${questions.size}",
+                        color = Color.Gray,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                    Spacer(Modifier.width(12.dp))
+                }
+            }
         }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(8.dp))
 
-            LinearProgressIndicator(
-                progress = { (currentIndex + 1f) / questions.size },
-                modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-                color = Color(0xFF4CAF50),
-                trackColor = Color(0xFF3A3A3A)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Chọn nghĩa",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                )
+                Spacer(Modifier.weight(1f))
+                val mastery = allItems.find { it.vocabularyId == question?.vocabId }?.masteryLevel ?: 0
+                LearnedSeedIcon(masteryLevel = mastery)
+            }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(32.dp))
 
             Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)), shape = RoundedCornerShape(16.dp), elevation = CardDefaults.cardElevation(6.dp)) {
                 Column(modifier = Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {

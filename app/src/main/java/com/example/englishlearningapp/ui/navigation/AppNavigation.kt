@@ -21,6 +21,8 @@ import com.example.englishlearningapp.features.vocab.ui.ReviewScreen
 import com.example.englishlearningapp.features.vocab.ui.SavedVocabScreen
 import com.example.englishlearningapp.features.vocab.ui.CefrDetailScreen
 import com.example.englishlearningapp.features.vocab.ui.ReviewQuizScreen
+import com.example.englishlearningapp.features.vocab.ui.ReviewQuizListeningScreen
+import com.example.englishlearningapp.features.vocab.ui.ReviewQuizChallengeScreen
 import com.example.englishlearningapp.features.vocab.ui.CefrLevelDetailScreen
 import com.example.englishlearningapp.features.vocab.ui.VocabScreen
 import com.example.englishlearningapp.features.vocab.ui.LearnedWordsScreen
@@ -142,6 +144,18 @@ fun AppNavHost(
         composable("learned_words") { LearnedWordsScreen(navController = navController, viewModel = hiltViewModel()) }
         composable("review_quiz") {
             ReviewQuizScreen(
+                navController = navController,
+                viewModel = hiltViewModel()
+            )
+        }
+        composable("review_quiz_listening") {
+            ReviewQuizListeningScreen(
+                navController = navController,
+                viewModel = hiltViewModel()
+            )
+        }
+        composable("review_quiz_challenge") {
+            ReviewQuizChallengeScreen(
                 navController = navController,
                 viewModel = hiltViewModel()
             )
@@ -326,4 +340,3 @@ fun AppNavHost(
         }
     }
 }
-

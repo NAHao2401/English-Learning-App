@@ -41,14 +41,17 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -80,6 +83,7 @@ import coil.compose.AsyncImage
 import com.example.englishlearningapp.data.local.db.entity.TopicWithCount
 import com.example.englishlearningapp.data.local.db.entity.UserEntity
 import com.example.englishlearningapp.data.remote.api.response.VocabOverviewResponse
+import com.example.englishlearningapp.features.usertopic.UserTopicViewModel
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 import com.example.englishlearningapp.ui.navigation.Screen
 import androidx.core.graphics.toColorInt
@@ -98,6 +102,7 @@ data class CefrLevel(
     val badge: String,
     val name: String,
     val wordCount: Int,
+    val learnedCount: Int,
     val reviewCount: Int,
     val iconRes: Int?
 )
@@ -105,15 +110,32 @@ data class CefrLevel(
 @Composable
 fun VocabScreen(
     navController: NavController,
-    viewModel: VocabViewModel = hiltViewModel()
+    viewModel: VocabViewModel = hiltViewModel(),
+    userTopicViewModel: UserTopicViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val topics by viewModel.topics.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
     val savedVocabs by viewModel.savedVocabs.collectAsState()
+    val userTopics by userTopicViewModel.userTopics.collectAsState()
+    val topicWordCounts by userTopicViewModel.topicWordCounts.collectAsState()
+    val topicLearnedCounts by userTopicViewModel.topicLearnedCounts.collectAsState()
+    val learnedCountByLevel by viewModel.learnedCountByLevel.collectAsState()
     val vocabOverview by viewModel.vocabOverview.collectAsState()
     val isLoadingOverview by viewModel.isLoadingOverview.collectAsState()
     val savedIds = remember(savedVocabs) { savedVocabs.map { it.id }.toSet() }
+    val displayTopicWordCounts = remember(userTopics, topicWordCounts) {
+        if (topicWordCounts.isNotEmpty()) topicWordCounts else userTopics.associate { it.id to it.wordCount }
+    }
+    val totalFolderWords = remember(userTopics, displayTopicWordCounts) {
+        userTopics.sumOf { topic -> displayTopicWordCounts[topic.id] ?: topic.wordCount }
+    }
+    val displayTopicLearnedCounts = remember(userTopics, topicLearnedCounts) {
+        if (topicLearnedCounts.isNotEmpty()) topicLearnedCounts else userTopics.associate { it.id to it.learnedCount }
+    }
+    val totalFolderLearned = remember(userTopics, displayTopicLearnedCounts) {
+        userTopics.sumOf { topic -> displayTopicLearnedCounts[topic.id] ?: topic.learnedCount }
+    }
     val levelCounts = remember {
         listOf(
             "Mới học" to 0,
@@ -126,6 +148,8 @@ fun VocabScreen(
 
     LaunchedEffect(Unit) {
         viewModel.loadVocabOverview()
+        viewModel.loadLearnedVocabs()
+        userTopicViewModel.loadUserTopics()
     }
 
     Scaffold(
@@ -156,9 +180,10 @@ fun VocabScreen(
                         }
                     },
                     onStudyClick = {
-                        navController.navigateSafely("review_session") {
-                            Toast.makeText(context, "Luyện tập chưa sẵn sàng", Toast.LENGTH_SHORT).show()
-                        }
+                        navController.navigate("review_quiz")
+                    },
+                    onNavigatePractice = { route ->
+                        navController.navigate(route)
                     }
                 )
             }
@@ -176,7 +201,8 @@ fun VocabScreen(
             item(key = "my_folder_section") {
                 MyFolderCard(
                     user = currentUser,
-                    savedCount = savedVocabs.size,
+                    savedCount = totalFolderWords,
+                    learnedCount = totalFolderLearned,
                     reviewDueCount = 0,
                     onCardClick = { navController.navigate(Screen.UserTopics.route) },
                     onStudyClick = { navController.navigate(Screen.UserTopics.route) }
@@ -293,6 +319,7 @@ private fun SearchBarWithResults(
 fun MyFolderCard(
     user: UserEntity?,
     savedCount: Int,
+    learnedCount: Int,
     reviewDueCount: Int,
     onCardClick: () -> Unit,
     onStudyClick: () -> Unit
@@ -355,21 +382,7 @@ fun MyFolderCard(
                             )
                             Spacer(Modifier.width(3.dp))
                             Text(
-                                text = "0/$savedCount đã học",
-                                color = Color.LightGray,
-                                fontSize = 12.sp
-                            )
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.NightsStay,
-                                contentDescription = null,
-                                tint = Color.Gray,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(Modifier.width(3.dp))
-                            Text(
-                                text = "$reviewDueCount cần luyện tập",
+                                text = "$learnedCount/$savedCount đã học",
                                 color = Color.LightGray,
                                 fontSize = 12.sp
                             )
@@ -412,15 +425,16 @@ private fun CefrSection(
     viewModel: VocabViewModel
 ) {
     val vocabCountByLevel by viewModel.vocabCountByLevel.collectAsState()
+    val learnedCountByLevel by viewModel.learnedCountByLevel.collectAsState()
     val cefrLevels = remember(vocabCountByLevel) {
         listOf(
-            CefrLevel(0, "A0", "Pre\nBeginner", "A0 - Từ Vựng Cho\nNgười Mất Gốc", vocabCountByLevel["A0"] ?: 0, 0, null),
-            CefrLevel(1, "A1", "Beginner", "Cấp độ A1", vocabCountByLevel["A1"] ?: 0, 0, null),
-            CefrLevel(2, "A2", "Elementary", "Cấp độ A2", vocabCountByLevel["A2"] ?: 0, 0, null),
-            CefrLevel(3, "B1", "Intermediate", "Cấp độ B1", vocabCountByLevel["B1"] ?: 0, 0, null),
-            CefrLevel(4, "B2", "Upper Int.", "Cấp độ B2", vocabCountByLevel["B2"] ?: 0, 0, null),
-            CefrLevel(5, "C1", "Advanced", "Cấp độ C1", vocabCountByLevel["C1"] ?: 0, 0, null),
-            CefrLevel(6, "C2", "Mastery", "Cấp độ C2", vocabCountByLevel["C2"] ?: 0, 0, null)
+            CefrLevel(0, "A0", "Pre\nBeginner", "A0 - Từ Vựng Cho\nNgười Mất Gốc", vocabCountByLevel["A0"] ?: 0, learnedCountByLevel["A0"] ?: 0, 0, null),
+            CefrLevel(1, "A1", "Beginner", "Cấp độ A1", vocabCountByLevel["A1"] ?: 0, learnedCountByLevel["A1"] ?: 0, 0, null),
+            CefrLevel(2, "A2", "Elementary", "Cấp độ A2", vocabCountByLevel["A2"] ?: 0, learnedCountByLevel["A2"] ?: 0, 0, null),
+            CefrLevel(3, "B1", "Intermediate", "Cấp độ B1", vocabCountByLevel["B1"] ?: 0, learnedCountByLevel["B1"] ?: 0, 0, null),
+            CefrLevel(4, "B2", "Upper Int.", "Cấp độ B2", vocabCountByLevel["B2"] ?: 0, learnedCountByLevel["B2"] ?: 0, 0, null),
+            CefrLevel(5, "C1", "Advanced", "Cấp độ C1", vocabCountByLevel["C1"] ?: 0, learnedCountByLevel["C1"] ?: 0, 0, null),
+            CefrLevel(6, "C2", "Mastery", "Cấp độ C2", vocabCountByLevel["C2"] ?: 0, learnedCountByLevel["C2"] ?: 0, 0, null)
         )
     }
     val onHeaderClick = remember {
@@ -528,16 +542,19 @@ private fun LearningProgressCard(
     overview      : VocabOverviewResponse?,
     isLoading     : Boolean,
     onCardClick   : () -> Unit,
-    onStudyClick  : () -> Unit
+    onStudyClick  : () -> Unit,
+    onNavigatePractice: (route: String) -> Unit
 ) {
     val learned  = overview?.learnedCount    ?: 0
     val dueCount = overview?.dueReviewCount  ?: 0
     val stats    = overview?.masteryStats
+    var showPracticeModeSheet by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors   = CardDefaults.cardColors(containerColor = CardBg),
-        shape    = RoundedCornerShape(16.dp)
+        shape    = RoundedCornerShape(16.dp),
+        onClick = onCardClick 
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
 
@@ -633,11 +650,9 @@ private fun LearningProgressCard(
 
                 // Orange "Luyện tập" button
                 Button(
-                    onClick  = onStudyClick,
+                    onClick  = { onStudyClick() },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
-                    colors   = ButtonDefaults.buttonColors(
-                        containerColor = OrangeAccent
-                    ),
+                    colors   = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF8C00)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Row(
@@ -652,16 +667,29 @@ private fun LearningProgressCard(
                         )
                         Spacer(Modifier.width(8.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Luyện tập", color = Color.White,
-                                 fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                            Text("Thẻ ghi nhớ", color = Color.White.copy(.75f),
-                                 fontSize = 11.sp)
+                            Text(
+                                "Luyện tập",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp
+                            )
+                            Text(
+                                "Thông thường",
+                                color = Color.White.copy(.75f),
+                                fontSize = 11.sp
+                            )
                         }
-                        Icon(
-                            Icons.Default.Menu,
-                            contentDescription = null,
-                            tint = Color.White
-                        )
+                        IconButton(
+                            onClick  = { showPracticeModeSheet = true },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Menu,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
                     }
                 }
             } else {
@@ -706,6 +734,153 @@ private fun LearningProgressCard(
             }
         }
     }
+
+    if (showPracticeModeSheet) {
+        PracticeModeBottomSheet(
+            onDismiss = { showPracticeModeSheet = false },
+            onSelectMode = { route ->
+                showPracticeModeSheet = false
+                onNavigatePractice(route)
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PracticeModeBottomSheet(
+    onDismiss    : () -> Unit,
+    onSelectMode : (route: String) -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState       = sheetState,
+        containerColor   = Color(0xFF2A2A2A),
+        dragHandle = {
+            Box(
+                Modifier
+                    .padding(vertical = 8.dp)
+                    .width(40.dp)
+                    .height(4.dp)
+                    .background(Color(0xFF4A4A4A), RoundedCornerShape(2.dp))
+            )
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            Text(
+                "Chọn cách luyện tập",
+                color      = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize   = 18.sp,
+                modifier   = Modifier.padding(vertical = 16.dp)
+            )
+
+            HorizontalDivider(color = Color(0xFF3A3A3A))
+            Spacer(Modifier.height(16.dp))
+
+            val modes = listOf(
+                Triple(
+                    "review_quiz",
+                    "Luyện tập thông thường",
+                    "Trắc nghiệm chọn 1 / 4 đáp án"
+                ),
+                Triple(
+                    "review_quiz_listening",
+                    "Luyện tập nghe",
+                    "Nghe và chọn nghĩa đúng"
+                ),
+                Triple(
+                    "review_quiz_challenge",
+                    "Luyện tập thử thách",
+                    "Nhập từ tiếng Anh theo nghĩa"
+                )
+            )
+
+            modes.forEach { (route, title, subtitle) ->
+                Button(
+                    onClick  = { onSelectMode(route) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp)
+                        .padding(bottom = 10.dp),
+                    colors   = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFF8C00)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier          = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.WaterDrop,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                title,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp
+                            )
+                            Text(
+                                subtitle,
+                                color = Color.White.copy(.75f),
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchResultItem(
+    word: String,
+    pronunciation: String?,
+    meaning: String,
+    isSaved: Boolean,
+    onToggleSave: () -> Unit
+) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(word, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(pronunciation ?: "", color = Color.Gray, fontSize = 12.sp)
+            }
+            Text(
+                meaning,
+                color = Color.LightGray,
+                fontSize = 13.sp,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = onToggleSave) {
+                Icon(
+                    if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                    contentDescription = null,
+                    tint = if (isSaved) PrimaryGreen else Color.Gray
+                )
+            }
+        }
+        HorizontalDivider(color = DividerBg, thickness = 0.5.dp)
+    }
 }
 
 @Composable
@@ -718,9 +893,18 @@ private fun PracticeSectionCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Học phải đi đôi với hành.", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(
+                "Học phải đi đôi với hành.",
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
             Spacer(Modifier.height(4.dp))
-            Text("0/$LEARNED_COUNT từ đã đặt câu", color = PrimaryGreen, fontSize = 14.sp)
+            Text(
+                "0/$LEARNED_COUNT từ đã đặt câu",
+                color = PrimaryGreen,
+                fontSize = 14.sp
+            )
             Spacer(Modifier.height(12.dp))
             Button(
                 onClick = onSentencePractice,
@@ -730,9 +914,18 @@ private fun PracticeSectionCard(
                     .fillMaxWidth()
                     .height(48.dp)
             ) {
-                Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White)
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = null,
+                    tint = Color.White
+                )
                 Spacer(Modifier.width(8.dp))
-                Text("Luyện đặt câu", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(
+                    "Luyện đặt câu",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
+                )
             }
         }
     }
@@ -910,13 +1103,9 @@ fun CefrLevelCard(level: CefrLevel, onClick: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(3.dp))
-                        Text("1/${level.wordCount}", color = Color.LightGray, fontSize = 11.sp)
+                        Text("${level.learnedCount}/${level.wordCount}", color = Color.LightGray, fontSize = 11.sp)
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.NightsStay, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(3.dp))
-                        Text("${level.reviewCount}", color = Color.LightGray, fontSize = 11.sp)
-                    }
+                    
                 }
             }
         }
@@ -996,43 +1185,6 @@ fun TopicCard(topicWithCount: TopicWithCount, onClick: () -> Unit) {
                 }
             }
         }
-    }
-}
-
-@Composable
-fun SearchResultItem(
-    word: String,
-    pronunciation: String?,
-    meaning: String,
-    isSaved: Boolean,
-    onToggleSave: () -> Unit
-) {
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp, horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(word, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                Text(pronunciation ?: "", color = Color.Gray, fontSize = 12.sp)
-            }
-            Text(
-                meaning,
-                color = Color.LightGray,
-                fontSize = 13.sp,
-                modifier = Modifier.weight(1f)
-            )
-            IconButton(onClick = onToggleSave) {
-                Icon(
-                    if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                    contentDescription = null,
-                    tint = if (isSaved) PrimaryGreen else Color.Gray
-                )
-            }
-        }
-        HorizontalDivider(color = DividerBg, thickness = 0.5.dp)
     }
 }
 

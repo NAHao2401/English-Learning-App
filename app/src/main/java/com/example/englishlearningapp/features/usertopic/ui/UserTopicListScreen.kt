@@ -85,7 +85,8 @@ fun UserTopicListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                expandedHeight = 84.dp,
+                expandedHeight = 94.dp,
+                windowInsets = WindowInsets(0),
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFF4CAF50)
                 ),

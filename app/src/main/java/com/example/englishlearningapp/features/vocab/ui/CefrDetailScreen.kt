@@ -1,6 +1,6 @@
 package com.example.englishlearningapp.features.vocab.ui
 
-import android.speech.tts.TextToSpeech
+import com.example.englishlearningapp.data.remote.NetworkConfig
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,12 +53,7 @@ fun CefrDetailScreen(
     val error by viewModel.levelVocabularyError.collectAsState()
     val savedVocabs by viewModel.savedVocabs.collectAsState()
     val savedIds = savedVocabs.map { it.id }.toSet()
-    val context = LocalContext.current
-    val tts = remember { TextToSpeech(context, null) }
-
-    DisposableEffect(Unit) {
-        onDispose { tts.shutdown() }
-    }
+    val audioPlayer = rememberVocabAudioPlayer()
 
     LaunchedEffect(level) {
         viewModel.loadVocabsByLevel(level)
@@ -142,7 +137,7 @@ fun CefrDetailScreen(
                                 vocab = vocab,
                                 isSaved = savedIds.contains(vocab.id),
                                 onSaveClick = { viewModel.setSaved(vocab.id, !savedIds.contains(vocab.id)) },
-                                tts = tts
+                                audioPlayer = audioPlayer
                             )
                         }
                     }

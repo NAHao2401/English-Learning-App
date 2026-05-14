@@ -1,6 +1,6 @@
 package com.example.englishlearningapp.features.vocab.ui
 
-import android.speech.tts.TextToSpeech
+import com.example.englishlearningapp.data.remote.NetworkConfig
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -62,12 +62,7 @@ fun SavedVocabScreen(
     val savedVocabs by viewModel.savedVocabs.collectAsState()
     val savedVocabIds by userTopicViewModel.savedVocabIds.collectAsState()
 
-    val context = LocalContext.current
-    val tts = remember { TextToSpeech(context) { } }
-    DisposableEffect(Unit) {
-        tts.language = Locale.US
-        onDispose { tts.shutdown() }
-    }
+    val audioPlayer = rememberVocabAudioPlayer()
 
     Scaffold(
         containerColor = Color(0xFF1A1A1A),
@@ -155,10 +150,11 @@ fun SavedVocabScreen(
                                 pronunciation = vocab.pronunciation,
                                 exampleSentence = vocab.exampleSentence,
                                 audioUrl = null,
+                                exampleAudioUrl = null,
                                 difficulty = vocab.difficulty
                             ),
                             savedVocabIds = savedVocabIds,
-                            tts = tts
+                            audioPlayer = audioPlayer
                         )
                     }
                 }

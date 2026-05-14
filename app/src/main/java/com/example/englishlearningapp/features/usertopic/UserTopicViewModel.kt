@@ -30,6 +30,9 @@ class UserTopicViewModel @Inject constructor(
     private val _topicWordCounts = MutableStateFlow<Map<Int, Int>>(emptyMap())
     val topicWordCounts: StateFlow<Map<Int, Int>> = _topicWordCounts.asStateFlow()
 
+    private val _topicLearnedCounts = MutableStateFlow<Map<Int, Int>>(emptyMap())
+    val topicLearnedCounts: StateFlow<Map<Int, Int>> = _topicLearnedCounts.asStateFlow()
+
     private val _isLoadingTopics = MutableStateFlow(false)
     val isLoadingTopics: StateFlow<Boolean> = _isLoadingTopics.asStateFlow()
 
@@ -81,19 +84,28 @@ class UserTopicViewModel @Inject constructor(
             _topicsError.value = null
             try {
                 val fetched = vocabApiService.getUserTopics()
+                val learnedIds = try {
+                    vocabApiService.getLearnedVocabs().items.map { it.vocabularyId }.toSet()
+                } catch (_: Exception) {
+                    emptySet()
+                }
                 _userTopics.value = fetched
 
                 val countPairs = fetched.map { topic ->
                     async {
                         try {
-                            topic.id to vocabApiService.getUserTopicVocabularies(topic.id).size
+                            val vocabs = vocabApiService.getUserTopicVocabularies(topic.id)
+                            val wordCount = vocabs.size
+                            val learnedCount = vocabs.count { it.id in learnedIds }
+                            Triple(topic.id, wordCount, learnedCount)
                         } catch (_: Exception) {
-                            topic.id to 0
+                            Triple(topic.id, 0, 0)
                         }
                     }
                 }.awaitAll()
 
-                _topicWordCounts.value = countPairs.toMap()
+                _topicWordCounts.value = countPairs.associate { it.first to it.second }
+                _topicLearnedCounts.value = countPairs.associate { it.first to it.third }
             } catch (e: Exception) {
                 _topicsError.value = "Không thể tải thư mục. Vui lòng thử lại."
             } finally {
@@ -109,6 +121,12 @@ class UserTopicViewModel @Inject constructor(
             try {
                 val vocabs = vocabApiService.getUserTopicVocabularies(userTopicId)
                 _topicWordCounts.update { current -> current + (userTopicId to vocabs.size) }
+                val learnedIds = try {
+                    vocabApiService.getLearnedVocabs().items.map { it.vocabularyId }.toSet()
+                } catch (_: Exception) {
+                    emptySet()
+                }
+                _topicLearnedCounts.update { current -> current + (userTopicId to vocabs.count { it.id in learnedIds }) }
             } catch (_: Exception) {
                 // keep existing value if refresh fails
             }

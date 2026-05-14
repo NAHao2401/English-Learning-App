@@ -1,6 +1,6 @@
 package com.example.englishlearningapp.features.vocab.ui
 
-import android.speech.tts.TextToSpeech
+import com.example.englishlearningapp.data.remote.NetworkConfig
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -105,9 +105,7 @@ fun TopicDetailScreen(
     // No new words left in this topic
     val isAllLearned = newWordCount == 0 && totalWords > 0
 
-    val context = LocalContext.current
-    val tts = remember { TextToSpeech(context, null) }
-    DisposableEffect(Unit) { onDispose { tts.shutdown() } }
+    val audioPlayer = rememberVocabAudioPlayer()
 
     LaunchedEffect(topicId) {
         viewModel.setDifficultyFilter(null)
@@ -252,6 +250,7 @@ fun TopicDetailScreen(
                         VocabRowWithSeed(
                             vocab = vocab,
                             masteryLevel = mastery,
+                            audioPlayer = audioPlayer,
                             onSaveClick = { selectedVocab = vocab }
                         )
 
@@ -287,7 +286,7 @@ fun WordItem(
     vocab: VocabularyResponse,
     isSaved: Boolean,
     onSaveClick: () -> Unit,
-    tts: TextToSpeech
+    audioPlayer: VocabAudioPlayer
 ) {
     var expanded by remember(vocab.id) { mutableStateOf(false) }
     val rotation by animateFloatAsState(targetValue = if (expanded) 180f else 0f, animationSpec = tween(durationMillis = 300))
@@ -349,9 +348,14 @@ fun WordItem(
                             }
                         }
                         Spacer(modifier = Modifier.weight(1f))
-                        IconButton(onClick = { try { tts.speak(vocab.word, TextToSpeech.QUEUE_FLUSH, null, null) } catch (_: Exception) {} }) {
-                            Icon(imageVector = Icons.Default.VolumeUp, contentDescription = "TTS", tint = Color(0xFF4CAF50))
-                        }
+                        SpeakerIconButton(
+                            audioUrl = vocab.audioUrl,
+                            baseUrl = NetworkConfig.BASE_URL,
+                            fallbackText = vocab.word,
+                            audioPlayer = audioPlayer,
+                            tint = Color(0xFF4CAF50),
+                            size = 20.dp
+                        )
                     }
                 }
             }
@@ -364,7 +368,7 @@ fun WordItem(
     vocab: VocabularyEntity,
     isSaved: Boolean,
     onSaveClick: () -> Unit,
-    tts: TextToSpeech
+    audioPlayer: VocabAudioPlayer
 ) {
     WordItem(
         vocab = VocabularyResponse(
@@ -375,11 +379,12 @@ fun WordItem(
             pronunciation = vocab.pronunciation,
             exampleSentence = vocab.exampleSentence,
             audioUrl = vocab.audioUrl,
+            exampleAudioUrl = null,
             difficulty = vocab.difficulty
         ),
         isSaved = isSaved,
         onSaveClick = onSaveClick,
-        tts = tts
+        audioPlayer = audioPlayer
     )
 }
 
@@ -434,6 +439,7 @@ fun SeedMasteryIcon(
 fun VocabRowWithSeed(
     vocab: VocabularyResponse,
     masteryLevel: Int,
+    audioPlayer: VocabAudioPlayer,
     onSaveClick: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -459,12 +465,24 @@ fun VocabRowWithSeed(
                 Spacer(Modifier.width(12.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = vocab.word,
-                        color = if (masteryLevel > 0) Color(0xFF4CAF50) else Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
+                    Row() {
+                        Text(
+                            text = vocab.word,
+                            color = if (masteryLevel > 0) Color(0xFF4CAF50) else Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                        
+                        SpeakerIconButton(
+                            audioUrl = vocab.audioUrl,
+                            baseUrl = NetworkConfig.BASE_URL,
+                            fallbackText = vocab.word,
+                            audioPlayer = audioPlayer,
+                            tint = if (masteryLevel > 0) Color(0xFF4CAF50) else Color.White,
+                            size = 18.dp
+                        )
+                    }
+                    
                     if (!vocab.pronunciation.isNullOrBlank()) {
                         Spacer(Modifier.height(2.dp))
                         Text(text = vocab.pronunciation, color = Color.Gray, fontSize = 13.sp, fontStyle = FontStyle.Italic)
@@ -484,7 +502,17 @@ fun VocabRowWithSeed(
                     Text(text = vocab.meaning, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
                     if (!vocab.exampleSentence.isNullOrBlank()) {
                         Spacer(Modifier.height(6.dp))
-                        Text(text = vocab.exampleSentence, color = Color.LightGray, fontSize = 13.sp, fontStyle = FontStyle.Italic)
+                        Row {
+                            Text(text = vocab.exampleSentence, color = Color.LightGray, fontSize = 13.sp, fontStyle = FontStyle.Italic, modifier = Modifier.weight(1f))
+                            SpeakerIconButton(
+                                audioUrl = vocab.exampleAudioUrl,
+                                baseUrl = NetworkConfig.BASE_URL,
+                                fallbackText = vocab.exampleSentence,
+                                audioPlayer = audioPlayer,
+                                tint = Color(0xFF7A7A7A),
+                                size = 16.dp
+                            )
+                        }
                     }
 
                     if (masteryLevel > 0) {

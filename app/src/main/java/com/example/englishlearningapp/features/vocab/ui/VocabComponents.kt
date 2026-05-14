@@ -1,6 +1,6 @@
 package com.example.englishlearningapp.features.vocab.ui
 
-import android.speech.tts.TextToSpeech
+import com.example.englishlearningapp.data.remote.NetworkConfig
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -47,7 +47,7 @@ import com.example.englishlearningapp.features.vocab.ui.levelCodeColor
 fun VocabExpandableCard(
     vocab: VocabularyResponse,
     savedVocabIds: Set<Int>,
-    tts: TextToSpeech,
+    audioPlayer: VocabAudioPlayer,
     showSaveAction: Boolean = true,
     onRemoveFromTopic: (() -> Unit)? = null
 ) {
@@ -114,9 +114,14 @@ fun VocabExpandableCard(
                             }
                         }
                         Spacer(modifier = Modifier.weight(1f))
-                        IconButton(onClick = { try { tts.speak(vocab.word, TextToSpeech.QUEUE_FLUSH, null, null) } catch (_: Exception) {} }) {
-                            Icon(imageVector = Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "TTS", tint = Color(0xFF4CAF50))
-                        }
+                        SpeakerIconButton(
+                            audioUrl = vocab.audioUrl,
+                            baseUrl = NetworkConfig.BASE_URL,
+                            fallbackText = vocab.word,
+                            audioPlayer = audioPlayer,
+                            tint = Color(0xFF4CAF50),
+                            size = 20.dp
+                        )
                     }
                 }
             }

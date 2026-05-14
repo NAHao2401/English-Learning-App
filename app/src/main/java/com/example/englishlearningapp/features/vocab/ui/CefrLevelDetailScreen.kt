@@ -170,16 +170,7 @@ fun CefrLevelDetailScreen(
                                             Text("$totalLearned/$totalWords đã học", color = Color.White, fontSize = 11.sp)
                                         }
                                     }
-                                    Surface(
-                                        color = Color(0xFF1B5E20),
-                                        shape = RoundedCornerShape(20.dp)
-                                    ) {
-                                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)) {
-                                            Icon(Icons.Default.NightsStay, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
-                                            Spacer(Modifier.width(4.dp))
-                                            Text("0 cần luyện tập", color = Color.White, fontSize = 11.sp)
-                                        }
-                                    }
+                                    
                                 }
                             }
                         }
@@ -327,11 +318,7 @@ fun CefrTopicCircleItem(item: TopicProgressItem, level: String, onClick: () -> U
                 Spacer(Modifier.width(4.dp))
                 Text("${item.learnedCount}/${item.totalWords}", color = Color(0xFF4CAF50), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.NightsStay, tint = Color.Gray, modifier = Modifier.size(18.dp), contentDescription = null)
-                Spacer(Modifier.width(4.dp))
-                Text("${item.reviewCount}", color = Color.Gray, fontSize = 14.sp)
-            }
+            
         }
     }
 }

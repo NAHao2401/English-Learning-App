@@ -23,9 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import android.speech.tts.TextToSpeech
 import com.example.englishlearningapp.features.usertopic.UserTopicViewModel
 import com.example.englishlearningapp.features.vocab.ui.VocabExpandableCard
+import com.example.englishlearningapp.features.vocab.ui.rememberVocabAudioPlayer
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,12 +58,7 @@ fun UserTopicDetailScreen(
         }
     }
 
-    val context = LocalContext.current
-    val tts = remember { TextToSpeech(context) { } }
-    DisposableEffect(Unit) {
-        tts.language = Locale.US
-        onDispose { tts.shutdown() }
-    }
+    val audioPlayer = rememberVocabAudioPlayer()
 
     Scaffold(
         snackbarHost = {
@@ -132,7 +127,7 @@ fun UserTopicDetailScreen(
                         VocabExpandableCard(
                             vocab = vocab,
                             savedVocabIds = savedVocabIds,
-                            tts = tts,
+                            audioPlayer = audioPlayer,
                             showSaveAction = false,
                             onRemoveFromTopic = { pendingRemoveVocab = vocab }
                         )

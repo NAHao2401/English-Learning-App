@@ -20,6 +20,7 @@ data class VocabularyResponse(
     val pronunciation: String?,
     @SerializedName("example_sentence") val exampleSentence: String?,
     @SerializedName("audio_url") val audioUrl: String?,
+    @SerializedName("example_audio_url") val exampleAudioUrl: String?,
     val difficulty: String?
 )
 
@@ -66,6 +67,8 @@ data class LearnedVocabItem(
     val meaning: String = "",
     val pronunciation: String? = null,
     @SerializedName("example_sentence") val exampleSentence: String? = null,
+    @SerializedName("audio_url") val audioUrl: String? = null,
+    @SerializedName("example_audio_url") val exampleAudioUrl: String? = null,
     @SerializedName("mastery_level") val masteryLevel: Int = 0,
     @SerializedName("review_count") val reviewCount: Int = 0,
     @SerializedName("last_reviewed_at") val lastReviewedAt: String? = null,

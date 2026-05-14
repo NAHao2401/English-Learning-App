@@ -53,11 +53,20 @@ class CefrLevelViewModel @Inject constructor(
                 // Fetch vocabs and topics in parallel
                 val vocabsDeferred = async { vocabApiService.getAllVocabularies(level) }
                 val topicsDeferred = async { vocabApiService.getTopics() }
+                val learnedVocabsDeferred = async { vocabApiService.getLearnedVocabs() }
 
                 val vocabs = vocabsDeferred.await()
                 val allTopics = topicsDeferred.await()
+                val learnedVocabIds = learnedVocabsDeferred.await().items
+                    .map { it.vocabularyId }
+                    .toSet()
 
                 val countByTopicId: Map<Int, Int> = vocabs
+                    .groupBy { it.topicId }
+                    .mapValues { it.value.size }
+
+                val learnedCountByTopicId: Map<Int, Int> = vocabs
+                    .filter { it.id in learnedVocabIds }
                     .groupBy { it.topicId }
                     .mapValues { it.value.size }
 
@@ -69,7 +78,8 @@ class CefrLevelViewModel @Inject constructor(
                     .map { topic ->
                         TopicProgressItem(
                             topic = topic,
-                            totalWords = countByTopicId[topic.id] ?: 0
+                            totalWords = countByTopicId[topic.id] ?: 0,
+                            learnedCount = learnedCountByTopicId[topic.id] ?: 0
                         )
                     }
                     .sortedBy { it.topic.name }

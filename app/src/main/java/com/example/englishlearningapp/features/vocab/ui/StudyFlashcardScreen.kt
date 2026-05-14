@@ -65,6 +65,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.englishlearningapp.data.remote.api.response.VocabularyResponse
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
+import com.example.englishlearningapp.data.remote.NetworkConfig
 
 private val StudyBg = Color(0xFF1A1A1A)
 private val StudyCardBg = Color(0xFF2A2A2A)
@@ -79,6 +80,7 @@ fun StudyFlashcardScreen(
 ) {
     val studySession by viewModel.studySession.collectAsState()
     val isRating by viewModel.isRating.collectAsState()
+    val audioPlayer = rememberVocabAudioPlayer()
 
     LaunchedEffect(topicId) {
         viewModel.loadStudySession(topicId)
@@ -149,6 +151,10 @@ fun StudyFlashcardScreen(
     val vocab = studyQueue.getOrNull(currentIndex) ?: run {
         navController.navigateUp()
         return
+    }
+
+    LaunchedEffect(currentIndex) {
+        audioPlayer.play(vocab.audioUrl, NetworkConfig.BASE_URL, vocab.word)
     }
 
     val masteryLevel = viewModel.topicProgress.collectAsState().value[vocab.id]?.masteryLevel ?: 0
@@ -323,12 +329,23 @@ fun StudyFlashcardScreen(
                             Spacer(Modifier.height(12.dp))
                             Text("Ví dụ:", color = Color.Gray, fontSize = 12.sp)
                             Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = vocab.exampleSentence,
-                                color = Color.LightGray,
-                                fontSize = 14.sp,
-                                fontStyle = FontStyle.Italic
-                            )
+                            Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
+                                Text(
+                                    text = vocab.exampleSentence,
+                                    color = Color.LightGray,
+                                    fontSize = 14.sp,
+                                    fontStyle = FontStyle.Italic,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                SpeakerIconButton(
+                                    audioUrl = vocab.exampleAudioUrl,
+                                    baseUrl = NetworkConfig.BASE_URL,
+                                    fallbackText = vocab.exampleSentence,
+                                    audioPlayer = audioPlayer,
+                                    tint = Color(0xFF7A7A7A),
+                                    size = 16.dp
+                                )
+                            }
                         }
 
                         Spacer(Modifier.weight(1f))

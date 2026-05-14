@@ -77,6 +77,9 @@ class VocabViewModel @Inject constructor(
     private val _learnedVocabs = MutableStateFlow<LearnedVocabListResponse?>(null)
     val learnedVocabs: StateFlow<LearnedVocabListResponse?> = _learnedVocabs.asStateFlow()
 
+    private val _learnedCountByLevel = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val learnedCountByLevel: StateFlow<Map<String, Int>> = _learnedCountByLevel.asStateFlow()
+
     private val _isLoadingLearned = MutableStateFlow(false)
     val isLoadingLearned: StateFlow<Boolean> = _isLoadingLearned.asStateFlow()
 
@@ -403,10 +406,50 @@ class VocabViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoadingLearned.value = true
             try {
-                _learnedVocabs.value = vocabApiService.getLearnedVocabs()
+                // Fetch from API
+                val resp = vocabApiService.getLearnedVocabs()
+
+                // Enrich items with audioUrl from local DB or allVocabsPool when missing
+                val enriched = if (resp.items.isNotEmpty()) {
+                    try {
+                        val ids = resp.items.map { it.vocabularyId }
+                        val localEntities = try {
+                            repository.getVocabsByIds(ids).firstOrNull() ?: emptyList()
+                        } catch (_: Exception) {
+                            emptyList()
+                        }
+                        val localMap = localEntities.associateBy { it.id }
+                        val poolMap = _allVocabsPool.value.associateBy { it.id }
+                        val topicLevelById = topics.value.associate { topic ->
+                            topic.topic.id to (topic.topic.level?.uppercase() ?: "")
+                        }
+
+                        _learnedCountByLevel.value = localEntities
+                            .mapNotNull { entity -> topicLevelById[entity.topicId]?.takeIf { it.isNotBlank() } }
+                            .groupingBy { it }
+                            .eachCount()
+
+                        resp.items.map { item ->
+                            val audioFromLocal = localMap[item.vocabularyId]?.audioUrl
+                            val audioFromPool = poolMap[item.vocabularyId]?.audioUrl
+                            val audio = item.audioUrl ?: audioFromLocal ?: audioFromPool
+                            item.copy(audioUrl = audio)
+                        }
+                    } catch (_: Exception) {
+                        _learnedCountByLevel.value = emptyMap()
+                        resp.items
+                    }
+                } else resp.items
+
+                if (resp.items.isEmpty()) {
+                    _learnedCountByLevel.value = emptyMap()
+                }
+
+                _learnedVocabs.value = resp.copy(items = enriched)
             } catch (e: Exception) {
                 // handle error silently
                 _learnedVocabs.value = LearnedVocabListResponse()
+                _learnedCountByLevel.value = emptyMap()
             } finally {
                 _isLoadingLearned.value = false
             }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -64,6 +65,7 @@ import androidx.navigation.NavController
 import com.example.englishlearningapp.data.remote.api.response.LearnedVocabItem
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 import com.example.englishlearningapp.features.vocab.ui.SaveToTopicBottomSheet
+import com.example.englishlearningapp.data.remote.NetworkConfig
 
 private val DarkBg = Color(0xFF1A1A1A)
 private val CardBg = Color(0xFF2A2A2A)
@@ -79,6 +81,8 @@ fun LearnedWordsScreen(
     val context = LocalContext.current
     val learnedData by viewModel.learnedVocabs.collectAsState()
     val isLoading by viewModel.isLoadingLearned.collectAsState()
+
+    val audioPlayer = rememberVocabAudioPlayer()
 
     LaunchedEffect(Unit) {
         viewModel.loadLearnedVocabs()
@@ -96,11 +100,14 @@ fun LearnedWordsScreen(
         containerColor = DarkBg,
         topBar = {
             TopAppBar(
+                windowInsets = WindowInsets(0),
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = PrimaryGreen
                 ),
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(
+                        onClick = { navController.navigateUp() }
+                    ) {
                         Icon(
                             Icons.Default.ArrowBack,
                             contentDescription = null,
@@ -110,7 +117,7 @@ fun LearnedWordsScreen(
                 },
                 title = {
                     Text(
-                        "Các từ đã học",
+                        text = "Các từ đã học",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
@@ -258,6 +265,7 @@ fun LearnedWordsScreen(
                     ) { item ->
                         LearnedWordRow(
                             item = item,
+                            audioPlayer = audioPlayer,
                             onSaveClick = { vocabId ->
                                 selectedVocabId = vocabId
                                 selectedVocabWord = item.word
@@ -317,6 +325,7 @@ fun LearnedSeedIcon(
 @Composable
 fun LearnedWordRow(
     item: LearnedVocabItem,
+    audioPlayer: VocabAudioPlayer,
     onSaveClick: (vocabularyId: Int) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -342,12 +351,23 @@ fun LearnedWordRow(
             Spacer(Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.word,
-                    color = PrimaryGreen,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = item.word,
+                        color = PrimaryGreen,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 17.sp
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    SpeakerIconButton(
+                        audioUrl = item.audioUrl,
+                        baseUrl = NetworkConfig.BASE_URL,
+                        fallbackText = item.word,
+                        audioPlayer = audioPlayer,
+                        tint = PrimaryGreen,
+                        size = 18.dp
+                    )
+                }
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = item.meaning,
@@ -406,12 +426,23 @@ fun LearnedWordRow(
                 // Example sentence
                 if (!item.exampleSentence.isNullOrBlank()) {
                     Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = "\"${item.exampleSentence}\"",
-                        color = Color(0xFF7A7A7A),
-                        fontSize = 13.sp,
-                        fontStyle = FontStyle.Italic
-                    )
+                    Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "\"${item.exampleSentence}\"",
+                            color = Color(0xFF7A7A7A),
+                            fontSize = 13.sp,
+                            fontStyle = FontStyle.Italic,
+                            modifier = Modifier.weight(1f)
+                        )
+                        SpeakerIconButton(
+                            audioUrl = item.exampleAudioUrl,
+                            baseUrl = NetworkConfig.BASE_URL,
+                            fallbackText = item.exampleSentence,
+                            audioPlayer = audioPlayer,
+                            tint = Color(0xFF5A5A5A),
+                            size = 16.dp
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(10.dp))
