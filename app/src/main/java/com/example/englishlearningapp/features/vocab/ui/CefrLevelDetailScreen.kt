@@ -58,7 +58,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavController
 import com.example.englishlearningapp.features.vocab.viewmodel.CefrLevelViewModel
 import com.example.englishlearningapp.features.vocab.viewmodel.TopicProgressItem
@@ -70,10 +70,12 @@ import java.text.Normalizer
 fun CefrLevelDetailScreen(
     navController: NavController,
     level: String,
-    viewModel: CefrLevelViewModel = hiltViewModel(),
-    vocabViewModel: VocabViewModel = hiltViewModel()
+    cefrVm: CefrLevelViewModel? = null,
+    vocabVm: VocabViewModel? = null
 ) {
     val context = LocalContext.current
+    val viewModel = cefrVm ?: composeViewModel(factory = com.example.englishlearningapp.features.vocab.viewmodel.CefrLevelViewModelFactory(context))
+    val vocabViewModel = vocabVm ?: composeViewModel(factory = com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModelFactory(context))
     val topicItems by viewModel.topicItems.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()

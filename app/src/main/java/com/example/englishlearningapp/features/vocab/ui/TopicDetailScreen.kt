@@ -70,7 +70,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavController
 import com.example.englishlearningapp.data.remote.api.response.VocabularyResponse
 import com.example.englishlearningapp.data.local.db.entity.TopicWithCount
@@ -85,8 +85,10 @@ import com.example.englishlearningapp.navigation.Screen
 fun TopicDetailScreen(
     navController: NavController,
     topicId: Int,
-    viewModel: VocabViewModel = hiltViewModel()
+    vocabVm: VocabViewModel? = null
 ) {
+    val context = LocalContext.current
+    val viewModel = vocabVm ?: composeViewModel(factory = com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModelFactory(context))
     val topicsWithCount by viewModel.topics.collectAsState()
     val topicVocabs by viewModel.topicVocabs.collectAsState()
     val difficultyFilter by viewModel.difficultyFilter.collectAsState()

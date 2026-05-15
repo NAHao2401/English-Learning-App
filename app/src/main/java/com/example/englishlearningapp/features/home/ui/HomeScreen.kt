@@ -90,7 +90,7 @@ fun HomeScreen(
             title = "Vocabulary",
             subtitle = "Word practice",
             icon = Icons.Default.Translate,
-            isAvailable = false,
+            isAvailable = true,
             onClick = onVocabularyClick
         ),
         HomeFeatureItem(

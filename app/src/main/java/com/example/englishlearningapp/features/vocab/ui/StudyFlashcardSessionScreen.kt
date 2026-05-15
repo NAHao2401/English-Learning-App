@@ -57,7 +57,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavController
 import com.example.englishlearningapp.data.remote.api.response.VocabularyResponse
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
@@ -71,8 +72,10 @@ private val StudyGreen = Color(0xFF4CAF50)
 fun StudyFlashcardSessionScreen(
     navController: NavController,
     topicId: Int,
-    viewModel: VocabViewModel = hiltViewModel()
+    vocabVm: VocabViewModel? = null
 ) {
+    val context = LocalContext.current
+    val viewModel = vocabVm ?: composeViewModel(factory = com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModelFactory(context))
     val studySession by viewModel.studySession.collectAsState()
     val studyBatch by viewModel.studyBatch.collectAsState()
     val topicProgress by viewModel.topicProgress.collectAsState()

@@ -64,7 +64,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
-import androidx.hilt.navigation.compose.hiltViewModel
 
 // ── CheckState enum ──
 enum class CheckState { IDLE, CORRECT, WRONG }

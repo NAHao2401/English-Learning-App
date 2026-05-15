@@ -6,7 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,6 +17,7 @@ import com.example.englishlearningapp.data.local.datastore.AppDataStore
 import com.example.englishlearningapp.features.auth.ui.LoginScreen
 import com.example.englishlearningapp.features.auth.ui.RegisterScreen
 import com.example.englishlearningapp.features.auth.viewmodel.AuthViewModel
+import com.example.englishlearningapp.features.auth.viewmodel.AuthViewModelFactory
 import com.example.englishlearningapp.features.learn.ui.LearnScreen
 import com.example.englishlearningapp.features.home.ui.HomeScreen
 import com.example.englishlearningapp.features.lesson.ui.LessonDetailScreen
@@ -50,8 +51,9 @@ fun AppNavGraph(
     val navController = rememberNavController()
 
 
-    val authViewModel: AuthViewModel = hiltViewModel()
-
+    val authViewModel: AuthViewModel = viewModel(
+        factory = AuthViewModelFactory(context.applicationContext)
+    )
     val lessonViewModel: LessonViewModel = viewModel()
     val progressViewModel: ProgressViewModel = viewModel()
 
@@ -159,7 +161,7 @@ fun AppNavGraph(
         }
 
         composable(Screen.LearnedWords.route) {
-            LearnedWordsScreen(navController = navController, viewModel = hiltViewModel())
+            LearnedWordsScreen(navController = navController)
         }
 
         composable(Screen.ReviewQuiz.route) {
@@ -171,7 +173,10 @@ fun AppNavGraph(
         }
 
         composable(Screen.ReviewQuizChallenge.route) {
-            ReviewQuizChallengeScreen(navController = navController, viewModel = hiltViewModel())
+            ReviewQuizChallengeScreen(
+                navController = navController,
+                viewModel = composeViewModel(factory = com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModelFactory(context))
+            )
         }
 
         composable(Screen.UserTopics.route) {
@@ -240,7 +245,6 @@ fun AppNavGraph(
             val topicId = backStackEntry.arguments?.getInt("topicId") ?: return@composable
             StudyFlashcardSessionScreen(
                 navController = navController,
-                viewModel = viewModel(),
                 topicId = topicId
             )
         }

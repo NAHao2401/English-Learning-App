@@ -6,14 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import dagger.hilt.android.AndroidEntryPoint
 import com.example.englishlearningapp.data.local.datastore.AppDataStore
 import com.example.englishlearningapp.data.remote.api.RetrofitClient
 import com.example.englishlearningapp.navigation.AppNavGraph
 import com.example.englishlearningapp.navigation.Screen
 import com.example.englishlearningapp.ui.theme.EnglishLearningAppTheme
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,7 +19,7 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
 
-        RetrofitClient.initialize(applicationContext)
+        RetrofitClient.init(applicationContext)
 
         val appDataStore = AppDataStore(applicationContext)
 

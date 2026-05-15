@@ -22,12 +22,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavController
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 
@@ -35,8 +36,10 @@ import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 @Composable
 fun ReviewQuizScreen(
     navController: NavController,
-    viewModel: VocabViewModel = hiltViewModel()
+    vocabVm: VocabViewModel? = null
 ) {
+    val context = LocalContext.current
+    val viewModel = vocabVm ?: composeViewModel(factory = com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModelFactory(context))
     val learnedData by viewModel.learnedVocabs.collectAsState()
 
     val allItems = learnedData?.items ?: emptyList()

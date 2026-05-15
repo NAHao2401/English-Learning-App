@@ -21,9 +21,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavController
 import com.example.englishlearningapp.features.usertopic.UserTopicViewModel
+import com.example.englishlearningapp.features.usertopic.UserTopicViewModelFactory
 import com.example.englishlearningapp.features.vocab.ui.VocabExpandableCard
 import com.example.englishlearningapp.features.vocab.ui.rememberVocabAudioPlayer
 import java.util.Locale
@@ -32,9 +33,11 @@ import java.util.Locale
 @Composable
 fun UserTopicDetailScreen(
     navController: NavController,
-    viewModel: UserTopicViewModel = hiltViewModel(),
+    userTopicVm: UserTopicViewModel? = null,
     userTopicId: Int
 ) {
+    val context = LocalContext.current
+    val viewModel = userTopicVm ?: composeViewModel(factory = UserTopicViewModelFactory(context))
     LaunchedEffect(userTopicId) { viewModel.loadTopicVocabs(userTopicId) }
 
     val topicVocabs by viewModel.topicVocabs.collectAsState()

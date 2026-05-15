@@ -37,7 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavController
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 
@@ -46,8 +46,10 @@ import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 fun CefrDetailScreen(
     navController: NavController,
     level: String,
-    viewModel: VocabViewModel = hiltViewModel()
+    vocabVm: VocabViewModel? = null
 ) {
+    val context = LocalContext.current
+    val viewModel = vocabVm ?: composeViewModel(factory = com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModelFactory(context))
     val vocabs by viewModel.currentLevelVocabs.collectAsState()
     val isLoading by viewModel.isLoadingLevelVocabs.collectAsState()
     val error by viewModel.levelVocabularyError.collectAsState()

@@ -54,7 +54,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavController
 import com.example.englishlearningapp.data.local.db.entity.VocabularyEntity
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
@@ -76,8 +77,10 @@ data class QuizQuestion(
 @Composable
 fun ReviewScreen(
     navController: NavController,
-    viewModel: VocabViewModel = hiltViewModel()
+    vocabVm: VocabViewModel? = null
 ) {
+    val context = LocalContext.current
+    val viewModel = vocabVm ?: composeViewModel(factory = com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModelFactory(context))
     val reviewVocabs by viewModel.reviewVocabs.collectAsState()
 
     // Ensure vocab pool is loaded for generating wrong options

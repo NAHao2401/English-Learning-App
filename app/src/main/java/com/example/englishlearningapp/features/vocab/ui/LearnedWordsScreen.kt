@@ -60,7 +60,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavController
 import com.example.englishlearningapp.data.remote.api.response.LearnedVocabItem
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
@@ -76,9 +76,10 @@ private val OrangeAccent = Color(0xFFFF8C00)
 @Composable
 fun LearnedWordsScreen(
     navController: NavController,
-    viewModel: VocabViewModel = hiltViewModel()
+    vocabVm: VocabViewModel? = null
 ) {
     val context = LocalContext.current
+    val viewModel = vocabVm ?: composeViewModel(factory = com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModelFactory(context))
     val learnedData by viewModel.learnedVocabs.collectAsState()
     val isLoading by viewModel.isLoadingLearned.collectAsState()
 

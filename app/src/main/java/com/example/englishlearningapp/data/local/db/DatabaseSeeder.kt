@@ -35,7 +35,7 @@ object DatabaseSeeder {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
                 CoroutineScope(Dispatchers.IO).launch {
-                    RetrofitClient.initialize(context.applicationContext)
+                    RetrofitClient.init(context.applicationContext)
                     seedDatabase(DatabaseProvider.getDatabase(context.applicationContext))
                 }
             }
@@ -44,7 +44,7 @@ object DatabaseSeeder {
                 super.onOpen(db)
                 CoroutineScope(Dispatchers.IO).launch {
                     // Ensure database is populated if empty at open time
-                    RetrofitClient.initialize(context.applicationContext)
+                    RetrofitClient.init(context.applicationContext)
                     seedDatabase(DatabaseProvider.getDatabase(context.applicationContext))
                 }
             }

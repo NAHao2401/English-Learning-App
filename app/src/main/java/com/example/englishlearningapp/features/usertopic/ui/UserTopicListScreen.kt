@@ -31,10 +31,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -43,14 +44,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.example.englishlearningapp.features.usertopic.UserTopicViewModel
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 import com.example.englishlearningapp.data.remote.api.response.UserTopicResponse
+import com.example.englishlearningapp.features.usertopic.UserTopicViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserTopicListScreen(
     navController: NavController,
-    viewModel: UserTopicViewModel = hiltViewModel(),
-    vocabViewModel: VocabViewModel = hiltViewModel()
+    userTopicVm: UserTopicViewModel? = null,
+    vocabVm: VocabViewModel? = null
 ) {
+    val context = LocalContext.current
+    val viewModel = userTopicVm ?: composeViewModel(factory = UserTopicViewModelFactory(context))
+    val vocabViewModel = vocabVm ?: composeViewModel(factory = com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModelFactory(context))
+
     LaunchedEffect(Unit) { viewModel.loadUserTopics() }
 
     val lifecycleOwner = LocalLifecycleOwner.current

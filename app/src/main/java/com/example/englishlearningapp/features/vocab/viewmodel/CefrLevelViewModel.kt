@@ -1,10 +1,11 @@
 package com.example.englishlearningapp.features.vocab.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.englishlearningapp.data.remote.api.RetrofitClient
 import com.example.englishlearningapp.data.remote.api.VocabApiService
 import com.example.englishlearningapp.data.remote.api.response.TopicResponse
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +14,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 // Represents one topic card in the CEFR level screen
 data class TopicProgressItem(
@@ -23,10 +23,9 @@ data class TopicProgressItem(
     val reviewCount: Int = 0
 )
 
-@HiltViewModel
-class CefrLevelViewModel @Inject constructor(
-    private val vocabApiService: VocabApiService
-) : ViewModel() {
+class CefrLevelViewModel(context: Context) : ViewModel() {
+
+    private val vocabApiService: VocabApiService = RetrofitClient.vocabApiService
 
     private val _topicItems = MutableStateFlow<List<TopicProgressItem>>(emptyList())
     val topicItems: StateFlow<List<TopicProgressItem>> = _topicItems.asStateFlow()
@@ -91,5 +90,7 @@ class CefrLevelViewModel @Inject constructor(
             }
         }
     }
+
+
 }
 

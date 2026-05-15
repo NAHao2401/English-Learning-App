@@ -77,7 +77,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.englishlearningapp.data.local.db.entity.TopicWithCount
@@ -86,6 +86,7 @@ import com.example.englishlearningapp.data.remote.api.response.VocabOverviewResp
 import com.example.englishlearningapp.features.usertopic.UserTopicViewModel
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 import androidx.core.graphics.toColorInt
+import com.example.englishlearningapp.features.usertopic.UserTopicViewModelFactory
 import com.example.englishlearningapp.navigation.Screen
 
 private val DarkBg = Color(0xFF1A1A1A)
@@ -110,10 +111,15 @@ data class CefrLevel(
 @Composable
 fun VocabScreen(
     navController: NavController,
-    viewModel: VocabViewModel = hiltViewModel(),
-    userTopicViewModel: UserTopicViewModel = hiltViewModel()
+    vocabVm: VocabViewModel? = null,
+    userTopicVm: UserTopicViewModel? = null
 ) {
     val context = LocalContext.current
+    val viewModel = vocabVm ?: composeViewModel(factory = com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModelFactory(context))
+    val userTopicViewModel = userTopicVm ?: composeViewModel(factory = UserTopicViewModelFactory(
+        context
+    )
+    )
     val topics by viewModel.topics.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
     val savedVocabs by viewModel.savedVocabs.collectAsState()

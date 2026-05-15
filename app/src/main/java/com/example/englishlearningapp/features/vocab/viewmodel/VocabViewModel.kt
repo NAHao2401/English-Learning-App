@@ -1,13 +1,16 @@
 package com.example.englishlearningapp.features.vocab.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.englishlearningapp.data.local.db.DatabaseProvider
 import com.example.englishlearningapp.data.local.db.AppDatabase
 import com.example.englishlearningapp.data.local.db.entity.TopicWithCount
 import com.example.englishlearningapp.data.local.db.entity.UserEntity
 import com.example.englishlearningapp.data.local.db.entity.VocabularyEntity
 import com.example.englishlearningapp.data.repository.VocabRepository
 import com.example.englishlearningapp.data.local.datastore.AppDataStore
+import com.example.englishlearningapp.data.remote.api.RetrofitClient
 import com.example.englishlearningapp.data.remote.api.VocabApiService
 import com.example.englishlearningapp.data.remote.api.response.RateVocabRequest
 import com.example.englishlearningapp.data.remote.api.response.TopicStudyResponse
@@ -15,9 +18,6 @@ import com.example.englishlearningapp.data.remote.api.response.UserVocabularyRes
 import com.example.englishlearningapp.data.remote.api.response.VocabularyResponse
 import com.example.englishlearningapp.data.remote.api.response.VocabOverviewResponse
 import com.example.englishlearningapp.data.remote.api.response.LearnedVocabListResponse
-import dagger.hilt.android.qualifiers.ApplicationContext
-import android.content.Context
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -36,18 +36,15 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-@HiltViewModel
-class VocabViewModel @Inject constructor(
-    private val appDatabase: AppDatabase,
-    private val repository: VocabRepository,
-    private val vocabApiService: VocabApiService,
-    @ApplicationContext private val context: Context
-) : ViewModel() {
+class VocabViewModel(context: Context) : ViewModel() {
 
-    private val appDataStore = AppDataStore(context)
+    private val appContext = context.applicationContext
+    private val appDatabase: AppDatabase = DatabaseProvider.getDatabase(appContext)
+    private val repository = VocabRepository(appContext)
+    private val vocabApiService: VocabApiService = RetrofitClient.vocabApiService
+    private val appDataStore = AppDataStore(appContext)
     private val _searchQuery = MutableStateFlow("")
     private val _selectedTopicId = MutableStateFlow<Int?>(null)
     private val _difficultyFilter = MutableStateFlow<String?>(null)
@@ -503,4 +500,6 @@ class VocabViewModel @Inject constructor(
             .distinct()
             .take(count)
     }
+
+
 }

@@ -16,12 +16,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.font.FontWeight.Companion.Medium
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import com.example.englishlearningapp.features.usertopic.UserTopicViewModel
+import com.example.englishlearningapp.features.usertopic.UserTopicViewModelFactory
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,8 +33,13 @@ fun SaveToTopicBottomSheetWithId(
     vocabWord: String,
     onDismiss: () -> Unit,
     onSaved: () -> Unit = {},
-    userTopicViewModel: UserTopicViewModel = hiltViewModel()
+    userTopicVm: UserTopicViewModel? = null
 ) {
+    val context = LocalContext.current
+    val userTopicViewModel = userTopicVm ?: composeViewModel(factory = UserTopicViewModelFactory(
+        context
+    )
+    )
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val userTopics by userTopicViewModel.userTopics.collectAsState()
     val isSaving by userTopicViewModel.isSaving.collectAsState()

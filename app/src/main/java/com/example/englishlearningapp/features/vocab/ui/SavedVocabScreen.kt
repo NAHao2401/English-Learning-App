@@ -41,11 +41,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavController
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 import com.example.englishlearningapp.features.usertopic.UserTopicViewModel
 import com.example.englishlearningapp.data.remote.api.response.VocabularyResponse
+import com.example.englishlearningapp.features.usertopic.UserTopicViewModelFactory
 import java.util.Locale
 
 /**
@@ -56,9 +57,15 @@ import java.util.Locale
 @Composable
 fun SavedVocabScreen(
     navController: NavController,
-    viewModel: VocabViewModel = hiltViewModel(),
-    userTopicViewModel: UserTopicViewModel = hiltViewModel()
+    vocabVm: VocabViewModel? = null,
+    userTopicVm: UserTopicViewModel? = null
 ) {
+    val context = LocalContext.current
+    val viewModel = vocabVm ?: composeViewModel(factory = com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModelFactory(context))
+    val userTopicViewModel = userTopicVm ?: composeViewModel(factory = UserTopicViewModelFactory(
+        context
+    )
+    )
     val savedVocabs by viewModel.savedVocabs.collectAsState()
     val savedVocabIds by userTopicViewModel.savedVocabIds.collectAsState()
 

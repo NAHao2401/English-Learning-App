@@ -1,9 +1,8 @@
 package com.example.englishlearningapp.data.repository
 
+import android.content.Context
+import com.example.englishlearningapp.data.local.db.DatabaseProvider
 import com.example.englishlearningapp.data.remote.api.RetrofitClient
-import com.example.englishlearningapp.data.local.db.dao.TopicDao
-import com.example.englishlearningapp.data.local.db.dao.UserVocabularyDao
-import com.example.englishlearningapp.data.local.db.dao.VocabularyDao
 import com.example.englishlearningapp.data.local.db.entity.TopicEntity
 import com.example.englishlearningapp.data.local.db.entity.TopicWithCount
 import com.example.englishlearningapp.data.local.db.entity.UserVocabularyEntity
@@ -13,16 +12,14 @@ import com.example.englishlearningapp.data.remote.api.VocabApiService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class VocabRepository @Inject constructor(
-	private val vocabularyDao: VocabularyDao,
-	private val userVocabularyDao: UserVocabularyDao,
-	private val topicDao: TopicDao,
-	private val vocabApiService: VocabApiService
-) {
+class VocabRepository(context: Context) {
+
+	private val appDatabase = DatabaseProvider.getDatabase(context.applicationContext)
+	private val vocabularyDao = appDatabase.vocabularyDao()
+	private val userVocabularyDao = appDatabase.userVocabularyDao()
+	private val topicDao = appDatabase.topicDao()
+	private val vocabApiService: VocabApiService = RetrofitClient.vocabApiService
 
 	fun getTopics(): Flow<List<TopicEntity>> {
 		return topicDao.getAllTopics()

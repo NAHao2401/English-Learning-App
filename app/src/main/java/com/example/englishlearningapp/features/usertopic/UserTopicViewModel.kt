@@ -1,13 +1,14 @@
 package com.example.englishlearningapp.features.usertopic
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.englishlearningapp.data.remote.api.RetrofitClient
 import com.example.englishlearningapp.data.remote.api.VocabApiService
 import com.example.englishlearningapp.data.remote.api.response.UserTopicCreateRequest
 import com.example.englishlearningapp.data.remote.api.response.UserTopicResponse
 import com.example.englishlearningapp.data.remote.api.response.VocabularyResponse
 import com.example.englishlearningapp.data.remote.api.response.SaveVocabularyRequest
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,12 +17,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
-import javax.inject.Inject
 
-@HiltViewModel
-class UserTopicViewModel @Inject constructor(
-    private val vocabApiService: VocabApiService
-) : ViewModel() {
+class UserTopicViewModel(context: Context) : ViewModel() {
+
+    private val vocabApiService: VocabApiService = RetrofitClient.vocabApiService
 
     // --- User topics list ---
     private val _userTopics = MutableStateFlow<List<UserTopicResponse>>(emptyList())
@@ -255,6 +254,8 @@ class UserTopicViewModel @Inject constructor(
             }
         }
     }
+
+
 }
 
 

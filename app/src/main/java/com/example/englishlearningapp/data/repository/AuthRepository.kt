@@ -6,16 +6,8 @@ import com.example.englishlearningapp.data.remote.api.RetrofitClient
 import com.example.englishlearningapp.data.remote.api.request.LoginRequest
 import com.example.englishlearningapp.data.remote.api.request.RegisterRequest
 import org.json.JSONObject
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 
-class AuthRepository @Inject constructor(
-    @ApplicationContext context: Context
-) {
-
-    init {
-        RetrofitClient.initialize(context)
-    }
+class AuthRepository(context: Context) {
 
     private val authApi = RetrofitClient.authApiService
     private val appDataStore = AppDataStore(context.applicationContext)
