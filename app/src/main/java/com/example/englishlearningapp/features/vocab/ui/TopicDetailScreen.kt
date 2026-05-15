@@ -72,11 +72,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.englishlearningapp.ui.navigation.Screen
 import com.example.englishlearningapp.data.remote.api.response.VocabularyResponse
 import com.example.englishlearningapp.data.local.db.entity.TopicWithCount
 import com.example.englishlearningapp.data.local.db.entity.VocabularyEntity
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
+import com.example.englishlearningapp.navigation.Screen
+
 // java.util.Locale not required here
 
 @OptIn(ExperimentalMaterial3Api::class)

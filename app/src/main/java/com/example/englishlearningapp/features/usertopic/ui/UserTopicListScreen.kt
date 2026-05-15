@@ -72,7 +72,9 @@ fun UserTopicListScreen(
     val showDialog by viewModel.showCreateDialog.collectAsState()
     val currentUser by vocabViewModel.currentUser.collectAsState()
     val topicWordCounts by viewModel.topicWordCounts.collectAsState()
+    val topicLearnedCounts by viewModel.topicLearnedCounts.collectAsState()
     val displayTopicWordCounts = if (topicWordCounts.isNotEmpty()) topicWordCounts else userTopics.associate { it.id to it.wordCount }
+    val displayTopicLearnedCounts = if (topicLearnedCounts.isNotEmpty()) topicLearnedCounts else userTopics.associate { it.id to it.learnedCount }
 
     LaunchedEffect(userTopics) {
         userTopics.forEach { topic ->
@@ -147,7 +149,7 @@ fun UserTopicListScreen(
                                 Spacer(modifier = Modifier.height(3.dp))
 
                                 val totalWords = userTopics.sumOf { topic -> displayTopicWordCounts[topic.id] ?: topic.wordCount }
-                                val totalLearned = userTopics.sumOf { it.learnedCount }
+                                val totalLearned = userTopics.sumOf { topic -> displayTopicLearnedCounts[topic.id] ?: topic.learnedCount }
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     verticalAlignment = Alignment.CenterVertically
@@ -176,29 +178,7 @@ fun UserTopicListScreen(
                                         }
                                     }
 
-                                    Surface(
-                                        color = Color(0xFF2E7D32),
-                                        shape = RoundedCornerShape(20.dp)
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.NightsStay,
-                                                contentDescription = null,
-                                                tint = Color.White,
-                                                modifier = Modifier.size(12.dp)
-                                            )
-                                            Spacer(Modifier.width(4.dp))
-                                            Text(
-                                                text = "0 cần luyện tập",
-                                                color = Color.White,
-                                                fontSize = 11.sp,
-                                                fontWeight = FontWeight.Medium
-                                            )
-                                        }
-                                    }
+                                    
                                 }
                             }
                         }
@@ -240,6 +220,7 @@ fun UserTopicListScreen(
                         UserTopicCircleItem(
                             topic = topic,
                             wordCount = displayTopicWordCounts[topic.id] ?: topic.wordCount,
+                            learnedCount = displayTopicLearnedCounts[topic.id] ?: topic.learnedCount,
                             onClick = { navController.navigate("user_topic_detail/${topic.id}") }
                         )
                     }
@@ -294,6 +275,7 @@ fun UserTopicListScreen(
 fun UserTopicCircleItem(
     topic: UserTopicResponse,
     wordCount: Int,
+    learnedCount: Int,
     onClick: () -> Unit
 ) {
     Column(
@@ -354,26 +336,13 @@ fun UserTopicCircleItem(
                 )
                 Spacer(Modifier.width(3.dp))
                 Text(
-                    text = "${topic.learnedCount}/$wordCount",
+                    text = "$learnedCount/$wordCount",
                     color = Color(0xFF4CAF50),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold
                 )
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.NightsStay,
-                    contentDescription = null,
-                    tint = Color.Gray,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(Modifier.width(3.dp))
-                Text(
-                    text = "0",
-                    color = Color.Gray,
-                    fontSize = 13.sp
-                )
-            }
+            
         }
     }
 }

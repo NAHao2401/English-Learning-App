@@ -85,8 +85,8 @@ import com.example.englishlearningapp.data.local.db.entity.UserEntity
 import com.example.englishlearningapp.data.remote.api.response.VocabOverviewResponse
 import com.example.englishlearningapp.features.usertopic.UserTopicViewModel
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
-import com.example.englishlearningapp.ui.navigation.Screen
 import androidx.core.graphics.toColorInt
+import com.example.englishlearningapp.navigation.Screen
 
 private val DarkBg = Color(0xFF1A1A1A)
 private val CardBg = Color(0xFF2A2A2A)

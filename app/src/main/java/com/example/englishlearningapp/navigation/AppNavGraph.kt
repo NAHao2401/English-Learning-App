@@ -6,6 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,15 +17,30 @@ import com.example.englishlearningapp.data.local.datastore.AppDataStore
 import com.example.englishlearningapp.features.auth.ui.LoginScreen
 import com.example.englishlearningapp.features.auth.ui.RegisterScreen
 import com.example.englishlearningapp.features.auth.viewmodel.AuthViewModel
+import com.example.englishlearningapp.features.learn.ui.LearnScreen
 import com.example.englishlearningapp.features.home.ui.HomeScreen
-import com.example.englishlearningapp.features.auth.viewmodel.AuthViewModelFactory
 import com.example.englishlearningapp.features.lesson.ui.LessonDetailScreen
 import com.example.englishlearningapp.features.lesson.ui.LessonListScreen
 import com.example.englishlearningapp.features.lesson.ui.LessonResultScreen
 import com.example.englishlearningapp.features.lesson.ui.TopicListScreen
 import com.example.englishlearningapp.features.lesson.viewmodel.LessonViewModel
+import com.example.englishlearningapp.features.profile.ui.ProfileScreen
 import com.example.englishlearningapp.features.progress.ui.ProgressScreen
 import com.example.englishlearningapp.features.progress.viewmodel.ProgressViewModel
+import com.example.englishlearningapp.features.scan.ui.ScanScreen
+import com.example.englishlearningapp.features.usertopic.ui.UserTopicDetailScreen
+import com.example.englishlearningapp.features.usertopic.ui.UserTopicListScreen
+import com.example.englishlearningapp.features.vocab.ui.CefrDetailScreen
+import com.example.englishlearningapp.features.vocab.ui.CefrLevelDetailScreen
+import com.example.englishlearningapp.features.vocab.ui.FlashcardScreen
+import com.example.englishlearningapp.features.vocab.ui.LearnedWordsScreen
+import com.example.englishlearningapp.features.vocab.ui.ReviewQuizChallengeScreen
+import com.example.englishlearningapp.features.vocab.ui.ReviewQuizListeningScreen
+import com.example.englishlearningapp.features.vocab.ui.ReviewQuizScreen
+import com.example.englishlearningapp.features.vocab.ui.SavedVocabScreen
+import com.example.englishlearningapp.features.vocab.ui.StudyFlashcardSessionScreen
+import com.example.englishlearningapp.features.vocab.ui.TopicDetailScreen
+import com.example.englishlearningapp.features.vocab.ui.VocabScreen
 
 @Composable
 fun AppNavGraph(
@@ -34,9 +50,7 @@ fun AppNavGraph(
     val navController = rememberNavController()
 
 
-    val authViewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(context.applicationContext)
-    )
+    val authViewModel: AuthViewModel = hiltViewModel()
 
     val lessonViewModel: LessonViewModel = viewModel()
     val progressViewModel: ProgressViewModel = viewModel()
@@ -97,8 +111,17 @@ fun AppNavGraph(
                 onLessonsClick = {
                     navController.navigate(Screen.TopicList.route)
                 },
+                onVocabularyClick = {
+                    navController.navigate(Screen.Vocab.route)
+                },
                 onProgressClick = {
                     navController.navigate(Screen.Progress.route)
+                },
+                onAiScanClick = {
+                    navController.navigate(Screen.Scan.route)
+                },
+                onSpeakingClick = {
+                    navController.navigate(Screen.Learn.route)
                 },
                 onContinueLearningClick = {
                     navController.navigate(Screen.TopicList.route)
@@ -113,6 +136,100 @@ fun AppNavGraph(
                         }
                     }
                 }
+            )
+        }
+
+        composable(Screen.Learn.route) { LearnScreen() }
+        composable(Screen.Scan.route) { ScanScreen() }
+
+        composable(Screen.Vocab.route) {
+            VocabScreen(navController = navController)
+        }
+
+        composable(Screen.LearnedWords.route) {
+            LearnedWordsScreen(navController = navController, viewModel = hiltViewModel())
+        }
+
+        composable(Screen.ReviewQuiz.route) {
+            ReviewQuizScreen(navController = navController)
+        }
+
+        composable(Screen.ReviewQuizListening.route) {
+            ReviewQuizListeningScreen(navController = navController)
+        }
+
+        composable(Screen.ReviewQuizChallenge.route) {
+            ReviewQuizChallengeScreen(navController = navController, viewModel = hiltViewModel())
+        }
+
+        composable(Screen.UserTopics.route) {
+            UserTopicListScreen(navController = navController)
+        }
+
+        composable(Screen.SavedVocab.route) {
+            SavedVocabScreen(navController = navController)
+        }
+
+
+
+        composable(Screen.TopicDetail.route) { backStackEntry ->
+            val topicIdArg = backStackEntry.arguments?.getString("topicId")
+            val topicId = topicIdArg?.toIntOrNull() ?: return@composable
+            TopicDetailScreen(
+                navController = navController,
+                topicId = topicId
+            )
+        }
+
+        composable(
+            route = Screen.CefrDetail.route,
+            arguments = listOf(navArgument("level") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val level = backStackEntry.arguments?.getString("level") ?: return@composable
+            CefrDetailScreen(
+                navController = navController,
+                level = level
+            )
+        }
+
+        composable(
+            route = Screen.CefrLevelDetail.route,
+            arguments = listOf(navArgument("level") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val level = backStackEntry.arguments?.getString("level") ?: return@composable
+            CefrLevelDetailScreen(
+                navController = navController,
+                level = level
+            )
+        }
+
+        composable(Screen.UserTopicDetail.route) { backStackEntry ->
+            val userTopicIdArg = backStackEntry.arguments?.getString("userTopicId")
+            val userTopicId = userTopicIdArg?.toIntOrNull() ?: return@composable
+            UserTopicDetailScreen(
+                navController = navController,
+                userTopicId = userTopicId
+            )
+        }
+
+        composable(Screen.Flashcard.route) { backStackEntry ->
+            val topicIdArg = backStackEntry.arguments?.getString("topicId")
+            val topicId = topicIdArg?.toIntOrNull() ?: return@composable
+            FlashcardScreen(
+                navController = navController,
+                topicId = topicId
+            )
+        }
+
+        composable(
+            route = Screen.StudyFlashcard.route,
+            arguments = listOf(navArgument("topicId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val topicId = backStackEntry.arguments?.getInt("topicId") ?: return@composable
+            StudyFlashcardSessionScreen(
+                navController = navController,
+                viewModel = viewModel(),
+                topicId = topicId
             )
         }
 
@@ -235,5 +352,7 @@ fun AppNavGraph(
                 }
             )
         }
+
+        composable(Screen.Profile.route) { ProfileScreen() }
     }
 }
