@@ -52,9 +52,18 @@ sealed class Screen(val route: String) {
         }
     }
 
-    data object Profile : Screen("profile")
 
     data object TopicList : Screen("topics")
+
+    data object Vocabulary : Screen("vocabulary")
+
+    data object AiScan : Screen("ai-scan")
+
+    data object Speaking : Screen("speaking")
+
+    data object Progress : Screen("progress")
+
+    data object Profile : Screen("profile")
 
     data object LessonList : Screen("lessons/{topicId}") {
         fun createRoute(topicId: Int): String {
@@ -69,6 +78,4 @@ sealed class Screen(val route: String) {
     }
 
     data object LessonResult : Screen("lesson-result")
-
-    data object Progress : Screen("progress")
 }

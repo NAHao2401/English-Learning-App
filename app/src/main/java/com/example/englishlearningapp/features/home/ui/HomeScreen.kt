@@ -103,14 +103,14 @@ fun HomeScreen(
             title = "AI Scan",
             subtitle = "Coming soon",
             icon = Icons.Default.CameraAlt,
-            isAvailable = false,
+            isAvailable = true,
             onClick = onAiScanClick
         ),
         HomeFeatureItem(
             title = "Speaking",
             subtitle = "Coming soon",
             icon = Icons.Default.Mic,
-            isAvailable = false,
+            isAvailable = true,
             onClick = onSpeakingClick
         )
     )
