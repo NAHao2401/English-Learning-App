@@ -25,6 +25,39 @@ import com.example.englishlearningapp.features.lesson.ui.TopicListScreen
 import com.example.englishlearningapp.features.lesson.viewmodel.LessonViewModel
 import com.example.englishlearningapp.features.progress.ui.ProgressScreen
 import com.example.englishlearningapp.features.progress.viewmodel.ProgressViewModel
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AutoStories
+import androidx.compose.material.icons.rounded.BarChart
+import androidx.compose.material.icons.rounded.CameraAlt
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Translate
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
 fun AppNavGraph(
@@ -56,193 +89,427 @@ fun AppNavGraph(
         }
     }
 
-    NavHost(
-        navController = navController,
-        startDestination = startDestination
-    ) {
-        composable(Screen.Login.route) {
-            LoginScreen(
-                viewModel = authViewModel,
-                onNavigateToRegister = {
-                    navController.navigate(Screen.Register.route)
-                },
-                onLoginSuccess = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Login.route) {
-                            inclusive = true
-                        }
-                        launchSingleTop = true
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val showBottomBar = shouldShowBottomBar(currentRoute)
+
+    Scaffold(
+        bottomBar = {
+            if (showBottomBar) {
+                AppBottomNavigationBar(
+                    currentRoute = currentRoute,
+                    onItemClick = { route ->
+                        navController.navigateBottomItem(route)
                     }
-                }
-            )
-        }
-
-        composable(Screen.Register.route) {
-            RegisterScreen(
-                viewModel = authViewModel,
-                onNavigateToLogin = {
-                    navController.popBackStack()
-                },
-                onRegisterSuccess = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable(Screen.Home.route) {
-            LaunchedEffect(Unit) {
-                progressViewModel.loadProgress()
+                )
             }
-
-            HomeScreen(
-                userName = userName.ifBlank { "Learner" },
-                totalXp = progressUiState.summary?.total_xp ?: 0,
-                streakCount = progressUiState.summary?.streak_count ?: 0,
-                completedLessons = progressUiState.summary?.completed_lessons ?: 0,
-                totalLessons = progressUiState.summary?.total_lessons ?: 0,
-                completionPercent = progressUiState.summary?.completion_percent ?: 0,
-                currentLevel = progressUiState.summary?.current_level ?: "Beginner",
-                isProgressLoading = progressUiState.isLoading,
-                progressErrorMessage = progressUiState.errorMessage,
-                onLessonsClick = {
-                    navController.navigate(Screen.TopicList.route)
-                },
-                onProgressClick = {
-                    navController.navigate(Screen.Progress.route)
-                },
-                onContinueLearningClick = {
-                    navController.navigate(Screen.TopicList.route)
-                },
-                onLogoutClick = {
-                    authViewModel.logout {
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(navController.graph.id) {
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(Screen.Login.route) {
+                LoginScreen(
+                    viewModel = authViewModel,
+                    onNavigateToRegister = {
+                        navController.navigate(Screen.Register.route)
+                    },
+                    onLoginSuccess = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Login.route) {
                                 inclusive = true
                             }
                             launchSingleTop = true
                         }
                     }
-                }
-            )
-        }
-
-        composable(Screen.TopicList.route) {
-            LaunchedEffect(Unit) {
-                lessonViewModel.loadTopics()
+                )
             }
 
-            TopicListScreen(
-                topics = lessonUiState.topics,
-                isLoading = lessonUiState.isLoading,
-                errorMessage = lessonUiState.errorMessage,
-                onTopicClick = { topicId ->
-                    navController.navigate(Screen.LessonList.createRoute(topicId))
-                },
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable(
-            route = Screen.LessonList.route,
-            arguments = listOf(
-                navArgument("topicId") {
-                    type = NavType.IntType
-                }
-            )
-        ) { backStackEntry ->
-            val topicId = backStackEntry.arguments?.getInt("topicId") ?: return@composable
-
-            LaunchedEffect(topicId) {
-                lessonViewModel.loadLessonsByTopic(topicId)
+            composable(Screen.Register.route) {
+                RegisterScreen(
+                    viewModel = authViewModel,
+                    onNavigateToLogin = {
+                        navController.popBackStack()
+                    },
+                    onRegisterSuccess = {
+                        navController.popBackStack()
+                    }
+                )
             }
 
-            LessonListScreen(
-                lessons = lessonUiState.lessons,
-                isLoading = lessonUiState.isLoading,
-                errorMessage = lessonUiState.errorMessage,
-                onLessonClick = { lessonId ->
-                    navController.navigate(Screen.LessonDetail.createRoute(lessonId))
-                },
-                onBackClick = {
-                    navController.popBackStack()
+            composable(Screen.Home.route) {
+                LaunchedEffect(Unit) {
+                    progressViewModel.loadProgress()
                 }
-            )
-        }
 
-        composable(
-            route = Screen.LessonDetail.route,
-            arguments = listOf(
-                navArgument("lessonId") {
-                    type = NavType.IntType
-                }
-            )
-        ) { backStackEntry ->
-            val lessonId = backStackEntry.arguments?.getInt("lessonId") ?: return@composable
-
-            LaunchedEffect(lessonId) {
-                lessonViewModel.loadQuestions(lessonId)
-            }
-
-            LessonDetailScreen(
-                questions = lessonUiState.questions,
-                selectedAnswers = lessonUiState.selectedAnswers,
-                isLoading = lessonUiState.isLoading,
-                isSavingAnswer = lessonUiState.isSavingAnswer,
-                errorMessage = lessonUiState.errorMessage,
-                onSelectAnswer = { questionId, answer ->
-                    lessonViewModel.selectAnswer(
-                        lessonId = lessonId,
-                        questionId = questionId,
-                        answer = answer
-                    )
-                },
-                onSubmitClick = {
-                    lessonViewModel.submitLesson(
-                        lessonId = lessonId,
-                        onSuccess = {
-                            navController.navigate(Screen.LessonResult.route)
-                        }
-                    )
-                },
-                onBackClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable(Screen.LessonResult.route) {
-            LessonResultScreen(
-                result = lessonUiState.submitResult,
-                onRetryClick = {
-                    navController.popBackStack()
-                },
-                onContinueClick = {
-                    navController.navigate(Screen.TopicList.route) {
-                        popUpTo(Screen.TopicList.route) {
-                            inclusive = true
+                HomeScreen(
+                    userName = userName.ifBlank { "Learner" },
+                    totalXp = progressUiState.summary?.total_xp ?: 0,
+                    streakCount = progressUiState.summary?.streak_count ?: 0,
+                    completedLessons = progressUiState.summary?.completed_lessons ?: 0,
+                    totalLessons = progressUiState.summary?.total_lessons ?: 0,
+                    completionPercent = progressUiState.summary?.completion_percent ?: 0,
+                    currentLevel = progressUiState.summary?.current_level ?: "Beginner",
+                    isProgressLoading = progressUiState.isLoading,
+                    progressErrorMessage = progressUiState.errorMessage,
+                    onLessonsClick = {
+                        navController.navigateBottomItem(Screen.TopicList.route)
+                    },
+                    onVocabularyClick = {
+                        navController.navigateBottomItem(Screen.Vocabulary.route)
+                    },
+                    onProgressClick = {
+                        navController.navigateBottomItem(Screen.Progress.route)
+                    },
+                    onAiScanClick = {
+                        navController.navigateBottomItem(Screen.AiScan.route)
+                    },
+                    onSpeakingClick = {
+                        navController.navigateBottomItem(Screen.Speaking.route)
+                    },
+                    onContinueLearningClick = {
+                        navController.navigateBottomItem(Screen.TopicList.route)
+                    },
+                    onLogoutClick = {
+                        authViewModel.logout {
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(navController.graph.id) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
                         }
                     }
-                },
-                onProgressClick = {
-                    navController.navigate(Screen.Progress.route)
-                }
-            )
-        }
-
-        composable(Screen.Progress.route) {
-            LaunchedEffect(Unit) {
-                progressViewModel.loadProgress()
+                )
             }
 
-            ProgressScreen(
-                summary = progressUiState.summary,
-                isLoading = progressUiState.isLoading,
-                errorMessage = progressUiState.errorMessage,
-                onBackClick = {
-                    navController.popBackStack()
+            composable(Screen.TopicList.route) {
+                LaunchedEffect(Unit) {
+                    lessonViewModel.loadTopics()
                 }
+
+                TopicListScreen(
+                    topics = lessonUiState.topics,
+                    isLoading = lessonUiState.isLoading,
+                    errorMessage = lessonUiState.errorMessage,
+                    onTopicClick = { topicId ->
+                        navController.navigate(Screen.LessonList.createRoute(topicId))
+                    },
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                route = Screen.LessonList.route,
+                arguments = listOf(
+                    navArgument("topicId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+                val topicId = backStackEntry.arguments?.getInt("topicId") ?: return@composable
+
+                LaunchedEffect(topicId) {
+                    lessonViewModel.loadLessonsByTopic(topicId)
+                }
+
+                LessonListScreen(
+                    lessons = lessonUiState.lessons,
+                    isLoading = lessonUiState.isLoading,
+                    errorMessage = lessonUiState.errorMessage,
+                    onLessonClick = { lessonId ->
+                        navController.navigate(Screen.LessonDetail.createRoute(lessonId))
+                    },
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                route = Screen.LessonDetail.route,
+                arguments = listOf(
+                    navArgument("lessonId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+                val lessonId = backStackEntry.arguments?.getInt("lessonId") ?: return@composable
+
+                LaunchedEffect(lessonId) {
+                    lessonViewModel.loadQuestions(lessonId)
+                }
+
+                LessonDetailScreen(
+                    questions = lessonUiState.questions,
+                    selectedAnswers = lessonUiState.selectedAnswers,
+                    isLoading = lessonUiState.isLoading,
+                    isSavingAnswer = lessonUiState.isSavingAnswer,
+                    errorMessage = lessonUiState.errorMessage,
+                    onSelectAnswer = { questionId, answer ->
+                        lessonViewModel.selectAnswer(
+                            lessonId = lessonId,
+                            questionId = questionId,
+                            answer = answer
+                        )
+                    },
+                    onSubmitClick = {
+                        lessonViewModel.submitLesson(
+                            lessonId = lessonId,
+                            onSuccess = {
+                                navController.navigate(Screen.LessonResult.route)
+                            }
+                        )
+                    },
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(Screen.LessonResult.route) {
+                LessonResultScreen(
+                    result = lessonUiState.submitResult,
+                    onRetryClick = {
+                        navController.popBackStack()
+                    },
+                    onContinueClick = {
+                        navController.navigate(Screen.TopicList.route) {
+                            popUpTo(Screen.TopicList.route) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onProgressClick = {
+                        navController.navigate(Screen.Progress.route)
+                    }
+                )
+            }
+
+            composable(Screen.Progress.route) {
+                LaunchedEffect(Unit) {
+                    progressViewModel.loadProgress()
+                }
+
+                ProgressScreen(
+                    summary = progressUiState.summary,
+                    isLoading = progressUiState.isLoading,
+                    errorMessage = progressUiState.errorMessage,
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(Screen.Vocabulary.route) {
+                ComingSoonScreen(
+                    title = "Vocabulary",
+                    subtitle = "Practice and review your saved words"
+                )
+            }
+
+            composable(Screen.AiScan.route) {
+                ComingSoonScreen(
+                    title = "AI Scan",
+                    subtitle = "Scan text and learn new English words"
+                )
+            }
+
+            composable(Screen.Speaking.route) {
+                ComingSoonScreen(
+                    title = "Speaking",
+                    subtitle = "Practice pronunciation and speaking skills"
+                )
+            }
+
+            composable(Screen.Profile.route) {
+                ComingSoonScreen(
+                    title = "Profile",
+                    subtitle = "Manage your account and learning settings"
+                )
+            }
+        }
+    }
+}
+
+
+private data class BottomNavItem(
+    val label: String,
+    val shortLabel: String,
+    val route: String,
+    val icon: ImageVector
+)
+private val bottomNavItems = listOf(
+    BottomNavItem(
+        label = "Home",
+        shortLabel = "Home",
+        route = Screen.Home.route,
+        icon = Icons.Rounded.Home
+    ),
+    BottomNavItem(
+        label = "Lessons",
+        shortLabel = "Lessons",
+        route = Screen.TopicList.route,
+        icon = Icons.Rounded.AutoStories
+    ),
+    BottomNavItem(
+        label = "Vocabulary",
+        shortLabel = "Vocab",
+        route = Screen.Vocabulary.route,
+        icon = Icons.Rounded.Translate
+    ),
+    BottomNavItem(
+        label = "AI Scan",
+        shortLabel = "Scan",
+        route = Screen.AiScan.route,
+        icon = Icons.Rounded.CameraAlt
+    ),
+    BottomNavItem(
+        label = "Speaking",
+        shortLabel = "Speak",
+        route = Screen.Speaking.route,
+        icon = Icons.Rounded.Mic
+    ),
+    BottomNavItem(
+        label = "Progress",
+        shortLabel = "Progress",
+        route = Screen.Progress.route,
+        icon = Icons.Rounded.BarChart
+    ),
+    BottomNavItem(
+        label = "Profile",
+        shortLabel = "Profile",
+        route = Screen.Profile.route,
+        icon = Icons.Rounded.Person
+    )
+)
+
+private fun shouldShowBottomBar(route: String?): Boolean {
+    return route in listOf(
+        Screen.Home.route,
+        Screen.TopicList.route,
+        Screen.Vocabulary.route,
+        Screen.AiScan.route,
+        Screen.Speaking.route,
+        Screen.Progress.route,
+        Screen.Profile.route
+    ) || route == Screen.LessonList.route
+}
+
+private fun isBottomItemSelected(
+    currentRoute: String?,
+    itemRoute: String
+): Boolean {
+    return when (itemRoute) {
+        Screen.TopicList.route -> {
+            currentRoute == Screen.TopicList.route ||
+                    currentRoute == Screen.LessonList.route ||
+                    currentRoute == Screen.LessonDetail.route
+        }
+
+        else -> currentRoute == itemRoute
+    }
+}
+
+private fun NavController.navigateBottomItem(route: String) {
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
+
+@Composable
+private fun AppBottomNavigationBar(
+    currentRoute: String?,
+    onItemClick: (String) -> Unit
+) {
+    Surface(
+        color = Color.White,
+        tonalElevation = 8.dp,
+        shadowElevation = 10.dp,
+        shape = RoundedCornerShape(
+            topStart = 24.dp,
+            topEnd = 24.dp
+        )
+    ) {
+        NavigationBar(
+            modifier = Modifier.height(72.dp),
+            containerColor = Color.White,
+            tonalElevation = 0.dp
+        ) {
+            bottomNavItems.forEach { item ->
+                val selected = isBottomItemSelected(
+                    currentRoute = currentRoute,
+                    itemRoute = item.route
+                )
+
+                NavigationBarItem(
+                    selected = selected,
+                    onClick = {
+                        onItemClick(item.route)
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.label
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = item.shortLabel,
+                            fontSize = 9.sp,
+                            lineHeight = 10.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Clip
+                        )
+                    },
+                    alwaysShowLabel = true,
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color(0xFF6C63FF),
+                        selectedTextColor = Color(0xFF6C63FF),
+                        indicatorColor = Color(0xFFE9E7FF),
+                        unselectedIconColor = Color(0xFF8D8A99),
+                        unselectedTextColor = Color(0xFF8D8A99)
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ComingSoonScreen(
+    title: String,
+    subtitle: String
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8F6FF))
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color(0xFF1D1B2F)
+            )
+
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF77738A),
+                modifier = Modifier.padding(top = 8.dp)
             )
         }
     }
