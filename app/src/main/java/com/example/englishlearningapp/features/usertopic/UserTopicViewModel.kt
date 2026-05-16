@@ -255,6 +255,58 @@ class UserTopicViewModel(context: Context) : ViewModel() {
         }
     }
 
+    // --- Self practice words (all saved words across user's topics) ---
+    private val _selfPracticeWords = MutableStateFlow<List<VocabularyResponse>>(emptyList())
+    val selfPracticeWords: StateFlow<List<VocabularyResponse>> = _selfPracticeWords.asStateFlow()
+
+    private val _isLoadingSelfPractice = MutableStateFlow(false)
+    val isLoadingSelfPractice: StateFlow<Boolean> = _isLoadingSelfPractice.asStateFlow()
+
+    // A global pool of vocabularies (to pick wrong options from when user's saved words are few)
+    private val _globalVocabPool = MutableStateFlow<List<VocabularyResponse>>(emptyList())
+    val globalVocabPool: StateFlow<List<VocabularyResponse>> = _globalVocabPool.asStateFlow()
+
+    // map vocabularyId -> masteryLevel from user's learned vocabs
+    private val _learnedVocabMastery = MutableStateFlow<Map<Int, Int>>(emptyMap())
+    val learnedVocabMastery: StateFlow<Map<Int, Int>> = _learnedVocabMastery.asStateFlow()
+
+    fun loadSelfPracticeWords() {
+        viewModelScope.launch {
+            _isLoadingSelfPractice.value = true
+            try {
+                val wordsDeferred = async { vocabApiService.getAllUserTopicWords() }
+                val globalDeferred = async { try { vocabApiService.getAllVocabularies(null) } catch (e: Exception) { emptyList<VocabularyResponse>() } }
+                val words = wordsDeferred.await()
+                val global = globalDeferred.await()
+                _selfPracticeWords.value = words
+                _globalVocabPool.value = global
+                // also fetch learned vocabs to get mastery levels for these words
+                try {
+                    val learned = vocabApiService.getLearnedVocabs()
+                    _learnedVocabMastery.value = learned.items.associate { it.vocabularyId to it.masteryLevel }
+                } catch (_: Exception) {
+                    // leave mastery map empty on failure
+                    _learnedVocabMastery.value = emptyMap()
+                }
+            } catch (e: Exception) {
+                _selfPracticeWords.value = emptyList()
+            } finally {
+                _isLoadingSelfPractice.value = false
+            }
+        }
+    }
+
+    fun refreshLearnedVocabMastery() {
+        viewModelScope.launch {
+            try {
+                val learned = vocabApiService.getLearnedVocabs()
+                _learnedVocabMastery.value = learned.items.associate { it.vocabularyId to it.masteryLevel }
+            } catch (_: Exception) {
+                // ignore
+            }
+        }
+    }
+
 
 }
 

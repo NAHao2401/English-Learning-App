@@ -35,12 +35,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -50,6 +52,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.StrokeCap
@@ -63,6 +66,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavController
 import com.example.englishlearningapp.data.remote.api.response.LearnedVocabItem
+import com.example.englishlearningapp.data.remote.api.response.VocabularyResponse
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 import com.example.englishlearningapp.features.vocab.ui.SaveToTopicBottomSheet
 import com.example.englishlearningapp.data.remote.NetworkConfig
@@ -96,6 +100,7 @@ fun LearnedWordsScreen(
     var showSaveSheet by remember { mutableStateOf(false) }
     var selectedVocabId by remember { mutableStateOf<Int?>(null) }
     var selectedVocabWord by remember { mutableStateOf("") }
+    var showFreePracticeSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = DarkBg,
@@ -103,7 +108,7 @@ fun LearnedWordsScreen(
             TopAppBar(
                 windowInsets = WindowInsets(0),
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PrimaryGreen
+                    containerColor = DarkBg
                 ),
                 navigationIcon = {
                     IconButton(
@@ -174,11 +179,19 @@ fun LearnedWordsScreen(
                                 fontSize = 14.sp,
                                 modifier = Modifier.weight(1f)
                             )
-                            Icon(
-                                Icons.Default.Menu,
-                                tint = Color(0xFF7A7A7A),
-                                contentDescription = null
-                            )
+                            IconButton(
+                                onClick = {
+                                    viewModel.loadFreePracticeWords()
+                                    showFreePracticeSheet = true
+                                },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Menu,
+                                    tint = Color(0xFF7A7A7A),
+                                    contentDescription = "Tự luyện tập"
+                                )
+                            }
                         }
                     }
                 }
@@ -223,56 +236,80 @@ fun LearnedWordsScreen(
             }
 
             else -> {
-                LazyColumn(
-                    contentPadding = PaddingValues(
-                        top = padding.calculateTopPadding() + 8.dp,
-                        bottom = padding.calculateBottomPadding() + 8.dp,
-                        start = 0.dp,
-                        end = 0.dp
-                    )
-                ) {
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "Tổng: $total từ",
-                                color = Color(0xFFAAAAAA),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                            if (dueCount > 0) {
-                                Spacer(Modifier.width(8.dp))
-                                Surface(
-                                    color = OrangeAccent,
-                                    shape = RoundedCornerShape(4.dp)
-                                ) {
-                                    Text(
-                                        " $dueCount cần ôn ",
-                                        color = Color.White,
-                                        fontSize = 10.sp
-                                    )
+                Column(modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)) {
+                    LazyColumn(
+                        contentPadding = PaddingValues(
+                            top = 8.dp,
+                            bottom = padding.calculateBottomPadding() + 8.dp,
+                            start = 0.dp,
+                            end = 0.dp
+                        ),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        item {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Tổng: $total từ",
+                                    color = Color(0xFFAAAAAA),
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                if (dueCount > 0) {
+                                    Spacer(Modifier.width(8.dp))
+                                    Surface(
+                                        color = OrangeAccent,
+                                        shape = RoundedCornerShape(4.dp)
+                                    ) {
+                                        Text(
+                                            " $dueCount cần ôn ",
+                                            color = Color.White,
+                                            fontSize = 10.sp
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    items(
-                        items = items,
-                        key = { it.vocabularyId }
-                    ) { item ->
-                        LearnedWordRow(
-                            item = item,
-                            audioPlayer = audioPlayer,
-                            onSaveClick = { vocabId ->
-                                selectedVocabId = vocabId
-                                selectedVocabWord = item.word
-                                showSaveSheet = true
-                            }
-                        )
+                        items(
+                            items = items,
+                            key = { it.vocabularyId }
+                        ) { item ->
+                            val vocabResp = VocabularyResponse(
+                                id = item.vocabularyId,
+                                topicId = 0,
+                                word = item.word,
+                                meaning = item.meaning,
+                                pronunciation = item.pronunciation,
+                                exampleSentence = item.exampleSentence,
+                                audioUrl = item.audioUrl,
+                                exampleAudioUrl = item.exampleAudioUrl,
+                                difficulty = null
+                            )
+
+                            VocabRowWithSeed(
+                                vocab = vocabResp,
+                                masteryLevel = item.masteryLevel,
+                                audioPlayer = audioPlayer,
+                                onSaveClick = {
+                                    selectedVocabId = item.vocabularyId
+                                    selectedVocabWord = item.word
+                                    showSaveSheet = true
+                                },
+                                useLeafIcon = true
+                            )
+
+                            androidx.compose.material3.HorizontalDivider(
+                                color = Color(0xFF2A2A2A),
+                                thickness = 0.5.dp
+                            )
+                        }
                     }
                 }
             }
@@ -285,6 +322,116 @@ fun LearnedWordsScreen(
             vocabWord = selectedVocabWord,
             onDismiss = { showSaveSheet = false }
         )
+    }
+
+    if (showFreePracticeSheet) {
+        LearnedWordsFreePracticeModeBottomSheet(
+            onDismiss = { showFreePracticeSheet = false },
+            onSelectMode = { route ->
+                showFreePracticeSheet = false
+                navController.navigate(route)
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LearnedWordsFreePracticeModeBottomSheet(
+    onDismiss: () -> Unit,
+    onSelectMode: (route: String) -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = Color(0xFF2A2A2A),
+        dragHandle = {
+            Box(
+                Modifier
+                    .padding(vertical = 8.dp)
+                    .width(40.dp)
+                    .height(4.dp)
+                    .background(Color(0xFF4A4A4A), RoundedCornerShape(2.dp))
+            )
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                "Chọn cách luyện tập",
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            HorizontalDivider(color = Color(0xFF3A3A3A))
+            Spacer(Modifier.height(16.dp))
+
+            val modes = listOf(
+                Triple(
+                    "free_practice_normal",
+                    "Luyện tập thông thường",
+                    "Trắc nghiệm chọn 1 / 4 đáp án"
+                ),
+                Triple(
+                    "free_practice_listening",
+                    "Luyện tập nghe",
+                    "Nghe và chọn nghĩa đúng"
+                ),
+                Triple(
+                    "free_practice_challenge",
+                    "Luyện tập thử thách",
+                    "Nhập từ tiếng Anh theo nghĩa"
+                )
+            )
+
+            modes.forEach { (route, title, subtitle) ->
+                Button(
+                    onClick = { onSelectMode(route) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp)
+                        .padding(bottom = 10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.WaterDrop,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                title,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp
+                            )
+                            Text(
+                                subtitle,
+                                color = Color.White.copy(alpha = 0.75f),
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

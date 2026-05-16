@@ -45,3 +45,38 @@ fun buildQuizQuestions(
         )
     }.shuffled()
 }
+
+// Helper for VocabularyResponse lists (used by SelfPractice flows)
+fun buildQuizQuestionsFromVocabularyResponses(
+    dueItems: List<com.example.englishlearningapp.data.remote.api.response.VocabularyResponse>,
+    allItems: List<com.example.englishlearningapp.data.remote.api.response.VocabularyResponse>
+): List<ReviewQuizQuestion> {
+    return dueItems.map { item ->
+        val correctAnswer = item.meaning
+
+        val wrongPool = allItems
+            .filter { it.id != item.id }
+            .map { it.meaning }
+            .shuffled()
+            .distinct()
+            .take(3)
+
+        val wrongOptions = wrongPool.toMutableList()
+        while (wrongOptions.size < 3) {
+            wrongOptions.add("(không có đáp án)")
+        }
+
+        val allOptions = (wrongOptions + correctAnswer).shuffled()
+        val correctIndex = allOptions.indexOf(correctAnswer)
+
+        ReviewQuizQuestion(
+            vocabId = item.id,
+            word = item.word,
+            pronunciation = item.pronunciation,
+            correctAnswer = correctAnswer,
+            options = allOptions,
+            correctIndex = correctIndex,
+            masteryLevel = 0
+        )
+    }.shuffled()
+}

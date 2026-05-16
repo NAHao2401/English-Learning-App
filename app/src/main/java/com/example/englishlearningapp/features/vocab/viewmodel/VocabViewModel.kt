@@ -19,16 +19,14 @@ import com.example.englishlearningapp.data.remote.api.response.VocabularyRespons
 import com.example.englishlearningapp.data.remote.api.response.VocabOverviewResponse
 import com.example.englishlearningapp.data.remote.api.response.LearnedVocabListResponse
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.first
@@ -37,7 +35,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 class VocabViewModel(context: Context) : ViewModel() {
 
     private val appContext = context.applicationContext
@@ -46,6 +43,10 @@ class VocabViewModel(context: Context) : ViewModel() {
     private val vocabApiService: VocabApiService = RetrofitClient.vocabApiService
     private val appDataStore = AppDataStore(appContext)
     private val _searchQuery = MutableStateFlow("")
+    private val _searchResults = MutableStateFlow<List<VocabularyResponse>>(emptyList())
+    private val _isSearching = MutableStateFlow(false)
+    private val _searchProgress = MutableStateFlow<Map<Int, UserVocabularyResponse>>(emptyMap())
+    private var searchJob: Job? = null
     private val _selectedTopicId = MutableStateFlow<Int?>(null)
     private val _difficultyFilter = MutableStateFlow<String?>(null)
     private val _vocabCountByLevel = MutableStateFlow<Map<String, Int>>(emptyMap())
@@ -76,6 +77,9 @@ class VocabViewModel(context: Context) : ViewModel() {
 
     private val _learnedCountByLevel = MutableStateFlow<Map<String, Int>>(emptyMap())
     val learnedCountByLevel: StateFlow<Map<String, Int>> = _learnedCountByLevel.asStateFlow()
+
+    private val _topicLearnedCounts = MutableStateFlow<Map<Int, Int>>(emptyMap())
+    val topicLearnedCounts: StateFlow<Map<Int, Int>> = _topicLearnedCounts.asStateFlow()
 
     private val _isLoadingLearned = MutableStateFlow(false)
     val isLoadingLearned: StateFlow<Boolean> = _isLoadingLearned.asStateFlow()
@@ -110,19 +114,13 @@ class VocabViewModel(context: Context) : ViewModel() {
 
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    val difficultyFilter: StateFlow<String?> = _difficultyFilter.asStateFlow()
+    val searchResults: StateFlow<List<VocabularyResponse>> = _searchResults.asStateFlow()
 
-    val searchResults: StateFlow<List<VocabularyEntity>> = _searchQuery
-        .debounce(300)
-        .distinctUntilChanged()
-        .flatMapLatest { query ->
-            if (query.length < 2) {
-                flowOf(emptyList())
-            } else {
-                repository.searchVocabs(query)
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val isSearching: StateFlow<Boolean> = _isSearching.asStateFlow()
+
+    val searchProgress: StateFlow<Map<Int, UserVocabularyResponse>> = _searchProgress.asStateFlow()
+
+    val difficultyFilter: StateFlow<String?> = _difficultyFilter.asStateFlow()
 
     val currentTopicVocabs: StateFlow<List<VocabularyEntity>> = combine(
         _selectedTopicId,
@@ -151,11 +149,23 @@ class VocabViewModel(context: Context) : ViewModel() {
     // All vocabs pool for generating wrong answer options
     private val _allVocabsPool = MutableStateFlow<List<VocabularyEntity>>(emptyList())
 
+    // Free practice pool: all learned words sorted by mastery (from API)
+    private val _freePracticeWords = MutableStateFlow<List<VocabularyResponse>>(emptyList())
+    val freePracticeWords: StateFlow<List<VocabularyResponse>> = _freePracticeWords.asStateFlow()
+
+    private val _isLoadingFreePractice = MutableStateFlow(false)
+    val isLoadingFreePractice: StateFlow<Boolean> = _isLoadingFreePractice.asStateFlow()
+
+    // Extra pool for wrong options in free practice
+    private val _freePracticeDistractorPool = MutableStateFlow<List<VocabularyResponse>>(emptyList())
+    val freePracticeDistractorPool: StateFlow<List<VocabularyResponse>> = _freePracticeDistractorPool.asStateFlow()
+
     init {
         loadVocabCountByLevel()
         loadCurrentUser()
         syncTopicsFromApi()
         loadVocabOverview()
+        loadTopicLearnedCounts()
     }
 
     fun loadTopics() {
@@ -267,7 +277,53 @@ class VocabViewModel(context: Context) : ViewModel() {
     }
 
     fun updateSearch(query: String) {
+        updateSearchQuery(query)
+    }
+
+    fun updateSearchQuery(query: String) {
         _searchQuery.value = query
+        if (query.isBlank()) {
+            searchJob?.cancel()
+            _searchResults.value = emptyList()
+            _searchProgress.value = emptyMap()
+            _isSearching.value = false
+            return
+        }
+
+        _isSearching.value = true
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(300)
+            try {
+                val prefix = query.trim()
+                val results = vocabApiService.searchVocabularies(prefix)
+                _searchResults.value = results
+
+                if (results.isNotEmpty()) {
+                    val ids = results.map { it.id }.joinToString(",")
+                    _searchProgress.value = try {
+                        vocabApiService.getBatchProgress(ids)
+                    } catch (_: Exception) {
+                        emptyMap()
+                    }
+                } else {
+                    _searchProgress.value = emptyMap()
+                }
+            } catch (_: Exception) {
+                _searchResults.value = emptyList()
+                _searchProgress.value = emptyMap()
+            } finally {
+                _isSearching.value = false
+            }
+        }
+    }
+
+    fun clearSearch() {
+        _searchQuery.value = ""
+        _searchResults.value = emptyList()
+        _searchProgress.value = emptyMap()
+        _isSearching.value = false
+        searchJob?.cancel()
     }
 
     fun loadVocabsByLevel(level: String) {
@@ -405,13 +461,13 @@ class VocabViewModel(context: Context) : ViewModel() {
             try {
                 // Fetch from API
                 val resp = vocabApiService.getLearnedVocabs()
+                val learnedIds = resp.items.map { it.vocabularyId }.toSet()
 
                 // Enrich items with audioUrl from local DB or allVocabsPool when missing
                 val enriched = if (resp.items.isNotEmpty()) {
                     try {
-                        val ids = resp.items.map { it.vocabularyId }
                         val localEntities = try {
-                            repository.getVocabsByIds(ids).firstOrNull() ?: emptyList()
+                            repository.getVocabsByIds(learnedIds.toList()).firstOrNull() ?: emptyList()
                         } catch (_: Exception) {
                             emptyList()
                         }
@@ -443,12 +499,59 @@ class VocabViewModel(context: Context) : ViewModel() {
                 }
 
                 _learnedVocabs.value = resp.copy(items = enriched)
+                loadTopicLearnedCounts(learnedIds)
             } catch (e: Exception) {
                 // handle error silently
                 _learnedVocabs.value = LearnedVocabListResponse()
                 _learnedCountByLevel.value = emptyMap()
+                _topicLearnedCounts.value = emptyMap()
             } finally {
                 _isLoadingLearned.value = false
+            }
+        }
+    }
+
+    fun loadFreePracticeWords() {
+        viewModelScope.launch {
+            _isLoadingFreePractice.value = true
+            try {
+                val learnedPoolDeferred = async { vocabApiService.getLearnedPracticePool() }
+                val distractorPoolDeferred = async {
+                    try {
+                        vocabApiService.getAllVocabularies(null)
+                    } catch (_: Exception) {
+                        emptyList()
+                    }
+                }
+
+                _freePracticeWords.value = learnedPoolDeferred.await()
+                _freePracticeDistractorPool.value = distractorPoolDeferred.await()
+            } catch (_: Exception) {
+                _freePracticeWords.value = emptyList()
+                _freePracticeDistractorPool.value = emptyList()
+            } finally {
+                _isLoadingFreePractice.value = false
+            }
+        }
+    }
+
+    private fun loadTopicLearnedCounts(learnedIds: Set<Int>? = null) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val learnedSet = learnedIds ?: try {
+                    vocabApiService.getLearnedVocabs().items.map { it.vocabularyId }.toSet()
+                } catch (_: Exception) {
+                    emptySet()
+                }
+
+                val localTopics = repository.getTopics().firstOrNull().orEmpty()
+                val countsByTopic = localTopics.associate { topic ->
+                    val localVocabs = repository.getVocabsByTopic(topic.id).firstOrNull().orEmpty()
+                    topic.id to localVocabs.count { it.id in learnedSet }
+                }
+                _topicLearnedCounts.value = countsByTopic
+            } catch (_: Exception) {
+                _topicLearnedCounts.value = emptyMap()
             }
         }
     }
@@ -492,7 +595,10 @@ class VocabViewModel(context: Context) : ViewModel() {
 
     // Get wrong answer options for quiz
     fun getWrongOptions(correctId: Int, count: Int = 3): List<String> {
-        return _allVocabsPool.value
+        val pool = (_freePracticeWords.value + _freePracticeDistractorPool.value)
+            .distinctBy { it.id }
+
+        return pool
             .filter { it.id != correctId }
             .shuffled()
             .take(count)

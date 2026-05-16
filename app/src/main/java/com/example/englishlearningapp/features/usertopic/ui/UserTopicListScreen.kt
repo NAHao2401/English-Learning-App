@@ -22,8 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -76,6 +78,7 @@ fun UserTopicListScreen(
     val isLoading by viewModel.isLoadingTopics.collectAsState()
     val error by viewModel.topicsError.collectAsState()
     val showDialog by viewModel.showCreateDialog.collectAsState()
+    val createError by viewModel.createError.collectAsState()
     val currentUser by vocabViewModel.currentUser.collectAsState()
     val topicWordCounts by viewModel.topicWordCounts.collectAsState()
     val topicLearnedCounts by viewModel.topicLearnedCounts.collectAsState()
@@ -91,6 +94,7 @@ fun UserTopicListScreen(
     }
 
     Scaffold(
+        containerColor = Color(0xFF4CAF50),
         topBar = {
             TopAppBar(
                 expandedHeight = 94.dp,
@@ -191,6 +195,14 @@ fun UserTopicListScreen(
                     }
                 },
             )
+        },
+        bottomBar = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFF4CAF50))
+
+            ){}
         }
     ) { inner ->
         Box(modifier = Modifier
@@ -250,11 +262,26 @@ fun UserTopicListScreen(
                         color = Color(0xFFB0B0B0),
                         fontSize = 14.sp
                     )
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = null,
-                        tint = Color.Gray
-                    )
+                        var showPracticeSheet by remember { mutableStateOf(false) }
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = null,
+                            tint = Color.Gray,
+                            modifier = Modifier.clickable {
+                                viewModel.loadSelfPracticeWords()
+                                showPracticeSheet = true
+                            }
+                        )
+
+                        if (showPracticeSheet) {
+                            SelfPracticeModeBottomSheet(
+                                onDismiss = { showPracticeSheet = false },
+                                onSelectMode = { route ->
+                                    showPracticeSheet = false
+                                    navController.navigate(route)
+                                }
+                            )
+                        }
                 }
             }
 
@@ -273,6 +300,46 @@ fun UserTopicListScreen(
                     modifier = Modifier.size(28.dp)
                 )
             }
+                    if (showDialog) {
+                        var newName by remember(showDialog) { mutableStateOf("") }
+                        val duplicate = userTopics.any { it.name.equals(newName.trim(), ignoreCase = true) }
+                        val nameError = when {
+                            newName.isBlank() -> "Tên thư mục không được để trống"
+                            duplicate -> "Tên thư mục đã tồn tại"
+                            else -> null
+                        }
+
+                        AlertDialog(
+                            onDismissRequest = { viewModel.hideCreateDialog() },
+                            title = { Text("Tạo thư mục mới") },
+                            text = {
+                                Column {
+                                    OutlinedTextField(
+                                        value = newName,
+                                        onValueChange = { newName = it },
+                                        label = { Text("Tên thư mục") },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                    if (nameError != null) {
+                                        Spacer(Modifier.height(6.dp))
+                                        Text(nameError, color = Color(0xFFFF5252), fontSize = 12.sp)
+                                    } else if (!createError.isNullOrBlank()) {
+                                        Spacer(Modifier.height(6.dp))
+                                        Text(createError ?: "", color = Color(0xFFFF5252), fontSize = 12.sp)
+                                    }
+                                }
+                            },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    viewModel.createUserTopic(newName.trim(), null)
+                                }, enabled = nameError == null) { Text("Tạo") }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { viewModel.hideCreateDialog() }) { Text("Hủy") }
+                            }
+                        )
+                    }
         }
     }
 }

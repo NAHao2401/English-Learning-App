@@ -64,17 +64,25 @@ import com.example.englishlearningapp.features.progress.viewmodel.ProgressViewMo
 import com.example.englishlearningapp.features.scan.ui.ScanScreen
 import com.example.englishlearningapp.features.usertopic.ui.UserTopicDetailScreen
 import com.example.englishlearningapp.features.usertopic.ui.UserTopicListScreen
-import com.example.englishlearningapp.features.vocab.ui.CefrDetailScreen
 import com.example.englishlearningapp.features.vocab.ui.CefrLevelDetailScreen
 import com.example.englishlearningapp.features.vocab.ui.FlashcardScreen
 import com.example.englishlearningapp.features.vocab.ui.LearnedWordsScreen
 import com.example.englishlearningapp.features.vocab.ui.ReviewQuizChallengeScreen
 import com.example.englishlearningapp.features.vocab.ui.ReviewQuizListeningScreen
 import com.example.englishlearningapp.features.vocab.ui.ReviewQuizScreen
+import com.example.englishlearningapp.features.vocab.ui.FreePracticeChallengeScreen
+import com.example.englishlearningapp.features.vocab.ui.FreePracticeListeningScreen
+import com.example.englishlearningapp.features.vocab.ui.FreePracticeQuizScreen
+import com.example.englishlearningapp.features.vocab.ui.AllTopicsScreen
 import com.example.englishlearningapp.features.vocab.ui.SavedVocabScreen
+import com.example.englishlearningapp.features.vocab.ui.VocabSearchScreen
 import com.example.englishlearningapp.features.vocab.ui.StudyFlashcardSessionScreen
 import com.example.englishlearningapp.features.vocab.ui.TopicDetailScreen
 import com.example.englishlearningapp.features.vocab.ui.VocabScreen
+import com.example.englishlearningapp.features.vocab.ui.SelfPracticeQuizScreen
+import com.example.englishlearningapp.features.vocab.ui.SelfPracticeListeningScreen
+import com.example.englishlearningapp.features.vocab.ui.SelfPracticeChallengeScreen
+import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModelFactory
 
 @Composable
@@ -89,6 +97,10 @@ fun AppNavGraph(
     )
     val lessonViewModel: LessonViewModel = viewModel()
     val progressViewModel: ProgressViewModel = viewModel()
+    val vocabViewModel: VocabViewModel = composeViewModel(factory = VocabViewModelFactory(context))
+
+    val userTopicViewModel: com.example.englishlearningapp.features.usertopic.UserTopicViewModel =
+        composeViewModel(factory = com.example.englishlearningapp.features.usertopic.UserTopicViewModelFactory(context))
 
     val appDataStore = AppDataStore(context.applicationContext)
     val userName by appDataStore.userName.collectAsState(initial = "Learner")
@@ -183,7 +195,17 @@ fun AppNavGraph(
             }
 
             // Core app routes from previous merge: keep both 'Vocabulary' (bottom nav) and 'Vocab' (full feature)
-            composable(Screen.Vocab.route) { VocabScreen(navController = navController) }
+            composable(Screen.Vocab.route) {
+                VocabScreen(navController = navController, vocabVm = vocabViewModel)
+            }
+
+            composable(Screen.AllTopics.route) {
+                AllTopicsScreen(navController = navController, viewModel = vocabViewModel)
+            }
+
+            composable(Screen.VocabSearch.route) {
+                VocabSearchScreen(navController = navController, vocabVm = vocabViewModel)
+            }
 
             composable(Screen.Vocabulary.route) {
                 ComingSoonScreen(
@@ -205,7 +227,32 @@ fun AppNavGraph(
                 )
             }
 
-            composable(Screen.UserTopics.route) { UserTopicListScreen(navController = navController) }
+            composable(Screen.FreePracticeNormal.route) {
+                FreePracticeQuizScreen(navController = navController, vocabViewModel = vocabViewModel)
+            }
+
+            composable(Screen.FreePracticeListening.route) {
+                FreePracticeListeningScreen(navController = navController, vocabViewModel = vocabViewModel)
+            }
+
+            composable(Screen.FreePracticeChallenge.route) {
+                FreePracticeChallengeScreen(navController = navController, vocabViewModel = vocabViewModel)
+            }
+
+            // Self practice flows (do NOT call rateQuizAnswer or rateVocabulary here)
+            composable(Screen.SelfPracticeNormal.route) {
+                SelfPracticeQuizScreen(navController = navController, userTopicViewModel = userTopicViewModel)
+            }
+
+            composable(Screen.SelfPracticeListening.route) {
+                SelfPracticeListeningScreen(navController = navController, userTopicViewModel = userTopicViewModel)
+            }
+
+            composable(Screen.SelfPracticeChallenge.route) {
+                SelfPracticeChallengeScreen(navController = navController, userTopicViewModel = userTopicViewModel)
+            }
+
+            composable(Screen.UserTopics.route) { UserTopicListScreen(navController = navController, userTopicVm = userTopicViewModel) }
 
             composable(Screen.SavedVocab.route) { SavedVocabScreen(navController = navController) }
 
@@ -215,13 +262,7 @@ fun AppNavGraph(
                 TopicDetailScreen(navController = navController, topicId = topicId)
             }
 
-            composable(
-                route = Screen.CefrDetail.route,
-                arguments = listOf(navArgument("level") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val level = backStackEntry.arguments?.getString("level") ?: return@composable
-                CefrDetailScreen(navController = navController, level = level)
-            }
+
 
             composable(
                 route = Screen.CefrLevelDetail.route,
@@ -364,6 +405,7 @@ private fun shouldShowBottomBar(route: String?): Boolean {
     // Also show bottom bar on any Vocab-related screens (including parameterized routes)
     val vocabPrefixes = listOf(
         Screen.Vocab.route,                // "vocab"
+        Screen.VocabSearch.route,
         Screen.SavedVocab.route,           // "saved_vocab"
         Screen.ReviewQuiz.route,           // "review_quiz"
         "review_quiz_listening",

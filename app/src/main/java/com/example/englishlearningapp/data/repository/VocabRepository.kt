@@ -11,6 +11,7 @@ import com.example.englishlearningapp.data.remote.api.response.VocabularyRespons
 import com.example.englishlearningapp.data.remote.api.VocabApiService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 class VocabRepository(context: Context) {
@@ -38,7 +39,22 @@ class VocabRepository(context: Context) {
 	}
 
 	fun searchVocabs(query: String): Flow<List<VocabularyEntity>> {
-		return vocabularyDao.searchVocabularies(query)
+		return flow {
+			val prefix = query.trim()
+			if (prefix.isEmpty()) {
+				emit(emptyList())
+				return@flow
+			}
+
+			val result = try {
+				vocabApiService.searchVocabulariesByPrefix(prefix).map { it.toEntity() }
+			} catch (_: Exception) {
+				// Fallback keeps search usable when API is temporarily unavailable.
+				vocabularyDao.searchVocabularies(prefix).firstOrNull().orEmpty()
+			}
+
+			emit(result)
+		}
 	}
 
 	fun getSavedVocabs(userId: Int): Flow<List<VocabularyEntity>> {

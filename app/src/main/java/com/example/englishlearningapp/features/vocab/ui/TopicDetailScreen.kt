@@ -51,6 +51,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -118,6 +119,7 @@ fun TopicDetailScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
+                windowInsets = WindowInsets(0),
                 title = { Text(topic?.name ?: "Topic") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
@@ -278,6 +280,41 @@ fun TopicDetailScreen(
 }
 
 @Composable
+fun LearnedSeedIconLocal(
+    masteryLevel: Int,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier.size(52.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val strokeWidth = 3.5.dp.toPx()
+            val segmentSweep = 60f
+            val gapSweep = 12f
+
+            repeat(5) { i ->
+                val startAngle = -90f + i * (segmentSweep + gapSweep)
+                val filled = i < masteryLevel
+
+                drawArc(
+                    color = if (filled) Color(0xFF4CAF50) else Color(0xFF4A4A4A),
+                    startAngle = startAngle,
+                    sweepAngle = segmentSweep,
+                    useCenter = false,
+                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                )
+            }
+        }
+
+        Text(
+            text = if (masteryLevel >= 5) "🌻" else "🌱",
+            fontSize = if (masteryLevel >= 5) 22.sp else 20.sp
+        )
+    }
+}
+
+@Composable
 private fun TextButtonWithColor(text: String, onClick: () -> Unit) {
     androidx.compose.material3.TextButton(onClick = onClick) {
         Text(text, color = Color(0xFF4CAF50))
@@ -412,7 +449,7 @@ fun SeedMasteryIcon(
                 val isFilled = i < masteryLevel
 
                 drawArc(
-                    color = if (isFilled) Color(0xFF4CAF50) else Color(0xFF3A3A3A),
+                    color = if (isFilled) Color(0xFF4CAF50) else Color(0xFF4A4A4A),
                     startAngle = startAngle,
                     sweepAngle = segmentSweep,
                     useCenter = false,
@@ -421,19 +458,9 @@ fun SeedMasteryIcon(
             }
         }
 
-        Box(
-            modifier = Modifier
-                .size(18.dp)
-                .graphicsLayer { rotationZ = -35f }
-                .background(
-                    color = when (masteryLevel) {
-                        0 -> Color(0xFF4A4A4A)
-                        1, 2 -> Color(0xFF81C784)
-                        3, 4 -> Color(0xFF4CAF50)
-                        else -> Color(0xFF2E7D32)
-                    },
-                    shape = RoundedCornerShape(percent = 50)
-                )
+        Text(
+            text = if (masteryLevel >= 5) "🌻" else "🌱",
+            fontSize = if (masteryLevel >= 5) 22.sp else 20.sp
         )
     }
 }
@@ -443,7 +470,8 @@ fun VocabRowWithSeed(
     vocab: VocabularyResponse,
     masteryLevel: Int,
     audioPlayer: VocabAudioPlayer,
-    onSaveClick: () -> Unit
+    onSaveClick: () -> Unit,
+    useLeafIcon: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
     val rotation by animateFloatAsState(targetValue = if (expanded) 180f else 0f, label = "expand_arrow")
@@ -463,7 +491,11 @@ fun VocabRowWithSeed(
                     .padding(horizontal = 14.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                SeedMasteryIcon(masteryLevel = masteryLevel)
+                if (useLeafIcon) {
+                    LearnedSeedIconLocal(masteryLevel = masteryLevel)
+                } else {
+                    SeedMasteryIcon(masteryLevel = masteryLevel)
+                }
 
                 Spacer(Modifier.width(12.dp))
 

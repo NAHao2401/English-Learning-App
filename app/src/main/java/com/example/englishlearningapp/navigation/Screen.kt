@@ -14,6 +14,10 @@ sealed class Screen(val route: String) {
 
     data object Vocab : Screen("vocab")
 
+    data object AllTopics : Screen("all_topics")
+
+    data object VocabSearch : Screen("vocab_search")
+
     data object UserTopics : Screen("user_topics")
 
     data object SavedVocab : Screen("saved_vocab")
@@ -27,6 +31,14 @@ sealed class Screen(val route: String) {
     data object ReviewQuizListening : Screen("review_quiz_listening")
 
     data object ReviewQuizChallenge : Screen("review_quiz_challenge")
+
+    data object FreePracticeNormal : Screen("free_practice_normal")
+    data object FreePracticeListening : Screen("free_practice_listening")
+    data object FreePracticeChallenge : Screen("free_practice_challenge")
+
+    data object SelfPracticeNormal : Screen("self_practice_normal")
+    data object SelfPracticeListening : Screen("self_practice_listening")
+    data object SelfPracticeChallenge : Screen("self_practice_challenge")
 
     data object TopicDetail : Screen("topic_detail/{topicId}")
 

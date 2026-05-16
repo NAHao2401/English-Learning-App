@@ -26,6 +26,15 @@ interface VocabApiService {
     @GET("vocabularies/all")
     suspend fun getAllVocabularies(@Query("level") level: String?): List<VocabularyResponse>
 
+    @GET("vocabularies/search")
+    suspend fun searchVocabularies(@Query("prefix") prefix: String): List<VocabularyResponse>
+
+    @GET("vocabularies/progress/batch")
+    suspend fun getBatchProgress(@Query("vocab_ids") vocabIds: String): Map<Int, UserVocabularyResponse>
+
+    @GET("vocabularies/search")
+    suspend fun searchVocabulariesByPrefix(@Query("prefix") prefix: String): List<VocabularyResponse>
+
     @GET("vocabularies/topic/{topic_id}")
     suspend fun getVocabulariesByTopic(@Path("topic_id") topicId: Int): List<VocabularyResponse>
 
@@ -62,6 +71,12 @@ interface VocabApiService {
 
     @GET("vocabularies/learned")
     suspend fun getLearnedVocabs(): LearnedVocabListResponse
+
+    @GET("vocabularies/learned/practice-pool")
+    suspend fun getLearnedPracticePool(): List<VocabularyResponse>
+
+    @GET("vocabularies/user-topics/all-saved-words")
+    suspend fun getAllUserTopicWords(): List<VocabularyResponse>
 }
 
 

@@ -154,3 +154,72 @@ fun QuizResultScreen(
     }
 }
 
+
+@Composable
+fun SelfPracticeEmptyOrLoading(isLoading: Boolean, navController: androidx.navigation.NavController) {
+    androidx.compose.foundation.layout.Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        if (isLoading) {
+            androidx.compose.material3.CircularProgressIndicator(color = Color(0xFF4CAF50))
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(32.dp)
+            ) {
+                Text("📂", fontSize = 48.sp)
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    "Chưa có từ nào trong thư mục",
+                    color = Color.White, fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp, textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Lưu từ vựng vào thư mục của bạn để bắt đầu luyện tập",
+                    color = Color.Gray, fontSize = 14.sp, textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(24.dp))
+                Button(onClick = { navController.navigateUp() }, colors = ButtonDefaults.buttonColors(Color(0xFF4CAF50))) {
+                    Text("Quay lại", color = Color.White)
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun SelfPracticeResultScreen(
+    correctCount : Int,
+    totalCount   : Int,
+    onFinish     : () -> Unit
+) {
+    Box(
+        Modifier.fillMaxSize().background(Color(0xFF1A1A1A)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(32.dp)) {
+            val emoji = when {
+                correctCount == totalCount -> "🎉"
+                correctCount >= totalCount * 0.7f -> "👍"
+                else -> "💪"
+            }
+            Text(emoji, fontSize = 64.sp)
+            Spacer(Modifier.height(16.dp))
+            Text("Tự luyện tập hoàn thành!", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+            Spacer(Modifier.height(6.dp))
+            Text("Luyện tập tự do không ảnh hưởng đến độ thông thạo", color = Color(0xFF6A6A6A), fontSize = 12.sp)
+            Spacer(Modifier.height(12.dp))
+            Box(Modifier.size(120.dp).background(Color(0xFF1B3A2D), androidx.compose.foundation.shape.CircleShape), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("$correctCount", color = Color(0xFF4CAF50), fontWeight = FontWeight.ExtraBold, fontSize = 40.sp)
+                    Text("/ $totalCount", color = Color.Gray, fontSize = 14.sp)
+                }
+            }
+            Spacer(Modifier.height(32.dp))
+            Button(onClick = onFinish, modifier = Modifier.fillMaxWidth().height(52.dp), colors = ButtonDefaults.buttonColors(Color(0xFF4CAF50)), shape = RoundedCornerShape(12.dp)) {
+                Text("Quay lại", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+        }
+    }
+}
+
