@@ -1,5 +1,6 @@
 package com.example.englishlearningapp.features.chat.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.englishlearningapp.data.repository.ChatRepository
@@ -41,6 +42,9 @@ class ChatViewModel(
         }
 
         viewModelScope.launch {
+            try {
+
+
             chatRepository.sendMessage(text, conversationHistory.dropLast(1))
                 .fold(
                     onSuccess = { reply ->
@@ -54,7 +58,7 @@ class ChatViewModel(
                         }
                     },
                     onFailure = { error ->
-                        conversationHistory.removeAt(conversationHistory.lastIndex) // rollback
+                        conversationHistory.removeAt(conversationHistory.lastIndex)
                         _uiState.update { state ->
                             state.copy(
                                 messages = state.messages.dropLast(1),
@@ -64,6 +68,10 @@ class ChatViewModel(
                         }
                     }
                 )
+            } catch (e: Exception) {
+                Log.e("ChatVM", "Uncaught: ${e.message}", e)
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Lỗi không xác định") }
+            }
         }
     }
 

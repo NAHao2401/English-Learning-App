@@ -1,5 +1,6 @@
 package com.example.englishlearningapp.data.repository
 
+import android.util.Log
 import com.example.englishlearningapp.features.chat.model.Message
 import com.example.englishlearningapp.BuildConfig
 import com.google.ai.client.generativeai.GenerativeModel
@@ -16,7 +17,7 @@ class ChatRepository {
     """.trimIndent()
 
     private val model = GenerativeModel(
-        modelName = "gemini-1.5-flash",
+        modelName = "gemini-2.5-flash",
         apiKey = BuildConfig.GEMINI_API_KEY
     )
 
@@ -25,23 +26,19 @@ class ChatRepository {
         history: List<Message>
     ): Result<String> {
         return try {
-            // Build conversation history theo format Gemini yêu cầu
-            val chat = model.startChat(
-                history = history.map { msg ->
-                    content(role = msg.role) { text(msg.content) }
+            val activeChat = model.startChat(
+                history = buildList {
+                    add(content(role = "user") { text(systemPrompt) })
+                    add(content(role = "model") { text("Understood! I'm ready to help.") })
+                    history.forEach { msg ->
+                        add(content(role = msg.role) { text(msg.content) })
+                    }
                 }
             )
-
-            // Thêm system context vào message đầu tiên nếu history rỗng
-            val prompt = if (history.isEmpty()) {
-                "$systemPrompt\n\nUser: $userMessage"
-            } else {
-                userMessage
-            }
-
-            val response = chat.sendMessage(prompt)
-            Result.success(response.text ?: "")
+            val response = activeChat.sendMessage(userMessage)
+            Result.success(response.text ?: "No response")
         } catch (e: Exception) {
+            Log.e("ChatRepo", "Error: ${e.message}", e)
             Result.failure(e)
         }
     }

@@ -63,7 +63,8 @@ fun HomeScreen(
         HomeFeatureItem("Vocabulary", Icons.Default.Translate, onVocabularyClick),
         HomeFeatureItem("Progress", Icons.Default.BarChart, onProgressClick),
         HomeFeatureItem("AI Scan", Icons.Default.CameraAlt, onAiScanClick),
-        HomeFeatureItem("Speaking", Icons.Default.Mic, onSpeakingClick)
+        HomeFeatureItem("Speaking", Icons.Default.Mic, onSpeakingClick),
+        HomeFeatureItem("AI Chat", Icons.Default.AutoStories, onNavigateToChat)
     )
 
     Scaffold(
@@ -154,10 +155,6 @@ fun HomeScreen(
                 DailyMotivationCard()
             }
         }
-    }
-
-    Button(onClick = { onNavigateToChat() }) {
-        Text("AI Chat")
     }
 }
 

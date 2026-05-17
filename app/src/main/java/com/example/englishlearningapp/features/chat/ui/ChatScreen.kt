@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -62,7 +63,6 @@ fun ChatScreen(
                 title = { Text("AI Tutor") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        // ✅ Dùng AutoMirrored thay vì Icons.Default
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -85,12 +85,11 @@ fun ChatScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(vertical = 12.dp)
             ) {
-                // ✅ Hoạt động đúng nhờ import androidx.compose.foundation.lazy.items
                 items(uiState.messages) { message ->
                     MessageBubble(message = message)
                 }
                 if (uiState.isLoading) {
-                    item { TypingIndicator() }  // ✅ Đã định nghĩa bên dưới
+                    item { TypingIndicator() }
                 }
             }
 
@@ -117,7 +116,6 @@ fun ChatScreen(
     }
 }
 
-// ✅ Định nghĩa TypingIndicator — giải quyết "Unresolved reference"
 @Composable
 fun TypingIndicator() {
     Row(
@@ -128,10 +126,12 @@ fun TypingIndicator() {
     ) {
         CircularProgressIndicator(
             modifier = Modifier
-                .width(20.dp)
-                .padding(end = 8.dp),
+                .size(20.dp),
+
             strokeWidth = 2.dp
         )
+        Spacer(modifier = Modifier.width(8.dp))
+
         Text(
             text = "AI đang trả lời...",
             style = MaterialTheme.typography.bodySmall,
@@ -142,7 +142,6 @@ fun TypingIndicator() {
 
 @Composable
 fun MessageBubble(message: Message) {
-    // ✅ message.role và message.content hoạt động đúng với model của project
     val isUser = message.role == "user"
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -179,7 +178,6 @@ fun QuickPromptsRow(onPromptClick: (String) -> Unit) {
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // ✅ Hoạt động đúng nhờ import items
         items(prompts) { prompt ->
             SuggestionChip(
                 onClick = { onPromptClick(prompt) },
@@ -215,7 +213,6 @@ fun ChatInputBar(
             onClick = onSend,
             enabled = text.isNotBlank() && !isLoading
         ) {
-            // ✅ Dùng AutoMirrored
             Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
         }
     }

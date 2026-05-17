@@ -29,4 +29,7 @@ sealed class Screen(val route: String) {
     data object Speaking : Screen("speaking")
 
     data object Chat : Screen("chat")
+
+    data object Scan : Screen("scan")
+    data object ScanResult : Screen("scan-result")
 }

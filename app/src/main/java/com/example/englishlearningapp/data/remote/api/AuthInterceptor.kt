@@ -17,7 +17,7 @@ class AuthInterceptor(
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
-        val path = originalRequest.url().encodedPath()
+        val path = originalRequest.url.encodedPath
         val isAuthRequest = path.contains("/auth/login") || path.contains("/auth/register")
 
         val requestBuilder = originalRequest.newBuilder()
@@ -34,7 +34,7 @@ class AuthInterceptor(
 
         val response = chain.proceed(requestBuilder.build())
 
-        if (response.code() == 401 && !isAuthRequest) {
+        if (response.code == 401 && !isAuthRequest) {
             SessionManager.handleUnauthorized(appContext)
         }
 

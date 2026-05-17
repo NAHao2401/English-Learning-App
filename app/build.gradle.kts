@@ -59,10 +59,9 @@ dependencies {
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.compose.runtime)
-    implementation(libs.androidx.material3)
     implementation(libs.androidx.datastore.core)
     implementation(libs.androidx.compose.foundation)
-    implementation(libs.androidx.benchmark.traceprocessor)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -72,7 +71,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     implementation("androidx.navigation:navigation-compose:2.7.7")
-
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     implementation(libs.androidx.room.runtime)
@@ -86,4 +84,5 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }

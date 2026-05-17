@@ -1,10 +1,12 @@
 package com.example.englishlearningapp.navigation
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -27,10 +29,15 @@ import com.example.englishlearningapp.features.lesson.ui.TopicListScreen
 import com.example.englishlearningapp.features.lesson.viewmodel.LessonViewModel
 import com.example.englishlearningapp.features.progress.ui.ProgressScreen
 import com.example.englishlearningapp.features.progress.viewmodel.ProgressViewModel
+import com.example.englishlearningapp.features.scan.ui.ScanResultScreen
+import com.example.englishlearningapp.features.scan.ui.ScanScreen
+import com.example.englishlearningapp.features.scan.viewmodel.ScanViewModel
+import com.example.englishlearningapp.features.scan.viewmodel.ScanViewModelFactory
 import com.example.englishlearningapp.features.speaking.ui.SpeakingScreen
 import com.example.englishlearningapp.features.speaking.viewmodel.SpeakingViewModel
 import com.example.englishlearningapp.features.speaking.viewmodel.SpeakingViewModelFactory
 
+@SuppressLint("UnrememberedGetBackStackEntry")
 @Composable
 fun AppNavGraph(
     context: Context,
@@ -101,8 +108,14 @@ fun AppNavGraph(
                 onLessonsClick = {
                     navController.navigate(Screen.TopicList.route)
                 },
+                onVocabularyClick = {
+                    navController.navigate(Screen.TopicList.route)
+                },
                 onProgressClick = {
                     navController.navigate(Screen.Progress.route)
+                },
+                onAiScanClick = {
+                    navController.navigate(Screen.Scan.route)
                 },
                 onSpeakingClick = {
                     navController.navigate(Screen.Speaking.route)
@@ -262,6 +275,28 @@ fun AppNavGraph(
         composable(Screen.Chat.route) {
             ChatScreen(
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Scan.route) {
+            val context = LocalContext.current
+            val vm: ScanViewModel = viewModel(factory = ScanViewModelFactory(context))
+            ScanScreen(
+                viewModel = vm,
+                onNavigateToResult = { navController.navigate(Screen.ScanResult.route) }
+            )
+        }
+
+        composable(Screen.ScanResult.route) {
+            // Dùng chung ViewModel với ScanScreen (back-stack cùng cấp)
+            val vm: ScanViewModel = viewModel(
+                viewModelStoreOwner = navController.getBackStackEntry(Screen.Scan.route),
+                factory = ScanViewModelFactory(context)
+            )
+            ScanResultScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+                onScanAgain = { navController.popBackStack() }
             )
         }
     }

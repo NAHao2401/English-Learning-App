@@ -18,6 +18,8 @@ generativeai = "0.9.0"
 datastoreCore = "1.2.1"
 foundation = "1.11.1"
 benchmarkTraceprocessor = "1.4.1"
+compiler = "3.2.0-alpha11"
+playServicesCastFramework = "22.3.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,6 +47,8 @@ generativeai = { group = "com.google.ai.client.generativeai", name = "generative
 androidx-datastore-core = { group = "androidx.datastore", name = "datastore-core", version.ref = "datastoreCore" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 androidx-benchmark-traceprocessor = { group = "androidx.benchmark", name = "benchmark-traceprocessor", version.ref = "benchmarkTraceprocessor" }
+androidx-compiler = { group = "androidx.databinding", name = "compiler", version.ref = "compiler" }
+play-services-cast-framework = { group = "com.google.android.gms", name = "play-services-cast-framework", version.ref = "playServicesCastFramework" }
 
 
 
