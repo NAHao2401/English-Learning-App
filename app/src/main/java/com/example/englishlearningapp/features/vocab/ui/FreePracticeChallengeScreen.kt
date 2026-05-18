@@ -155,7 +155,7 @@ fun FreePracticeChallengeScreen(
 
     if (questions.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Không có từ nào cần ôn tập!", color = Color.White)
+            Text("Không có từ nào cần ôn tập!", color = Color(0xFF77738A))
         }
         return
     }
@@ -166,20 +166,20 @@ fun FreePracticeChallengeScreen(
         CheckState.IDLE -> Color(0xFF1565C0)
     }
     val inputBgColor = when (checkState) {
-        CheckState.CORRECT -> Color(0xFF1B5E20)
-        CheckState.WRONG -> Color(0xFF7F0000)
-        CheckState.IDLE -> Color(0xFF2A2A2A)
+        CheckState.CORRECT -> Color(0xFFE8F5E9)
+        CheckState.WRONG -> Color(0xFFFFEBEE)
+        CheckState.IDLE -> Color.White
     }
 
-    Scaffold(containerColor = Color(0xFF1A1A1A), topBar = {
+    Scaffold(containerColor = Color(0xFFF8F6FF), topBar = {
         Column(modifier = Modifier.fillMaxWidth()) {
             IconButton(onClick = { navController.navigateUp() }) {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back", tint = Color(0xFF1D1B2F))
             }
             Row(modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 16.dp, bottom = 8.dp, top = 0.dp), verticalAlignment = Alignment.CenterVertically) {
                 Spacer(Modifier.width(16.dp))
-                LinearProgressIndicator(progress = { (currentIndex + 1f) / questions.size }, modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)), color = Color(0xFF4CAF50), trackColor = Color(0xFF3A3A3A))
-                Text("${currentIndex + 1}/${questions.size}", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp))
+                LinearProgressIndicator(progress = { (currentIndex + 1f) / questions.size }, modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)), color = Color(0xFF4CAF50), trackColor = Color(0xFFE0DDEB))
+                Text("${currentIndex + 1}/${questions.size}", color = Color(0xFF77738A), fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp))
                 Spacer(Modifier.width(12.dp))
             }
         }
@@ -202,7 +202,7 @@ fun FreePracticeChallengeScreen(
                                 CheckState.CORRECT -> "Chính xác!"
                                 else -> "Nhập từ"
                             },
-                            color = if (checkState == CheckState.CORRECT) Color(0xFF4CAF50) else Color.White,
+                            color = if (checkState == CheckState.CORRECT) Color(0xFF4CAF50) else Color(0xFF1D1B2F),
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
                         )
@@ -213,7 +213,7 @@ fun FreePracticeChallengeScreen(
 
                 Spacer(Modifier.height(20.dp))
 
-                Text(text = question?.correctAnswer ?: "", color = Color(0xFFCCCCCC), fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                Text(text = question?.correctAnswer ?: "", color = Color(0xFF77738A), fontSize = 16.sp, fontWeight = FontWeight.Medium)
 
                 Spacer(Modifier.height(16.dp))
 
@@ -231,9 +231,9 @@ fun FreePracticeChallengeScreen(
                         focusedBorderColor = inputBorderColor,
                         unfocusedBorderColor = inputBorderColor,
                         disabledBorderColor = inputBorderColor,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        disabledTextColor = Color.White,
+                        focusedTextColor = Color(0xFF1D1B2F),
+                        unfocusedTextColor = Color(0xFF1D1B2F),
+                        disabledTextColor = Color(0xFF1D1B2F),
                         cursorColor = Color(0xFF1565C0),
                         focusedContainerColor = inputBgColor,
                         unfocusedContainerColor = inputBgColor,
@@ -255,10 +255,10 @@ fun FreePracticeChallengeScreen(
                 AnimatedVisibility(visible = checkState == CheckState.IDLE) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                         if (maxHints > 0) {
-                            OutlinedButton(onClick = { applyHint() }, enabled = hintsLeft > 0, modifier = Modifier.height(50.dp), border = androidx.compose.foundation.BorderStroke(1.5.dp, if (hintsLeft > 0) Color(0xFF4CAF50) else Color(0xFF3A3A3A)), shape = RoundedCornerShape(12.dp)) {
-                                Icon(Icons.Default.Lightbulb, contentDescription = "Hint", tint = if (hintsLeft > 0) Color(0xFF4CAF50) else Color(0xFF4A4A4A), modifier = Modifier.size(18.dp))
+                            OutlinedButton(onClick = { applyHint() }, enabled = hintsLeft > 0, modifier = Modifier.height(50.dp), border = androidx.compose.foundation.BorderStroke(1.5.dp, if (hintsLeft > 0) Color(0xFF4CAF50) else Color(0xFFD2CEDF)), shape = RoundedCornerShape(12.dp)) {
+                                Icon(Icons.Default.Lightbulb, contentDescription = "Hint", tint = if (hintsLeft > 0) Color(0xFF4CAF50) else Color(0xFFB0ABBE), modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.size(6.dp))
-                                Text("Gợi ý ($hintsLeft)", color = if (hintsLeft > 0) Color(0xFF4CAF50) else Color(0xFF4A4A4A), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                                Text("Gợi ý ($hintsLeft)", color = if (hintsLeft > 0) Color(0xFF4CAF50) else Color(0xFFB0ABBE), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                             }
                         }
                         Button(onClick = { checkAnswer() }, modifier = Modifier.weight(1f).height(50.dp), colors = ButtonDefaults.buttonColors(Color(0xFF4CAF50)), shape = RoundedCornerShape(12.dp)) {
@@ -270,7 +270,7 @@ fun FreePracticeChallengeScreen(
 
             AnimatedVisibility(visible = checkState != CheckState.IDLE, enter = slideInVertically(initialOffsetY = { it }), modifier = Modifier.align(Alignment.BottomCenter)) {
                 val isCorrect = checkState == CheckState.CORRECT
-                val panelBg = if (isCorrect) Color(0xFF1A2A1A) else Color(0xFF2A1A1A)
+                val panelBg = if (isCorrect) Color(0xFFEAF7EE) else Color(0xFFFDECEC)
                 val accentColor = if (isCorrect) Color(0xFF4CAF50) else Color(0xFFF44336)
 
                 androidx.compose.material3.Surface(modifier = Modifier.fillMaxWidth(), color = panelBg, shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)) {
@@ -281,15 +281,15 @@ fun FreePracticeChallengeScreen(
                                 Text(text = correctWord, color = accentColor, fontWeight = FontWeight.Bold, fontSize = 16.sp, textDecoration = TextDecoration.Underline)
                             }
                             TextButton(onClick = { }) {
-                                Icon(Icons.Default.Close, tint = Color.Gray, contentDescription = "Report", modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.Close, tint = Color(0xFF77738A), contentDescription = "Report", modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.size(4.dp))
-                                Text("Báo lỗi", color = Color.Gray, fontSize = 13.sp)
+                                Text("Báo lỗi", color = Color(0xFF77738A), fontSize = 13.sp)
                             }
                         }
 
                         Spacer(Modifier.height(8.dp))
 
-                        Text(text = question?.correctAnswer ?: "", color = Color(0xFFCCCCCC), fontSize = 14.sp)
+                        Text(text = question?.correctAnswer ?: "", color = Color(0xFF77738A), fontSize = 14.sp)
 
                         Spacer(Modifier.height(16.dp))
 

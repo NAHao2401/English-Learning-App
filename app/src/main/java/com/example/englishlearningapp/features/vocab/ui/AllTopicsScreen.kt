@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -73,10 +72,12 @@ import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 import com.example.englishlearningapp.navigation.Screen
 import kotlin.math.ceil
 
-private val AllTopicsBg = Color(0xFF1A1A1A)
-private val AllTopicsCardBg = Color(0xFF2A2A2A)
-private val AllTopicsDivider = Color(0xFF3A3A3A)
+private val AllTopicsBg = Color(0xFFF8F6FF)
+private val AllTopicsCardBg = Color.White
+private val AllTopicsDivider = Color(0xFFE6E2F2)
 private val AllTopicsPrimary = Color(0xFF4CAF50)
+private val AllTopicsTextPrimary = Color(0xFF1D1B2F)
+private val AllTopicsTextSecondary = Color(0xFF77738A)
 
 private data class CefrLevelItem(
     val code: String,
@@ -122,7 +123,7 @@ fun AllTopicsScreen(
                 title = {
                     Text(
                         text = "Tất cả chủ đề",
-                        color = Color.White,
+                        color = AllTopicsTextPrimary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
@@ -132,7 +133,7 @@ fun AllTopicsScreen(
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Quay lại",
-                            tint = Color.White
+                            tint = AllTopicsTextPrimary
                         )
                     }
                 },
@@ -159,7 +160,7 @@ fun AllTopicsScreen(
 
             if (cefrExpanded) {
                 item {
-                    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                    Box(modifier = Modifier.fillMaxWidth()) {
                         val gridHeight = remember(cefrLevels.size) {
                             calculateGridHeight(
                                 itemCount = cefrLevels.size
@@ -264,7 +265,7 @@ private fun SectionHeader(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                color = Color.White,
+                color = AllTopicsTextPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -279,7 +280,7 @@ private fun SectionHeader(
         Icon(
             imageVector = Icons.Default.KeyboardArrowUp,
             contentDescription = null,
-            tint = Color.Gray,
+            tint = AllTopicsTextSecondary,
             modifier = Modifier
                 .size(24.dp)
                 .rotate(rotation)
@@ -324,7 +325,7 @@ private fun AllTopicsCefrCard(
                 ) {
                     Text(
                         text = item.code,
-                        color = Color.White,
+                        color = AllTopicsTextPrimary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -335,14 +336,14 @@ private fun AllTopicsCefrCard(
 
                 Text(
                     text = item.label,
-                    color = Color.White,
+                    color = AllTopicsTextSecondary,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = "Cấp độ ${item.code}",
-                    color = Color.White,
+                    color = AllTopicsTextPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     maxLines = 2,
@@ -355,28 +356,28 @@ private fun AllTopicsCefrCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
-                            tint = Color.White,
+                            tint = AllTopicsPrimary,
                             modifier = Modifier.size(13.dp),
                             contentDescription = null
                         )
                         Spacer(Modifier.width(3.dp))
                         Text(
                             text = "0/${item.wordCount}",
-                            color = Color.White,
+                            color = AllTopicsTextSecondary,
                             fontSize = 11.sp
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.NightsStay,
-                            tint = Color.White.copy(alpha = 0.7f),
+                            tint = AllTopicsTextSecondary,
                             modifier = Modifier.size(13.dp),
                             contentDescription = null
                         )
                         Spacer(Modifier.width(3.dp))
                         Text(
                             text = "0",
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = AllTopicsTextSecondary,
                             fontSize = 11.sp
                         )
                     }
@@ -434,7 +435,7 @@ private fun AllTopicsTopicCard(
                     ) {
                         Text(
                             text = topic.level,
-                            color = Color.White,
+                            color = AllTopicsTextPrimary,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -446,7 +447,7 @@ private fun AllTopicsTopicCard(
 
                 Text(
                     text = topic.name,
-                    color = Color.White,
+                    color = AllTopicsTextPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     maxLines = 2,
@@ -459,28 +460,28 @@ private fun AllTopicsTopicCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
-                            tint = Color.White,
+                            tint = AllTopicsPrimary,
                             modifier = Modifier.size(13.dp),
                             contentDescription = null
                         )
                         Spacer(Modifier.width(3.dp))
                         Text(
                             text = "0/${topicWithCount.wordCount}",
-                            color = Color.White,
+                            color = AllTopicsTextSecondary,
                             fontSize = 11.sp
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.NightsStay,
-                            tint = Color.White.copy(alpha = 0.7f),
+                            tint = AllTopicsTextSecondary,
                             modifier = Modifier.size(13.dp),
                             contentDescription = null
                         )
                         Spacer(Modifier.width(3.dp))
                         Text(
                             text = "0",
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = AllTopicsTextSecondary,
                             fontSize = 11.sp
                         )
                     }
@@ -513,23 +514,23 @@ private fun calculateGridHeight(
 }
 
 private fun cefrCardBgColor(code: String): Color = when (code) {
-    "A0" -> Color(0xFF424242)
-    "A1" -> Color(0xFF2E7D32)
-    "A2" -> Color(0xFF00695C)
-    "B1" -> Color(0xFF1565C0)
-    "B2" -> Color(0xFF6A1B9A)
-    "C1" -> Color(0xFFE65100)
-    "C2" -> Color(0xFFC62828)
-    else -> Color(0xFF2A2A2A)
+    "A0" -> Color(0xFFF1F1F1)
+    "A1" -> Color(0xFFE8F5E9)
+    "A2" -> Color(0xFFE0F7FA)
+    "B1" -> Color(0xFFE3F2FD)
+    "B2" -> Color(0xFFF3E5F5)
+    "C1" -> Color(0xFFFFF3E0)
+    "C2" -> Color(0xFFFFEBEE)
+    else -> Color(0xFFF5F5F5)
 }
 
 private fun topicCardBgColor(level: String?): Color = when (level) {
-    "A0" -> Color(0xFF37474F)
-    "A1" -> Color(0xFF1B5E20)
-    "A2" -> Color(0xFF004D40)
-    "B1" -> Color(0xFF0D47A1)
-    "B2" -> Color(0xFF4A148C)
-    "C1" -> Color(0xFFBF360C)
-    "C2" -> Color(0xFFB71C1C)
-    else -> Color(0xFF1A2A3A)
+    "A0" -> Color(0xFFF1F1F1)
+    "A1" -> Color(0xFFE8F5E9)
+    "A2" -> Color(0xFFE0F7FA)
+    "B1" -> Color(0xFFE3F2FD)
+    "B2" -> Color(0xFFF3E5F5)
+    "C1" -> Color(0xFFFFF3E0)
+    "C2" -> Color(0xFFFFEBEE)
+    else -> Color(0xFFF5F5F5)
 }

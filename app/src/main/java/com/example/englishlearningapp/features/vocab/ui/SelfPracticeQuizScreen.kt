@@ -60,7 +60,7 @@ fun SelfPracticeQuizScreen(
 
     if (questions.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Không có từ nào cần ôn tập!", color = Color.White)
+            Text("Không có từ nào cần ôn tập!", color = Color(0xFF77738A))
         }
         return
     }
@@ -101,11 +101,11 @@ fun SelfPracticeQuizScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFF1A1A1A),
+        containerColor = Color(0xFFF8F6FF),
         topBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 IconButton(onClick = { navController.navigateUp() }) {
-                    Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back", tint = Color(0xFF1D1B2F))
                 }
                 Row(
                     modifier = Modifier
@@ -121,11 +121,11 @@ fun SelfPracticeQuizScreen(
                             .height(6.dp)
                             .clip(RoundedCornerShape(3.dp)),
                         color = Color(0xFF4CAF50),
-                        trackColor = Color(0xFF3A3A3A)
+                        trackColor = Color(0xFFE0DDEB)
                     )
                     Text(
                         "${currentIndex + 1}/${questions.size}",
-                        color = Color.Gray,
+                        color = Color(0xFF77738A),
                         fontSize = 12.sp,
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
@@ -145,7 +145,7 @@ fun SelfPracticeQuizScreen(
                     ) {
                         Text(
                             "Chọn nghĩa",
-                            color = Color.White,
+                            color = Color(0xFF1D1B2F),
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
                         )
@@ -156,14 +156,14 @@ fun SelfPracticeQuizScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)), shape = RoundedCornerShape(16.dp), elevation = CardDefaults.cardElevation(6.dp)) {
+            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp), elevation = CardDefaults.cardElevation(6.dp)) {
                 Column(modifier = Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Từ sau đây mang nghĩa là gì?", color = Color(0xFFAAAAAA), fontSize = 14.sp, textAlign = TextAlign.Center)
+                    Text("Từ sau đây mang nghĩa là gì?", color = Color(0xFF77738A), fontSize = 14.sp, textAlign = TextAlign.Center)
                     Spacer(Modifier.height(16.dp))
-                    Text(text = question?.word ?: "", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 32.sp, textAlign = TextAlign.Center)
+                    Text(text = question?.word ?: "", color = Color(0xFF1D1B2F), fontWeight = FontWeight.ExtraBold, fontSize = 32.sp, textAlign = TextAlign.Center)
                     if (!question?.pronunciation.isNullOrBlank()) {
                         Spacer(Modifier.height(6.dp))
-                        Text(text = question?.pronunciation ?: "", color = Color(0xFF9E9E9E), fontSize = 15.sp, fontStyle = FontStyle.Italic, textAlign = TextAlign.Center)
+                        Text(text = question?.pronunciation ?: "", color = Color(0xFF77738A), fontSize = 15.sp, fontStyle = FontStyle.Italic, textAlign = TextAlign.Center)
                     }
                 }
             }
@@ -177,10 +177,10 @@ fun SelfPracticeQuizScreen(
                 val isThisCorrect = index == question.correctIndex
 
                 val (bgColor, borderColor, textColor) = when {
-                    !isAnswered -> Triple(Color(0xFF2A2A2A), Color(0xFF4A4A4A), Color.White)
-                    isThisCorrect -> Triple(Color(0xFF1B5E20), Color(0xFF4CAF50), Color(0xFF4CAF50))
-                    isSelected && !isThisCorrect -> Triple(Color(0xFF7F0000), Color(0xFFF44336), Color(0xFFF44336))
-                    else -> Triple(Color(0xFF2A2A2A), Color(0xFF3A3A3A), Color(0xFF7A7A7A))
+                    !isAnswered -> Triple(Color.White, Color(0xFFE0DDEB), Color(0xFF1D1B2F))
+                    isThisCorrect -> Triple(Color(0xFFE8F5E9), Color(0xFF4CAF50), Color(0xFF2E7D32))
+                    isSelected && !isThisCorrect -> Triple(Color(0xFFFFEDEC), Color(0xFFF44336), Color(0xFFC62828))
+                    else -> Triple(Color(0xFFF3F1FA), Color(0xFFE0DDEB), Color(0xFF9A97A8))
                 }
 
                 Card(onClick = { handleAnswer(index) }, enabled = !isAnswered, modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp), colors = CardDefaults.cardColors(containerColor = bgColor), border = BorderStroke(1.5.dp, borderColor), shape = RoundedCornerShape(12.dp)) {

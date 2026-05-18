@@ -26,6 +26,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+private val QuizBg = Color(0xFFF8F6FF)
+private val QuizCardBg = Color.White
+private val QuizBorder = Color(0xFFE0DDEB)
+private val QuizTextPrimary = Color(0xFF1D1B2F)
+private val QuizTextSecondary = Color(0xFF77738A)
+private val QuizTextMuted = Color(0xFF9A97A8)
+
 @Composable
 fun AnswerOptionCard(
     option: String,
@@ -37,10 +44,10 @@ fun AnswerOptionCard(
     onClick: () -> Unit
 ) {
     val (bgColor, borderColor, textColor) = when {
-        !isAnswered -> Triple(Color(0xFF2A2A2A), Color(0xFF4A4A4A), Color.White)
-        isCorrect -> Triple(Color(0xFF1B5E20), Color(0xFF4CAF50), Color(0xFF4CAF50))
-        isSelected -> Triple(Color(0xFF7F0000), Color(0xFFF44336), Color(0xFFF44336))
-        else -> Triple(Color(0xFF2A2A2A), Color(0xFF3A3A3A), Color(0xFF6A6A6A))
+        !isAnswered -> Triple(QuizCardBg, QuizBorder, QuizTextPrimary)
+        isCorrect -> Triple(Color(0xFFE8F5E9), Color(0xFF4CAF50), Color(0xFF2E7D32))
+        isSelected -> Triple(Color(0xFFFFEDEC), Color(0xFFF44336), Color(0xFFC62828))
+        else -> Triple(Color(0xFFF3F1FA), Color(0xFFE0DDEB), QuizTextMuted)
     }
 
     Card(
@@ -86,7 +93,7 @@ fun QuizResultScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1A1A1A)),
+            .background(QuizBg),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -102,7 +109,7 @@ fun QuizResultScreen(
             Spacer(Modifier.height(16.dp))
             Text(
                 "Kết quả ôn tập",
-                color = Color.White,
+                color = QuizTextPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp
             )
@@ -110,7 +117,7 @@ fun QuizResultScreen(
             Box(
                 modifier = Modifier
                     .size(120.dp)
-                    .background(Color(0xFF1B3A2D), CircleShape),
+                    .background(Color(0xFFE8F5E9), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -120,7 +127,7 @@ fun QuizResultScreen(
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 40.sp
                     )
-                    Text("/ $totalCount", color = Color.Gray, fontSize = 14.sp)
+                    Text("/ $totalCount", color = QuizTextSecondary, fontSize = 14.sp)
                 }
             }
             Spacer(Modifier.height(12.dp))
@@ -130,7 +137,7 @@ fun QuizResultScreen(
                     correctCount >= totalCount * 0.7f -> "Tốt lắm! Tiếp tục cố gắng! 👏"
                     else -> "Luyện tập thêm để nhớ lâu hơn! 💪"
                 },
-                color = Color.LightGray,
+                color = QuizTextSecondary,
                 fontSize = 15.sp,
                 textAlign = TextAlign.Center
             )
@@ -169,13 +176,13 @@ fun SelfPracticeEmptyOrLoading(isLoading: Boolean, navController: androidx.navig
                 Spacer(Modifier.height(12.dp))
                 Text(
                     "Chưa có từ nào trong thư mục",
-                    color = Color.White, fontWeight = FontWeight.Bold,
+                    color = QuizTextPrimary, fontWeight = FontWeight.Bold,
                     fontSize = 17.sp, textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
                     "Lưu từ vựng vào thư mục của bạn để bắt đầu luyện tập",
-                    color = Color.Gray, fontSize = 14.sp, textAlign = TextAlign.Center
+                    color = QuizTextSecondary, fontSize = 14.sp, textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(24.dp))
                 Button(onClick = { navController.navigateUp() }, colors = ButtonDefaults.buttonColors(Color(0xFF4CAF50))) {
@@ -194,7 +201,7 @@ fun SelfPracticeResultScreen(
     onFinish     : () -> Unit
 ) {
     Box(
-        Modifier.fillMaxSize().background(Color(0xFF1A1A1A)),
+        Modifier.fillMaxSize().background(QuizBg),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(32.dp)) {
@@ -205,14 +212,14 @@ fun SelfPracticeResultScreen(
             }
             Text(emoji, fontSize = 64.sp)
             Spacer(Modifier.height(16.dp))
-            Text("Tự luyện tập hoàn thành!", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+            Text("Tự luyện tập hoàn thành!", color = QuizTextPrimary, fontWeight = FontWeight.Bold, fontSize = 22.sp)
             Spacer(Modifier.height(6.dp))
-            Text("Luyện tập tự do không ảnh hưởng đến độ thông thạo", color = Color(0xFF6A6A6A), fontSize = 12.sp)
+            Text("Luyện tập tự do không ảnh hưởng đến độ thông thạo", color = QuizTextSecondary, fontSize = 12.sp)
             Spacer(Modifier.height(12.dp))
-            Box(Modifier.size(120.dp).background(Color(0xFF1B3A2D), androidx.compose.foundation.shape.CircleShape), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(120.dp).background(Color(0xFFE8F5E9), androidx.compose.foundation.shape.CircleShape), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("$correctCount", color = Color(0xFF4CAF50), fontWeight = FontWeight.ExtraBold, fontSize = 40.sp)
-                    Text("/ $totalCount", color = Color.Gray, fontSize = 14.sp)
+                    Text("/ $totalCount", color = QuizTextSecondary, fontSize = 14.sp)
                 }
             }
             Spacer(Modifier.height(32.dp))

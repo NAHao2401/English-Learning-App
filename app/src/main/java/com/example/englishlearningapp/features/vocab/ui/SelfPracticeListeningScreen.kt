@@ -92,20 +92,20 @@ fun SelfPracticeListeningScreen(
 
     if (questions.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Không có từ nào cần ôn tập!", color = Color.White)
+            Text("Không có từ nào cần ôn tập!", color = Color(0xFF77738A))
         }
         return
     }
 
-    Scaffold(containerColor = Color(0xFF1A1A1A), topBar = {
+    Scaffold(containerColor = Color(0xFFF8F6FF), topBar = {
         Column(modifier = Modifier.fillMaxWidth()) {
             IconButton(onClick = { navController.navigateUp() }) {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back", tint = Color(0xFF1D1B2F))
             }
             Row(modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 16.dp, bottom = 8.dp, top = 0.dp), verticalAlignment = Alignment.CenterVertically) {
                 Spacer(Modifier.width(16.dp))
-                LinearProgressIndicator(progress = { (currentIndex + 1f) / questions.size }, modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)), color = Color(0xFF4CAF50), trackColor = Color(0xFF3A3A3A))
-                Text("${currentIndex + 1}/${questions.size}", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp))
+                LinearProgressIndicator(progress = { (currentIndex + 1f) / questions.size }, modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)), color = Color(0xFF4CAF50), trackColor = Color(0xFFE0DDEB))
+                Text("${currentIndex + 1}/${questions.size}", color = Color(0xFF77738A), fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp))
                 Spacer(Modifier.width(12.dp))
             }
         }
@@ -114,7 +114,7 @@ fun SelfPracticeListeningScreen(
             Spacer(Modifier.height(8.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text("Chọn nghĩa", color = Color.White, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 20.sp)
+                Text("Chọn nghĩa", color = Color(0xFF1D1B2F), fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 20.sp)
                 Spacer(Modifier.weight(1f))
                  val mastery = question?.vocabId?.let { learnedMastery[it] } ?: 0
                  LearnedSeedIcon(masteryLevel = mastery)

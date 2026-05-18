@@ -105,13 +105,13 @@ fun ReviewQuizListeningScreen(
 
     if (questions.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Không có từ nào cần ôn tập!", color = Color.White)
+            Text("Không có từ nào cần ôn tập!", color = Color(0xFF77738A))
         }
         return
     }
 
     Scaffold(
-        containerColor = Color(0xFF1A1A1A),
+        containerColor = Color(0xFFF8F6FF),
         topBar = {
             Column(
                 modifier = Modifier
@@ -121,7 +121,7 @@ fun ReviewQuizListeningScreen(
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color.White
+                        tint = Color(0xFF1D1B2F)
                     )
                 }
                 Row(
@@ -141,11 +141,11 @@ fun ReviewQuizListeningScreen(
                             .height(6.dp)
                             .clip(RoundedCornerShape(3.dp)),
                         color = Color(0xFF4CAF50),
-                        trackColor = Color(0xFF3A3A3A)
+                        trackColor = Color(0xFFE0DDEB)
                     )
                     Text(
                         "${currentIndex + 1}/${questions.size}",
-                        color = Color.Gray,
+                        color = Color(0xFF77738A),
                         fontSize = 12.sp,
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
@@ -168,7 +168,7 @@ fun ReviewQuizListeningScreen(
             ) {
                 Text(
                     "Chọn nghĩa",
-                    color = Color.White,
+                    color = Color(0xFF1D1B2F),
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
                 )

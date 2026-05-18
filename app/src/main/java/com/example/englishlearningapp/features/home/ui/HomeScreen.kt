@@ -77,7 +77,8 @@ fun HomeScreen(
     onAiScanClick: () -> Unit = {},
     onSpeakingClick: () -> Unit = {},
     onContinueLearningClick: () -> Unit = {},
-    onLogoutClick: () -> Unit = {}
+    onLogoutClick: () -> Unit = {},
+    onNavigateToChat: () -> Unit = {}
 ) {
     val featureItems = listOf(
         HomeFeatureItem(
@@ -112,6 +113,13 @@ fun HomeScreen(
             icon = Icons.Default.Mic,
             isAvailable = true,
             onClick = onSpeakingClick
+        ),
+        HomeFeatureItem(
+            title = "AI Chat",
+            subtitle = "Practice with AI",
+            icon = Icons.Default.AutoStories,
+            isAvailable = true,
+            onClick = onNavigateToChat
         )
     )
 

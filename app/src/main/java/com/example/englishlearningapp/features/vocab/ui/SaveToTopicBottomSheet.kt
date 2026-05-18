@@ -65,14 +65,14 @@ fun SaveToTopicBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color(0xFF2A2A2A),
+        containerColor = Color.White,
         dragHandle = {
             Box(
                 modifier = Modifier
                     .padding(vertical = 8.dp)
                     .width(40.dp)
                     .height(4.dp)
-                    .background(Color(0xFF4A4A4A), RoundedCornerShape(2.dp))
+                    .background(Color(0xFFE0DDEB), RoundedCornerShape(2.dp))
             )
         }
     ) {
@@ -84,18 +84,18 @@ fun SaveToTopicBottomSheet(
         ) {
             Text(
                 text = vocab.word,
-                color = Color.White,
+                color = Color(0xFF1D1B2F),
                 fontWeight = Bold,
                 fontSize = 20.sp
             )
             Text(
                 text = vocab.meaning,
-                color = Color.Gray,
+                color = Color(0xFF77738A),
                 fontSize = 13.sp
             )
 
             Spacer(Modifier.height(16.dp))
-            HorizontalDivider(color = Color(0xFF3A3A3A))
+            HorizontalDivider(color = Color(0xFFE6E2F2))
             Spacer(Modifier.height(16.dp))
 
             if (!showCreateField) {
@@ -124,8 +124,8 @@ fun SaveToTopicBottomSheet(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF4CAF50),
                             unfocusedBorderColor = Color(0xFF4A4A4A),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
+                            focusedTextColor = Color(0xFF1D1B2F),
+                            unfocusedTextColor = Color(0xFF1D1B2F),
                             cursorColor = Color(0xFF4CAF50)
                         ),
                         modifier = Modifier.weight(1f)
@@ -173,7 +173,7 @@ fun SaveToTopicBottomSheet(
             if (userTopics.isEmpty()) {
                 Text(
                     text = "Chưa có thư mục nào. Tạo thư mục mới để lưu từ!",
-                    color = Color.Gray,
+                    color = Color(0xFF77738A),
                     fontSize = 13.sp,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -204,7 +204,7 @@ fun SaveToTopicBottomSheet(
                             )
                             Spacer(Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(topic.name, color = Color.White, fontSize = 15.sp, fontWeight = Medium)
+                                Text(topic.name, color = Color(0xFF1D1B2F), fontSize = 15.sp, fontWeight = Medium)
 
                             }
                             if (isAlreadySaved) {
@@ -214,7 +214,7 @@ fun SaveToTopicBottomSheet(
                             }
                         }
 
-                        HorizontalDivider(color = Color(0xFF3A3A3A), thickness = 0.5.dp)
+                        HorizontalDivider(color = Color(0xFFE6E2F2), thickness = 0.5.dp)
                     }
                 }
             }

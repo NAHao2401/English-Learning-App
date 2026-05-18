@@ -89,7 +89,7 @@ fun FlashcardScreen(
         onClose = { navController.navigateUp() },
         content = {
             Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                LinearProgressIndicator(progress = (currentIndex + 1f) / vocabs.size, color = Color(0xFF4CAF50), trackColor = Color(0xFF3A3A3A), modifier = Modifier.fillMaxWidth())
+                LinearProgressIndicator(progress = (currentIndex + 1f) / vocabs.size, color = Color(0xFF4CAF50), trackColor = Color(0xFFE0DDEB), modifier = Modifier.fillMaxWidth())
                 Spacer(modifier = Modifier.size(20.dp))
 
                 val rotation by animateFloatAsState(targetValue = if (isFlipped) 180f else 0f, animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing))
@@ -100,28 +100,28 @@ fun FlashcardScreen(
                     .graphicsLayer { rotationY = rotation }
                     .clickable { isFlipped = !isFlipped }, contentAlignment = Alignment.Center) {
                     if (rotation <= 90f) {
-                        Card(modifier = Modifier.fillMaxSize(), colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)), elevation = CardDefaults.cardElevation(defaultElevation = 8.dp), shape = RoundedCornerShape(20.dp)) {
+                        Card(modifier = Modifier.fillMaxSize(), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(defaultElevation = 8.dp), shape = RoundedCornerShape(20.dp)) {
                             Column(modifier = Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                                 Text("🇬🇧", fontSize = 32.sp)
                                 Spacer(modifier = Modifier.size(16.dp))
-                                Text(vocab.word, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 34.sp, textAlign = TextAlign.Center)
+                                Text(vocab.word, color = Color(0xFF1D1B2F), fontWeight = FontWeight.Bold, fontSize = 34.sp, textAlign = TextAlign.Center)
                                 if (!vocab.pronunciation.isNullOrBlank()) {
                                     Spacer(modifier = Modifier.size(8.dp))
-                                    Text(vocab.pronunciation, color = Color.Gray, fontSize = 16.sp)
+                                    Text(vocab.pronunciation, color = Color(0xFF77738A), fontSize = 16.sp)
                                 }
                                 Spacer(modifier = Modifier.size(24.dp))
-                                Text("Nhấn để xem nghĩa", color = Color.Gray, fontSize = 12.sp)
+                                Text("Nhấn để xem nghĩa", color = Color(0xFF77738A), fontSize = 12.sp)
                             }
                         }
                     } else {
-                        Card(modifier = Modifier.fillMaxSize().graphicsLayer { scaleX = -1f }, colors = CardDefaults.cardColors(containerColor = Color(0xFF1B3A2D)), elevation = CardDefaults.cardElevation(defaultElevation = 8.dp), shape = RoundedCornerShape(20.dp)) {
+                        Card(modifier = Modifier.fillMaxSize().graphicsLayer { scaleX = -1f }, colors = CardDefaults.cardColors(containerColor = Color(0xFFEAF7EE)), elevation = CardDefaults.cardElevation(defaultElevation = 8.dp), shape = RoundedCornerShape(20.dp)) {
                             Column(modifier = Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                                 Text("🇻🇳", fontSize = 32.sp)
                                 Spacer(modifier = Modifier.size(16.dp))
-                                Text(vocab.meaning, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 26.sp, textAlign = TextAlign.Center)
+                                Text(vocab.meaning, color = Color(0xFF1D1B2F), fontWeight = FontWeight.Bold, fontSize = 26.sp, textAlign = TextAlign.Center)
                                 if (!vocab.exampleSentence.isNullOrBlank()) {
                                     Spacer(modifier = Modifier.size(12.dp))
-                                    Text(vocab.exampleSentence, color = Color.White.copy(alpha = 0.75f), fontSize = 14.sp, textAlign = TextAlign.Center)
+                                    Text(vocab.exampleSentence, color = Color(0xFF77738A), fontSize = 14.sp, textAlign = TextAlign.Center)
                                 }
                             }
                         }
@@ -140,7 +140,12 @@ fun FlashcardScreen(
                     Spacer(modifier = Modifier.weight(0.02f))
 
                     if (currentIndex < vocabs.size - 1) {
-                        Button(onClick = { currentIndex++; isFlipped = false }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2A2A2A)), modifier = Modifier.weight(1f), border = BorderStroke(1.dp, Color(0xFF4CAF50))) { Text("Tiếp →", color = Color.White) }
+                        Button(
+                            onClick = { currentIndex++; isFlipped = false },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                            modifier = Modifier.weight(1f),
+                            border = BorderStroke(1.dp, Color(0xFF4CAF50))
+                        ) { Text("Tiếp →", color = Color(0xFF4CAF50)) }
                     } else {
                         Button(onClick = { navController.navigateUp() }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)), modifier = Modifier.weight(1f)) { Text("✅ Xong") }
                     }
@@ -161,13 +166,25 @@ fun FlashcardScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScaffoldFlashcard(navController: NavController, title: String, onClose: () -> Unit, content: @Composable () -> Unit) {
-    androidx.compose.material3.Scaffold(topBar = {
-        CenterAlignedTopAppBar(title = { Text(title) }, navigationIcon = {
-            IconButton(onClick = { navController.navigateUp() }) { androidx.compose.material3.Icon(Icons.Default.ArrowBack, contentDescription = "Back") }
-        }, actions = {
-            IconButton(onClick = onClose) { androidx.compose.material3.Icon(Icons.Default.Close, contentDescription = "Close") }
-        }, colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFF1A1A1A)))
-    }) { padding ->
+    androidx.compose.material3.Scaffold(
+        containerColor = Color(0xFFF8F6FF),
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(title, color = Color(0xFF1D1B2F)) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        androidx.compose.material3.Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color(0xFF1D1B2F))
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onClose) {
+                        androidx.compose.material3.Icon(Icons.Default.Close, contentDescription = "Close", tint = Color(0xFF1D1B2F))
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFFF8F6FF))
+            )
+        }
+    ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
             content()
         }

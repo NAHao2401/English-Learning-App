@@ -63,9 +63,9 @@ import androidx.navigation.NavController
 import com.example.englishlearningapp.data.remote.api.response.VocabularyResponse
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 
-private val StudyBg = Color(0xFF1A1A1A)
-private val StudyCardBg = Color(0xFF2A2A2A)
-private val StudyDivider = Color(0xFF3A3A3A)
+private val StudyBg = Color(0xFFF8F6FF)
+private val StudyCardBg = Color.White
+private val StudyDivider = Color(0xFFE6E2F2)
 private val StudyGreen = Color(0xFF4CAF50)
 
 @Composable
@@ -197,7 +197,7 @@ fun StudyFlashcardSessionScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { }) {
-                    Icon(Icons.Default.BookmarkBorder, contentDescription = null, tint = Color.Gray)
+                    Icon(Icons.Default.BookmarkBorder, contentDescription = null, tint = Color(0xFF9A97A8))
                 }
 
                 Box(
@@ -218,16 +218,16 @@ fun StudyFlashcardSessionScreen(
 
                 Text(
                     text = "${currentIndex + 1}/$totalInBatch",
-                    color = Color.Gray,
+                    color = Color(0xFF77738A),
                     fontSize = 12.sp,
                     modifier = Modifier.padding(horizontal = 4.dp)
                 )
 
                 IconButton(onClick = { }) {
-                    Icon(Icons.Default.Info, contentDescription = null, tint = Color.Gray)
+                    Icon(Icons.Default.Info, contentDescription = null, tint = Color(0xFF9A97A8))
                 }
                 IconButton(onClick = { }) {
-                    Icon(Icons.Default.Settings, contentDescription = null, tint = Color.Gray)
+                    Icon(Icons.Default.Settings, contentDescription = null, tint = Color(0xFF9A97A8))
                 }
             }
 
@@ -239,7 +239,7 @@ fun StudyFlashcardSessionScreen(
             ) {
                 Text(
                     text = if (isReviewWord) "Ôn tập" else "Từ mới",
-                    color = Color.White,
+                    color = Color(0xFF1D1B2F),
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
@@ -283,13 +283,13 @@ fun StudyFlashcardSessionScreen(
                                 .fillMaxWidth()
                                 .height(130.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFF3A3A3A)),
+                                .background(Color(0xFFE6E2F2)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 Icons.Default.FlipToBack,
                                 contentDescription = null,
-                                tint = Color(0xFF5A5A5A),
+                                tint = Color(0xFF9A97A8),
                                 modifier = Modifier.size(48.dp)
                             )
                         }
@@ -297,7 +297,7 @@ fun StudyFlashcardSessionScreen(
                         Spacer(Modifier.height(16.dp))
                         Text(
                             text = vocab.word,
-                            color = Color.White,
+                            color = Color(0xFF1D1B2F),
                             fontWeight = FontWeight.Bold,
                             fontSize = 26.sp,
                             textAlign = TextAlign.Center
@@ -306,7 +306,7 @@ fun StudyFlashcardSessionScreen(
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text = vocab.pronunciation,
-                                color = Color.Gray,
+                                color = Color(0xFF77738A),
                                 fontSize = 14.sp,
                                 fontStyle = FontStyle.Italic
                             )
@@ -342,7 +342,7 @@ fun StudyFlashcardSessionScreen(
                     ) {
                         Text(
                             text = vocab.meaning,
-                            color = Color.White,
+                            color = Color(0xFF1D1B2F),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -351,11 +351,11 @@ fun StudyFlashcardSessionScreen(
                             Spacer(Modifier.height(16.dp))
                             HorizontalDivider(color = StudyDivider)
                             Spacer(Modifier.height(12.dp))
-                            Text("Ví dụ:", color = Color.Gray, fontSize = 12.sp)
+                            Text("Ví dụ:", color = Color(0xFF77738A), fontSize = 12.sp)
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text = vocab.exampleSentence,
-                                color = Color.LightGray,
+                                color = Color(0xFF77738A),
                                 fontSize = 14.sp,
                                 fontStyle = FontStyle.Italic
                             )
@@ -401,7 +401,7 @@ fun StudyFlashcardSessionScreen(
                 ) {
                     Text(
                         text = "Bạn thuộc từ này ở mức nào?",
-                        color = Color.White,
+                        color = Color(0xFF1D1B2F),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -424,7 +424,7 @@ fun StudyFlashcardSessionScreen(
                             border = BorderStroke(1.5.dp, StudyGreen),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = Color(0xFF1B3A2D)
+                                containerColor = Color(0xFFEAF7EE)
                             )
                         ) {
                             Text(
@@ -448,7 +448,7 @@ fun StudyFlashcardSessionScreen(
                             border = BorderStroke(1.5.dp, Color(0xFF5A8A6A)),
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = Color(0xFF1A2A20)
+                                containerColor = Color(0xFFF1F4EF)
                             )
                         ) {
                             Text(
@@ -495,7 +495,7 @@ fun StudyFlashcardSessionScreen(
 
                     Text(
                         text = "Thông thạo +5 XP • Nhớ tạm +3 XP • Chưa biết +1 XP",
-                        color = Color(0xFF4A4A4A),
+                        color = Color(0xFF77738A),
                         fontSize = 11.sp,
                         textAlign = TextAlign.Center
                     )
@@ -516,7 +516,7 @@ private fun LoadingState() {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CircularProgressIndicator(color = StudyGreen)
             Spacer(Modifier.height(12.dp))
-            Text("Đang tải...", color = Color.Gray)
+            Text("Đang tải...", color = Color(0xFF77738A))
         }
     }
 }
@@ -542,7 +542,7 @@ private fun ResultState(
             Spacer(Modifier.height(16.dp))
             Text(
                 text = "Bạn đã học $ratedCount từ!",
-                color = Color.White,
+                color = Color(0xFF1D1B2F),
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
                 textAlign = TextAlign.Center
@@ -554,7 +554,7 @@ private fun ResultState(
                 } else {
                     "Bạn đã học hết từ mới của chủ đề này!"
                 },
-                color = Color.Gray,
+                color = Color(0xFF77738A),
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center
             )
