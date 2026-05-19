@@ -71,9 +71,9 @@ fun ProgressScreen(
 ) {
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFF8F6FF),
-            Color(0xFFF6F9FF),
-            Color(0xFFFFFFFF)
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface
         )
     )
 
@@ -87,12 +87,12 @@ fun ProgressScreen(
                             text = "Progress",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1D1B2F)
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "Track your learning journey",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF77738A)
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
                         )
                     }
                 },
@@ -102,12 +102,12 @@ fun ProgressScreen(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.85f))
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color(0xFF232136)
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
@@ -311,7 +311,7 @@ private fun SectionHeader() {
         Text(
             text = "Learning overview",
             style = MaterialTheme.typography.titleMedium,
-            color = Color(0xFF1D1B2F),
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold
         )
         Text(
@@ -466,7 +466,7 @@ private fun CompletionChartCard(summary: ProgressSummaryResponse) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 5.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(18.dp)
@@ -639,7 +639,7 @@ private fun WeeklyXpChartCard(weeklyXp: List<DailyXpResponse>) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 5.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(18.dp)
@@ -755,7 +755,7 @@ private fun LevelProgressCard(summary: ProgressSummaryResponse) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 5.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(18.dp)
@@ -834,7 +834,7 @@ private fun LearningProgressCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 5.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(18.dp)
@@ -903,7 +903,7 @@ private fun RecentActivitiesCard(activities: List<RecentActivityResponse>) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 5.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
             Text(
@@ -1000,7 +1000,7 @@ private fun MotivationCard(summary: ProgressSummaryResponse) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 5.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(18.dp)

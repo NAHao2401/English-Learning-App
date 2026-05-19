@@ -59,9 +59,9 @@ fun LessonResultScreen(
 ) {
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFF8F6FF),
-            Color(0xFFF6F9FF),
-            Color(0xFFFFFFFF)
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface
         )
     )
 
@@ -285,7 +285,7 @@ private fun ScoreSummaryCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 5.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(18.dp)
@@ -412,7 +412,7 @@ private fun CompletionCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 5.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(18.dp)
@@ -496,7 +496,7 @@ private fun FeedbackCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 5.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(18.dp)

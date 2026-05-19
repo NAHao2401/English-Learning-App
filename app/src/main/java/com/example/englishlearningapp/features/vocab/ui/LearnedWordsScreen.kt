@@ -71,10 +71,13 @@ import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 import com.example.englishlearningapp.features.vocab.ui.SaveToTopicBottomSheet
 import com.example.englishlearningapp.data.remote.NetworkConfig
 
-private val DarkBg = Color(0xFF1A1A1A)
-private val CardBg = Color(0xFF2A2A2A)
+private val DarkBg = Color(0xFFF8F6FF)
+private val CardBg = Color.White
 private val PrimaryGreen = Color(0xFF4CAF50)
 private val OrangeAccent = Color(0xFFFF8C00)
+private val TextPrimary = Color(0xFF1D1B2F)
+private val TextSecondary = Color(0xFF77738A)
+private val TextMuted = Color(0xFF9A97A8)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,14 +120,14 @@ fun LearnedWordsScreen(
                         Icon(
                             Icons.Default.ArrowBack,
                             contentDescription = null,
-                            tint = Color.White
+                            tint = TextPrimary
                         )
                     }
                 },
                 title = {
                     Text(
                         text = "Các từ đã học",
-                        color = Color.White,
+                        color = TextPrimary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
@@ -134,7 +137,7 @@ fun LearnedWordsScreen(
         bottomBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = Color(0xFF232323),
+                color = CardBg,
                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
             ) {
                 Box(
@@ -175,7 +178,7 @@ fun LearnedWordsScreen(
                         ) {
                             Text(
                                 "Không có từ nào cần luyện tập",
-                                color = Color(0xFF7A7A7A),
+                                color = TextSecondary,
                                 fontSize = 14.sp,
                                 modifier = Modifier.weight(1f)
                             )
@@ -188,7 +191,7 @@ fun LearnedWordsScreen(
                             ) {
                                 Icon(
                                     Icons.Default.Menu,
-                                    tint = Color(0xFF7A7A7A),
+                                    tint = TextSecondary,
                                     contentDescription = "Tự luyện tập"
                                 )
                             }
@@ -220,14 +223,14 @@ fun LearnedWordsScreen(
                         Spacer(Modifier.height(16.dp))
                         Text(
                             "Bạn chưa học từ nào",
-                            color = Color.White,
+                            color = TextPrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
                             "Bắt đầu học từ vựng để xem chúng ở đây!",
-                            color = Color.Gray,
+                            color = TextSecondary,
                             fontSize = 14.sp,
                             textAlign = TextAlign.Center
                         )
@@ -257,7 +260,7 @@ fun LearnedWordsScreen(
                             ) {
                                 Text(
                                     "Tổng: $total từ",
-                                    color = Color(0xFFAAAAAA),
+                                    color = TextSecondary,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium
                                 )
@@ -306,7 +309,7 @@ fun LearnedWordsScreen(
                             )
 
                             androidx.compose.material3.HorizontalDivider(
-                                color = Color(0xFF2A2A2A),
+                                color = Color(0xFFE6E2F2),
                                 thickness = 0.5.dp
                             )
                         }
@@ -346,14 +349,14 @@ fun LearnedWordsFreePracticeModeBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color(0xFF2A2A2A),
+        containerColor = Color.White,
         dragHandle = {
             Box(
                 Modifier
                     .padding(vertical = 8.dp)
                     .width(40.dp)
                     .height(4.dp)
-                    .background(Color(0xFF4A4A4A), RoundedCornerShape(2.dp))
+                    .background(Color(0xFFE0DDEB), RoundedCornerShape(2.dp))
             )
         }
     ) {
@@ -367,13 +370,13 @@ fun LearnedWordsFreePracticeModeBottomSheet(
 
             Text(
                 "Chọn cách luyện tập",
-                color = Color.White,
+                color = TextPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            HorizontalDivider(color = Color(0xFF3A3A3A))
+            HorizontalDivider(color = Color(0xFFE6E2F2))
             Spacer(Modifier.height(16.dp))
 
             val modes = listOf(
@@ -454,7 +457,7 @@ fun LearnedSeedIcon(
                 val filled = i < masteryLevel
 
                 drawArc(
-                    color = if (filled) Color(0xFF4CAF50) else Color(0xFF2A2A2A),
+                    color = if (filled) Color(0xFF4CAF50) else Color(0xFFE0DDEB),
                     startAngle = startAngle,
                     sweepAngle = segmentSweep,
                     useCenter = false,
@@ -519,7 +522,7 @@ fun LearnedWordRow(
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = item.meaning,
-                    color = Color(0xFFCCCCCC),
+                    color = TextSecondary,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
@@ -530,7 +533,7 @@ fun LearnedWordRow(
             IconButton(onClick = { onSaveClick(item.vocabularyId) }) {
                 Icon(
                     Icons.Default.BookmarkBorder,
-                    tint = Color(0xFF5A5A5A),
+                    tint = TextMuted,
                     contentDescription = "Lưu từ"
                 )
             }
@@ -547,7 +550,7 @@ fun LearnedWordRow(
                     )
             ) {
                 HorizontalDivider(
-                    color = Color(0xFF2A2A2A),
+                    color = Color(0xFFE6E2F2),
                     thickness = 0.5.dp,
                     modifier = Modifier.padding(bottom = 10.dp)
                 )
@@ -556,7 +559,7 @@ fun LearnedWordRow(
                 if (!item.pronunciation.isNullOrBlank()) {
                     Text(
                         text = item.pronunciation,
-                        color = Color(0xFF9E9E9E),
+                        color = TextSecondary,
                         fontSize = 14.sp,
                         fontStyle = FontStyle.Italic
                     )
@@ -566,7 +569,7 @@ fun LearnedWordRow(
                 // Vietnamese meaning (bold, prominent)
                 Text(
                     text = item.meaning,
-                    color = Color.White,
+                    color = TextPrimary,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -577,7 +580,7 @@ fun LearnedWordRow(
                     Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = "\"${item.exampleSentence}\"",
-                            color = Color(0xFF7A7A7A),
+                            color = TextSecondary,
                             fontSize = 13.sp,
                             fontStyle = FontStyle.Italic,
                             modifier = Modifier.weight(1f)
@@ -587,7 +590,7 @@ fun LearnedWordRow(
                             baseUrl = NetworkConfig.BASE_URL,
                             fallbackText = item.exampleSentence,
                             audioPlayer = audioPlayer,
-                            tint = Color(0xFF5A5A5A),
+                            tint = TextMuted,
                             size = 16.dp
                         )
                     }
@@ -638,14 +641,14 @@ fun LearnedWordRow(
 
                 Text(
                     "Đã ôn ${item.reviewCount} lần",
-                    color = Color(0xFF5A5A5A),
+                    color = TextMuted,
                     fontSize = 12.sp
                 )
             }
         }
 
         HorizontalDivider(
-            color = Color(0xFF2A2A2A),
+            color = Color(0xFFE6E2F2),
             thickness = 0.5.dp
         )
     }

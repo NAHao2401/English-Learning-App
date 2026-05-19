@@ -72,9 +72,9 @@ fun TopicListScreen(
 ) {
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFF8F6FF),
-            Color(0xFFF6F9FF),
-            Color(0xFFFFFFFF)
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface
         )
     )
 
@@ -88,12 +88,12 @@ fun TopicListScreen(
                             text = "Topics",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1D1B2F)
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "Pick your learning path",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF77738A)
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
                         )
                     }
                 },
@@ -103,12 +103,12 @@ fun TopicListScreen(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.85f))
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color(0xFF232136)
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
@@ -249,7 +249,7 @@ private fun PremiumHeroCard(topicCount: Int) {
                 Text(
                     text = "Choose a topic and build vocabulary through short, focused English lessons.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.88f),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
                     lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
                 )
             }
@@ -268,7 +268,7 @@ private fun SectionHeader() {
             Text(
                 text = "Learning categories",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF1D1B2F),
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold
             )
             Text(
@@ -293,7 +293,7 @@ private fun PremiumTopicCard(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 5.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Box(
             modifier = Modifier.fillMaxWidth()

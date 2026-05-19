@@ -195,7 +195,7 @@ fun CefrLevelDetailScreen(
             .fillMaxSize()
             .padding(paddingValues)
             .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .background(Color(0xFF1A1A1A))) {
+            .background(Color(0xFFF8F6FF))) {
 
             when {
                 isLoading -> {
@@ -203,7 +203,7 @@ fun CefrLevelDetailScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CircularProgressIndicator(color = Color(0xFF4CAF50))
                             Spacer(Modifier.height(12.dp))
-                            Text("Đang tải...", color = Color.Gray, fontSize = 13.sp)
+                            Text("Đang tải...", color = Color(0xFF77738A), fontSize = 13.sp)
                         }
                     }
                 }
@@ -212,7 +212,7 @@ fun CefrLevelDetailScreen(
                     Column(modifier = Modifier.fillMaxSize().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                         Text("⚠️", fontSize = 48.sp)
                         Spacer(Modifier.height(12.dp))
-                        Text(error ?: "", color = Color.Gray, textAlign = TextAlign.Center)
+                        Text(error ?: "", color = Color(0xFF77738A), textAlign = TextAlign.Center)
                         Spacer(Modifier.height(16.dp))
                         Button(onClick = { viewModel.loadLevel(level) }, colors = ButtonDefaults.buttonColors(Color(0xFF4CAF50))) { Text("Thử lại") }
                     }
@@ -222,7 +222,7 @@ fun CefrLevelDetailScreen(
                     Column(modifier = Modifier.fillMaxSize().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                         Text("📭", fontSize = 56.sp)
                         Spacer(Modifier.height(12.dp))
-                        Text("Chưa có chủ đề nào ở cấp độ $level", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp, textAlign = TextAlign.Center)
+                        Text("Chưa có chủ đề nào ở cấp độ $level", color = Color(0xFF1D1B2F), fontWeight = FontWeight.Bold, fontSize = 16.sp, textAlign = TextAlign.Center)
                     }
                 }
 
@@ -294,7 +294,7 @@ fun CefrTopicCircleItem(item: TopicProgressItem, level: String, onClick: () -> U
             CircularProgressIndicator(
                 progress = { 1f },
                 modifier = Modifier.fillMaxSize(),
-                color = Color(0xFF2A3A2A),
+                color = Color(0xFFE6E2F2),
                 strokeWidth = 5.dp,
                 strokeCap = StrokeCap.Round
             )
@@ -308,19 +308,19 @@ fun CefrTopicCircleItem(item: TopicProgressItem, level: String, onClick: () -> U
                 strokeCap = StrokeCap.Round
             )
 
-            Box(modifier = Modifier.size(100.dp).clip(CircleShape).background(Color(0xFF2A2A2A)), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.size(100.dp).clip(CircleShape).background(Color.White), contentAlignment = Alignment.Center) {
                 val emoji = item.topic.iconEmoji ?: ""
                 if (emoji.isNotBlank()) {
                     Text(text = emoji, fontSize = 42.sp)
                 } else {
-                    Icon(imageVector = Icons.Default.MenuBook, contentDescription = null, tint = Color(0xFF5A5A5A), modifier = Modifier.size(44.dp))
+                    Icon(imageVector = Icons.Default.MenuBook, contentDescription = null, tint = Color(0xFF9A97A8), modifier = Modifier.size(44.dp))
                 }
             }
         }
 
         Spacer(Modifier.height(14.dp))
 
-        Text(text = item.topic.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Text(text = item.topic.name, color = Color(0xFF1D1B2F), fontWeight = FontWeight.Bold, fontSize = 17.sp, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
 
         Spacer(Modifier.height(8.dp))
 

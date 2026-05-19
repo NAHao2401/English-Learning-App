@@ -24,7 +24,12 @@ class MainActivity : ComponentActivity() {
         val appDataStore = AppDataStore(applicationContext)
 
         setContent {
-            EnglishLearningAppTheme {
+            val isDarkMode by appDataStore.isDarkMode.collectAsState(initial = false)
+
+            EnglishLearningAppTheme(
+                darkTheme = isDarkMode,
+                dynamicColor = false
+            ) {
                 val isLoggedIn by appDataStore.isLoggedIn.collectAsState(initial = false)
 
                 AppNavGraph(

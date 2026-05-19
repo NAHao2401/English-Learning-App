@@ -1,8 +1,10 @@
 package com.example.englishlearningapp.data.repository
 
 import android.content.Context
+import com.example.englishlearningapp.core.util.ErrorParser
 import com.example.englishlearningapp.data.local.datastore.AppDataStore
 import com.example.englishlearningapp.data.remote.api.RetrofitClient
+import com.example.englishlearningapp.data.remote.api.request.ChangePasswordRequest
 import com.example.englishlearningapp.data.remote.api.request.LoginRequest
 import com.example.englishlearningapp.data.remote.api.request.RegisterRequest
 import org.json.JSONObject
@@ -72,6 +74,34 @@ class AuthRepository(context: Context) {
             }
         } catch (_: Exception) {
             null
+        }
+    }
+
+    suspend fun changePassword(
+        currentPassword: String,
+        newPassword: String
+    ): Result<String> {
+        return try {
+            val response = authApi.changePassword(
+                ChangePasswordRequest(
+                    currentPassword = currentPassword,
+                    newPassword = newPassword
+                )
+            )
+
+            if (response.isSuccessful) {
+                val message = response.body()?.message ?: "Password changed successfully"
+                Result.success(message)
+            } else {
+                val errorBody = response.errorBody()?.string()
+                val message = ErrorParser.parse(
+                    errorBody = errorBody,
+                    fallbackMessage = "Change password failed"
+                )
+                Result.failure(Exception(message))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception(e.message ?: "Network error"))
         }
     }
 }

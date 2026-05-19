@@ -110,6 +110,8 @@ fun TopicDetailScreen(
     val isAllLearned = newWordCount == 0 && totalWords > 0
 
     val audioPlayer = rememberVocabAudioPlayer()
+    val textPrimary = Color(0xFF1D1B2F)
+    val textSecondary = Color(0xFF77738A)
 
     LaunchedEffect(topicId) {
         viewModel.setDifficultyFilter(null)
@@ -120,21 +122,21 @@ fun TopicDetailScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 windowInsets = WindowInsets(0),
-                title = { Text(topic?.name ?: "Topic") },
+                title = { Text(topic?.name ?: "Topic", color = textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = textPrimary)
                     }
                 },
                 actions = {},
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFF1A1A1A))
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFFF8F6FF))
             )
         },
         bottomBar = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF1A1A1A))
+                    .background(Color(0xFFF8F6FF))
                     .padding(horizontal = 16.dp, vertical = 10.dp)
                     .navigationBarsPadding()
             ) {
@@ -153,7 +155,7 @@ fun TopicDetailScreen(
                     Text("$learnedCount/$totalWords đã học", color = Color(0xFF4CAF50), fontSize = 12.sp)
                     if (newWordCount > 0) {
                         Spacer(Modifier.width(12.dp))
-                        Text("• $newWordCount từ mới", color = Color.Gray, fontSize = 12.sp)
+                        Text("• $newWordCount từ mới", color = textSecondary, fontSize = 12.sp)
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
@@ -165,13 +167,13 @@ fun TopicDetailScreen(
                         .height(52.dp),
                     enabled = !isAllLearned,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isAllLearned) Color(0xFF2A2A2A) else Color(0xFF1565C0),
-                        disabledContainerColor = Color(0xFF2A2A2A)
+                        containerColor = if (isAllLearned) Color(0xFFE0DDEB) else Color(0xFF1565C0),
+                        disabledContainerColor = Color(0xFFE0DDEB)
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     if (isAllLearned) {
-                        Text("Không có từ nào cần luyện tập", color = Color(0xFF5A5A5A), fontSize = 14.sp)
+                        Text("Không có từ nào cần luyện tập", color = textSecondary, fontSize = 14.sp)
                     } else {
                         Text("🃏 Học từ mới ($newWordCount)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     }
@@ -215,15 +217,15 @@ fun TopicDetailScreen(
 
                     Spacer(modifier = Modifier.size(16.dp))
                     Column {
-                        Text(topic?.name ?: "", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        Text(topic?.description ?: "", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
+                        Text(topic?.name ?: "", color = textPrimary, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text(topic?.description ?: "", color = textSecondary, fontSize = 13.sp)
                         Spacer(modifier = Modifier.height(6.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Badge(containerColor = Color.White.copy(alpha = 0.2f)) {
-                                Text(topic?.level ?: "", color = Color.White, fontSize = 11.sp)
+                            Badge(containerColor = Color.White) {
+                                Text(topic?.level ?: "", color = textPrimary, fontSize = 11.sp)
                             }
-                            Badge(containerColor = Color.White.copy(alpha = 0.2f)) {
-                                Text("${topicVocabs.size} từ", color = Color.White, fontSize = 11.sp)
+                            Badge(containerColor = Color.White) {
+                                Text("${topicVocabs.size} từ", color = textPrimary, fontSize = 11.sp)
                             }
                         }
                     }
@@ -237,7 +239,7 @@ fun TopicDetailScreen(
             val filterLabels = listOf("Tất cả", "A0", "A1", "A2", "B1", "B2")
             LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(filterOptions.zip(filterLabels)) { (value, label) ->
-                    FilterChip(selected = difficultyFilter == value, onClick = { viewModel.setDifficultyFilter(value) }, label = { Text(label) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF4CAF50), selectedLabelColor = Color.White, containerColor = Color(0xFF2A2A2A), labelColor = Color.Gray))
+                    FilterChip(selected = difficultyFilter == value, onClick = { viewModel.setDifficultyFilter(value) }, label = { Text(label) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF4CAF50), selectedLabelColor = Color.White, containerColor = Color(0xFFF3F1FA), labelColor = textSecondary))
                 }
             }
 
@@ -245,7 +247,7 @@ fun TopicDetailScreen(
 
             when {
                 topicVocabs.isEmpty() -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Không có từ vựng nào", color = Color.Gray)
+                    Text("Không có từ vựng nào", color = textSecondary)
                 }
 
                 else -> LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
@@ -260,7 +262,7 @@ fun TopicDetailScreen(
                         )
 
                         androidx.compose.material3.HorizontalDivider(
-                            color = Color(0xFF2A2A2A),
+                            color = Color(0xFFE6E2F2),
                             thickness = 0.5.dp,
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
@@ -338,7 +340,7 @@ fun WordItem(
     val displayPron = remember(vocab.pronunciation) { vocab.pronunciation }
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -347,7 +349,7 @@ fun WordItem(
         Column(Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(vocab.word, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(vocab.word, color = Color(0xFF1D1B2F), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     if (!displayPron.isNullOrBlank()) Text(displayPron, color = Color.Gray, fontSize = 12.sp, fontStyle = FontStyle.Italic)
                 }
 
@@ -367,11 +369,11 @@ fun WordItem(
             AnimatedVisibility(visible = expanded) {
                 Column {
                     Spacer(modifier = Modifier.height(8.dp))
-                    androidx.compose.material3.HorizontalDivider(color = Color(0xFF3A3A3A))
+                    androidx.compose.material3.HorizontalDivider(color = Color(0xFFE6E2F2))
                     Spacer(modifier = Modifier.height(8.dp))
                     Row {
                         Text("Nghĩa  ", color = Color.Gray, fontSize = 12.sp)
-                        Text(vocab.meaning, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                        Text(vocab.meaning, color = Color(0xFF1D1B2F), fontSize = 15.sp, fontWeight = FontWeight.Medium)
                     }
                     if (!vocab.exampleSentence.isNullOrBlank()) {
                         Spacer(modifier = Modifier.height(6.dp))
@@ -430,138 +432,6 @@ fun WordItem(
 
 // Note: levelCodeColor / levelBgColor helpers are defined in VocabScreen.kt and reused here
 
-@Composable
-fun SeedMasteryIcon(
-    masteryLevel: Int,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier.size(48.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val strokeWidth = 3.dp.toPx()
-            val segmentSweep = 60f
-            val gapSweep = 12f
-
-            repeat(5) { i ->
-                val startAngle = -90f + i * (segmentSweep + gapSweep)
-                val isFilled = i < masteryLevel
-
-                drawArc(
-                    color = if (isFilled) Color(0xFF4CAF50) else Color(0xFF4A4A4A),
-                    startAngle = startAngle,
-                    sweepAngle = segmentSweep,
-                    useCenter = false,
-                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                )
-            }
-        }
-
-        Text(
-            text = if (masteryLevel >= 5) "🌻" else "🌱",
-            fontSize = if (masteryLevel >= 5) 22.sp else 20.sp
-        )
-    }
-}
-
-@Composable
-fun VocabRowWithSeed(
-    vocab: VocabularyResponse,
-    masteryLevel: Int,
-    audioPlayer: VocabAudioPlayer,
-    onSaveClick: () -> Unit,
-    useLeafIcon: Boolean = false
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val rotation by animateFloatAsState(targetValue = if (expanded) 180f else 0f, label = "expand_arrow")
-
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)),
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
-    ) {
-        Column {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = !expanded }
-                    .padding(horizontal = 14.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (useLeafIcon) {
-                    LearnedSeedIconLocal(masteryLevel = masteryLevel)
-                } else {
-                    SeedMasteryIcon(masteryLevel = masteryLevel)
-                }
-
-                Spacer(Modifier.width(12.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Row() {
-                        Text(
-                            text = vocab.word,
-                            color = if (masteryLevel > 0) Color(0xFF4CAF50) else Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
-                        
-                        SpeakerIconButton(
-                            audioUrl = vocab.audioUrl,
-                            baseUrl = NetworkConfig.BASE_URL,
-                            fallbackText = vocab.word,
-                            audioPlayer = audioPlayer,
-                            tint = if (masteryLevel > 0) Color(0xFF4CAF50) else Color.White,
-                            size = 18.dp
-                        )
-                    }
-                    
-                    if (!vocab.pronunciation.isNullOrBlank()) {
-                        Spacer(Modifier.height(2.dp))
-                        Text(text = vocab.pronunciation, color = Color.Gray, fontSize = 13.sp, fontStyle = FontStyle.Italic)
-                    }
-                }
-
-                IconButton(onClick = onSaveClick) {
-                    Icon(Icons.Default.BookmarkBorder, contentDescription = "Lưu từ", tint = Color(0xFF5A5A5A))
-                }
-                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = Color.Gray, modifier = Modifier.rotate(rotation))
-            }
-
-            AnimatedVisibility(visible = expanded) {
-                Column(modifier = Modifier.fillMaxWidth().padding(start = 74.dp, end = 14.dp, bottom = 14.dp)) {
-                    androidx.compose.material3.HorizontalDivider(color = Color(0xFF3A3A3A))
-                    Spacer(Modifier.height(8.dp))
-                    Text(text = vocab.meaning, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
-                    if (!vocab.exampleSentence.isNullOrBlank()) {
-                        Spacer(Modifier.height(6.dp))
-                        Row {
-                            Text(text = vocab.exampleSentence, color = Color.LightGray, fontSize = 13.sp, fontStyle = FontStyle.Italic, modifier = Modifier.weight(1f))
-                            SpeakerIconButton(
-                                audioUrl = vocab.exampleAudioUrl,
-                                baseUrl = NetworkConfig.BASE_URL,
-                                fallbackText = vocab.exampleSentence,
-                                audioPlayer = audioPlayer,
-                                tint = Color(0xFF7A7A7A),
-                                size = 16.dp
-                            )
-                        }
-                    }
-
-                    if (masteryLevel > 0) {
-                        Spacer(Modifier.height(8.dp))
-                        val masteryLabels = mapOf(1 to "Chưa biết", 2 to "Mới học", 3 to "Nhớ tạm", 4 to "Nhớ lâu", 5 to "Thông thạo")
-                        Badge(containerColor = Color(0xFF4CAF50).copy(alpha = 0.2f)) {
-                            Text(masteryLabels[masteryLevel] ?: "", color = Color(0xFF4CAF50), fontSize = 11.sp)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 
 

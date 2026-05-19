@@ -84,9 +84,9 @@ fun LessonDetailScreen(
 
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFF8F6FF),
-            Color(0xFFF6F9FF),
-            Color(0xFFFFFFFF)
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface
         )
     )
 
@@ -100,12 +100,12 @@ fun LessonDetailScreen(
                             text = "Lesson Detail",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1D1B2F)
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "Answer questions and complete the lesson",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF77738A)
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
                         )
                     }
                 },
@@ -115,12 +115,12 @@ fun LessonDetailScreen(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.85f))
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color(0xFF232136)
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
@@ -311,7 +311,7 @@ private fun QuestionCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 5.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Box(
             modifier = Modifier.fillMaxWidth()

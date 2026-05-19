@@ -64,7 +64,6 @@ sealed class Screen(val route: String) {
         }
     }
 
-
     data object TopicList : Screen("topics")
 
     data object Vocabulary : Screen("vocabulary")
@@ -90,4 +89,8 @@ sealed class Screen(val route: String) {
     }
 
     data object LessonResult : Screen("lesson-result")
+
+    data object Chat : Screen("chat")
+
+    data object ScanResult : Screen("scan-result")
 }

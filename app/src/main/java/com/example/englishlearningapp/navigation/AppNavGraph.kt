@@ -1,10 +1,7 @@
 package com.example.englishlearningapp.navigation
 
+import android.annotation.SuppressLint
 import android.content.Context
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +25,10 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,11 +48,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.englishlearningapp.core.session.SessionManager
 import com.example.englishlearningapp.data.local.datastore.AppDataStore
+import com.example.englishlearningapp.data.local.db.DatabaseProvider
 import com.example.englishlearningapp.features.auth.ui.LoginScreen
 import com.example.englishlearningapp.features.auth.ui.RegisterScreen
 import com.example.englishlearningapp.features.auth.viewmodel.AuthViewModel
 import com.example.englishlearningapp.features.auth.viewmodel.AuthViewModelFactory
-import com.example.englishlearningapp.features.learn.ui.LearnScreen
+import com.example.englishlearningapp.features.chat.ui.ChatScreen
 import com.example.englishlearningapp.features.home.ui.HomeScreen
 import com.example.englishlearningapp.features.lesson.ui.LessonDetailScreen
 import com.example.englishlearningapp.features.lesson.ui.LessonListScreen
@@ -59,32 +61,43 @@ import com.example.englishlearningapp.features.lesson.ui.LessonResultScreen
 import com.example.englishlearningapp.features.lesson.ui.TopicListScreen
 import com.example.englishlearningapp.features.lesson.viewmodel.LessonViewModel
 import com.example.englishlearningapp.features.profile.ui.ProfileScreen
+import com.example.englishlearningapp.features.profile.viewmodel.ProfileViewModel
+import com.example.englishlearningapp.features.profile.viewmodel.ProfileViewModelFactory
 import com.example.englishlearningapp.features.progress.ui.ProgressScreen
 import com.example.englishlearningapp.features.progress.viewmodel.ProgressViewModel
+import com.example.englishlearningapp.features.scan.ui.ScanResultScreen
 import com.example.englishlearningapp.features.scan.ui.ScanScreen
+import com.example.englishlearningapp.features.scan.viewmodel.ScanViewModel
+import com.example.englishlearningapp.features.scan.viewmodel.ScanViewModelFactory
+import com.example.englishlearningapp.features.speaking.ui.SpeakingScreen
+import com.example.englishlearningapp.features.speaking.viewmodel.SpeakingViewModel
+import com.example.englishlearningapp.features.speaking.viewmodel.SpeakingViewModelFactory
+import com.example.englishlearningapp.features.usertopic.UserTopicViewModel
+import com.example.englishlearningapp.features.usertopic.UserTopicViewModelFactory
 import com.example.englishlearningapp.features.usertopic.ui.UserTopicDetailScreen
 import com.example.englishlearningapp.features.usertopic.ui.UserTopicListScreen
+import com.example.englishlearningapp.features.vocab.ui.AllTopicsScreen
 import com.example.englishlearningapp.features.vocab.ui.CefrLevelDetailScreen
 import com.example.englishlearningapp.features.vocab.ui.FlashcardScreen
+import com.example.englishlearningapp.features.vocab.ui.FreePracticeChallengeScreen
+import com.example.englishlearningapp.features.vocab.ui.FreePracticeListeningScreen
+import com.example.englishlearningapp.features.vocab.ui.FreePracticeQuizScreen
 import com.example.englishlearningapp.features.vocab.ui.LearnedWordsScreen
 import com.example.englishlearningapp.features.vocab.ui.ReviewQuizChallengeScreen
 import com.example.englishlearningapp.features.vocab.ui.ReviewQuizListeningScreen
 import com.example.englishlearningapp.features.vocab.ui.ReviewQuizScreen
-import com.example.englishlearningapp.features.vocab.ui.FreePracticeChallengeScreen
-import com.example.englishlearningapp.features.vocab.ui.FreePracticeListeningScreen
-import com.example.englishlearningapp.features.vocab.ui.FreePracticeQuizScreen
-import com.example.englishlearningapp.features.vocab.ui.AllTopicsScreen
 import com.example.englishlearningapp.features.vocab.ui.SavedVocabScreen
-import com.example.englishlearningapp.features.vocab.ui.VocabSearchScreen
+import com.example.englishlearningapp.features.vocab.ui.SelfPracticeChallengeScreen
+import com.example.englishlearningapp.features.vocab.ui.SelfPracticeListeningScreen
+import com.example.englishlearningapp.features.vocab.ui.SelfPracticeQuizScreen
 import com.example.englishlearningapp.features.vocab.ui.StudyFlashcardSessionScreen
 import com.example.englishlearningapp.features.vocab.ui.TopicDetailScreen
 import com.example.englishlearningapp.features.vocab.ui.VocabScreen
-import com.example.englishlearningapp.features.vocab.ui.SelfPracticeQuizScreen
-import com.example.englishlearningapp.features.vocab.ui.SelfPracticeListeningScreen
-import com.example.englishlearningapp.features.vocab.ui.SelfPracticeChallengeScreen
+import com.example.englishlearningapp.features.vocab.ui.VocabSearchScreen
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModelFactory
 
+@SuppressLint("UnrememberedGetBackStackEntry")
 @Composable
 fun AppNavGraph(
     context: Context,
@@ -98,11 +111,14 @@ fun AppNavGraph(
     val lessonViewModel: LessonViewModel = viewModel()
     val progressViewModel: ProgressViewModel = viewModel()
     val vocabViewModel: VocabViewModel = composeViewModel(factory = VocabViewModelFactory(context))
-
-    val userTopicViewModel: com.example.englishlearningapp.features.usertopic.UserTopicViewModel =
-        composeViewModel(factory = com.example.englishlearningapp.features.usertopic.UserTopicViewModelFactory(context))
+    val userTopicViewModel: UserTopicViewModel =
+        composeViewModel(factory = UserTopicViewModelFactory(context))
+    val profileViewModel: ProfileViewModel = viewModel(
+        factory = ProfileViewModelFactory(context.applicationContext)
+    )
 
     val appDataStore = AppDataStore(context.applicationContext)
+    val appDatabase = DatabaseProvider.getDatabase(context.applicationContext)
     val userName by appDataStore.userName.collectAsState(initial = "Learner")
 
     val lessonUiState by lessonViewModel.uiState.collectAsState()
@@ -178,19 +194,12 @@ fun AppNavGraph(
                     isProgressLoading = progressUiState.isLoading,
                     progressErrorMessage = progressUiState.errorMessage,
                     onLessonsClick = { navController.navigateBottomItem(Screen.TopicList.route) },
-                    onVocabularyClick = { navController.navigateBottomItem(Screen.Vocabulary.route) },
+                    onVocabularyClick = { navController.navigateBottomItem(Screen.Vocab.route) },
                     onProgressClick = { navController.navigateBottomItem(Screen.Progress.route) },
                     onAiScanClick = { navController.navigateBottomItem(Screen.AiScan.route) },
                     onSpeakingClick = { navController.navigateBottomItem(Screen.Speaking.route) },
                     onContinueLearningClick = { navController.navigateBottomItem(Screen.TopicList.route) },
-                    onLogoutClick = {
-                        authViewModel.logout {
-                            navController.navigate(Screen.Login.route) {
-                                popUpTo(navController.graph.id) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
-                    }
+                    onNavigateToChat = { navController.navigate(Screen.Chat.route) }
                 )
             }
 
@@ -357,14 +366,69 @@ fun AppNavGraph(
             }
 
             composable(Screen.AiScan.route) {
-                ComingSoonScreen(title = "AI Scan", subtitle = "Scan text and learn new English words")
+                val factory = ScanViewModelFactory(context)
+                val vm: ScanViewModel = viewModel(factory = factory)
+                ScanScreen(
+                    viewModel = vm,
+                    onNavigateToResult = { navController.navigate(Screen.ScanResult.route) }
+                )
+            }
+
+            composable(Screen.Scan.route) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(Screen.AiScan.route) {
+                        popUpTo(Screen.Scan.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+
+            composable(Screen.ScanResult.route) {
+                val vm: ScanViewModel = viewModel(
+                    viewModelStoreOwner = navController.getBackStackEntry(Screen.AiScan.route),
+                    factory = ScanViewModelFactory(context)
+                )
+                ScanResultScreen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onScanAgain = { navController.popBackStack() }
+                )
             }
 
             composable(Screen.Speaking.route) {
-                ComingSoonScreen(title = "Speaking", subtitle = "Practice pronunciation and speaking skills")
+                val factory = SpeakingViewModelFactory(
+                    context = context.applicationContext,
+                    speakingPracticeDao = appDatabase.speakingPracticeDao()
+                )
+                val speakingViewModel: SpeakingViewModel = viewModel(factory = factory)
+
+                SpeakingScreen(
+                    viewModel = speakingViewModel,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
             }
 
-            composable(Screen.Profile.route) { ComingSoonScreen(title = "Profile", subtitle = "Manage your account and learning settings") }
+            composable(Screen.Chat.route) {
+                ChatScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.Profile.route) {
+                ProfileScreen(
+                    viewModel = profileViewModel,
+                    onLogoutSuccess = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.Home.route) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
         }
     }
 }
@@ -394,6 +458,7 @@ private fun shouldShowBottomBar(route: String?): Boolean {
     val primary = listOf(
         Screen.Home.route,
         Screen.TopicList.route,
+        Screen.Vocab.route,
         Screen.Vocabulary.route,
         Screen.AiScan.route,
         Screen.Speaking.route,

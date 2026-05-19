@@ -46,6 +46,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -92,13 +93,16 @@ import androidx.core.graphics.toColorInt
 import com.example.englishlearningapp.features.usertopic.UserTopicViewModelFactory
 import com.example.englishlearningapp.navigation.Screen
 
-private val DarkBg = Color(0xFF1A1A1A)
-private val CardBg = Color(0xFF2A2A2A)
-private val DividerBg = Color(0xFF3A3A3A)
+private val DarkBg = Color(0xFFF8F6FF)
+private val CardBg = Color.White
+private val DividerBg = Color(0xFFE6E2F2)
 // Unfilled arcs for mastery rings — slightly lighter than dividers for better contrast
-private val UnfilledRingColor = Color(0xFF4A4A4A)
+private val UnfilledRingColor = Color(0xFFE0DDEB)
 private val PrimaryGreen = Color(0xFF4CAF50)
 private val OrangeAccent = Color(0xFFFF8C00)
+private val TextPrimary = Color(0xFF1D1B2F)
+private val TextSecondary = Color(0xFF77738A)
+private val TextMuted = Color(0xFF9A97A8)
 private const val LEARNED_COUNT = 7
 private const val REVIEW_DUE_COUNT = 2
 
@@ -166,7 +170,7 @@ fun VocabScreen(
     }
 
     Scaffold(
-        containerColor = DarkBg,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {}
     ) { innerPadding ->
         LazyColumn(
@@ -280,22 +284,22 @@ private fun SearchEntryBar(
             onValueChange = {},
             readOnly = true,
             enabled = false, // Vừa disable tương tác nhập liệu, vừa truyền click lên Box cha
-            placeholder = { Text("Tìm kiếm từ vựng...", color = Color.Gray) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
+            placeholder = { Text("Tìm kiếm từ vựng...", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)) },
             colors = OutlinedTextFieldDefaults.colors(
                 // Khi enabled = false, ta cần cấu hình màu cho các trạng thái disabled
-                disabledContainerColor = CardBg,
+                disabledContainerColor = MaterialTheme.colorScheme.surface,
                 disabledBorderColor = Color.Transparent,
-                disabledPlaceholderColor = Color.Gray,
-                disabledLeadingIconColor = Color.Gray,
+                disabledPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                disabledLeadingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                 // Giữ lại các màu cũ nếu cần dùng chỗ khác
-                unfocusedContainerColor = CardBg,
-                focusedContainerColor = CardBg,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedBorderColor = Color.Transparent,
                 focusedBorderColor = PrimaryGreen,
                 cursorColor = PrimaryGreen,
-                unfocusedTextColor = Color.White,
-                focusedTextColor = Color.White
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                focusedTextColor = MaterialTheme.colorScheme.onBackground
             ),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth(),
@@ -316,7 +320,7 @@ fun MyFolderCard(
     Card(
         onClick = onCardClick,
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = CardBg),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -328,7 +332,7 @@ fun MyFolderCard(
                     modifier = Modifier
                         .size(52.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF1B3A2D)),
+                        .background(Color(0xFFE8F5E9)),
                     contentAlignment = Alignment.Center
                 ) {
                     if (!user?.avatarUrl.isNullOrBlank()) {
@@ -353,7 +357,7 @@ fun MyFolderCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Thư mục của tôi",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
@@ -372,7 +376,7 @@ fun MyFolderCard(
                             Spacer(Modifier.width(3.dp))
                             Text(
                                 text = "$learnedCount/$savedCount đã học",
-                                color = Color.LightGray,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                                 fontSize = 12.sp
                             )
                         }
@@ -429,13 +433,13 @@ private fun CefrSection(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Từ vựng CEFR",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     fontSize = 17.sp
                 )
                 Text(
                     text = "${cefrLevels.size} cấp độ",
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                     fontSize = 13.sp
                 )
             }
@@ -556,9 +560,9 @@ private fun LearningProgressCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors   = CardDefaults.cardColors(containerColor = CardBg),
+        colors   = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape    = RoundedCornerShape(16.dp),
-        onClick = onCardClick 
+        onClick = onCardClick
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
 
@@ -573,7 +577,7 @@ private fun LearningProgressCard(
                     Box(
                         Modifier
                             .width(80.dp).height(28.dp)
-                            .background(Color(0xFF3A3A3A), RoundedCornerShape(6.dp))
+                            .background(DividerBg, RoundedCornerShape(6.dp))
                     )
                 } else {
                     Text(
@@ -584,7 +588,7 @@ private fun LearningProgressCard(
                                 fontWeight = FontWeight.ExtraBold
                             )) { append("$learned") }
                             withStyle(SpanStyle(
-                                color    = Color.White,
+                                color    = MaterialTheme.colorScheme.onBackground,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.SemiBold
                             )) { append(" từ đã học") }
@@ -707,7 +711,7 @@ private fun LearningProgressCard(
                 // Gray "Không có từ nào cần luyện tập" bar
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    color    = Color(0xFF1E1E1E),
+                    color    = Color(0xFFF3F1FA),
                     shape    = RoundedCornerShape(10.dp)
                 ) {
                     Row(
@@ -718,7 +722,7 @@ private fun LearningProgressCard(
                     ) {
                         Text(
                             "Không có từ nào cần luyện tập",
-                            color    = Color(0xFF7A7A7A),
+                            color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                             fontSize = 14.sp,
                             modifier = Modifier.weight(1f)
                         )
@@ -729,7 +733,7 @@ private fun LearningProgressCard(
                             Icon(
                                 Icons.Default.Menu,
                                 contentDescription = "Tự luyện tập",
-                                tint = Color(0xFF7A7A7A)
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
                             )
                         }
                     }
@@ -760,14 +764,14 @@ fun PracticeModeBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState       = sheetState,
-        containerColor   = Color(0xFF2A2A2A),
+        containerColor   = MaterialTheme.colorScheme.surface,
         dragHandle = {
             Box(
                 Modifier
                     .padding(vertical = 8.dp)
                     .width(40.dp)
                     .height(4.dp)
-                    .background(Color(0xFF4A4A4A), RoundedCornerShape(2.dp))
+                    .background(DividerBg, RoundedCornerShape(2.dp))
             )
         }
     ) {
@@ -779,13 +783,13 @@ fun PracticeModeBottomSheet(
         ) {
             Text(
                 "Chọn cách luyện tập",
-                color      = Color.White,
+                color      = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize   = 18.sp,
                 modifier   = Modifier.padding(vertical = 16.dp)
             )
 
-            HorizontalDivider(color = Color(0xFF3A3A3A))
+            HorizontalDivider(color = DividerBg)
             Spacer(Modifier.height(16.dp))
 
             val modes = listOf(
@@ -860,14 +864,14 @@ fun FreePracticeModeBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color(0xFF2A2A2A),
+        containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = {
             Box(
                 Modifier
                     .padding(vertical = 8.dp)
                     .width(40.dp)
                     .height(4.dp)
-                    .background(Color(0xFF4A4A4A), RoundedCornerShape(2.dp))
+                    .background(DividerBg, RoundedCornerShape(2.dp))
             )
         }
     ) {
@@ -881,13 +885,13 @@ fun FreePracticeModeBottomSheet(
 
             Text(
                 "Chọn cách luyện tập",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            HorizontalDivider(color = Color(0xFF3A3A3A))
+            HorizontalDivider(color = DividerBg)
             Spacer(Modifier.height(16.dp))
 
             val modes = listOf(
@@ -965,12 +969,12 @@ private fun SearchResultItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(word, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                Text(pronunciation ?: "", color = Color.Gray, fontSize = 12.sp)
+                Text(word, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(pronunciation ?: "", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f), fontSize = 12.sp)
             }
             Text(
                 meaning,
-                color = Color.LightGray,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                 fontSize = 13.sp,
                 modifier = Modifier.weight(1f)
             )
@@ -978,7 +982,7 @@ private fun SearchResultItem(
                 Icon(
                     if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                     contentDescription = null,
-                    tint = if (isSaved) PrimaryGreen else Color.Gray
+                    tint = if (isSaved) PrimaryGreen else TextMuted
                 )
             }
         }
@@ -991,14 +995,14 @@ private fun PracticeSectionCard(
     onSentencePractice: () -> Unit
 ) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = CardBg),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 "Học phải đi đôi với hành.",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             )
@@ -1038,8 +1042,8 @@ private fun PracticeSectionCard(
 private fun SectionHeader(title: String, subtitle: String, onClick: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column {
-            Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-            Text(subtitle, color = Color.Gray, fontSize = 13.sp)
+            Text(title, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+            Text(subtitle, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f), fontSize = 13.sp)
         }
         Spacer(Modifier.weight(1f))
         TextButton(onClick = onClick) {
@@ -1088,7 +1092,7 @@ fun CircularProgressRing(label: String, count: Int) {
 
             Text(
                 text       = count.toString(),
-                color      = Color.White,
+                color      = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize   = 16.sp
             )
@@ -1098,7 +1102,7 @@ fun CircularProgressRing(label: String, count: Int) {
 
         Text(
             text     = label,
-            color    = Color.Gray,
+            color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
             fontSize = 10.sp,
             textAlign = TextAlign.Center,
             maxLines  = 1,
@@ -1134,7 +1138,7 @@ fun MasteryRingIcon(
 
                     drawArc(
                         color      = if (filled) PrimaryGreen
-                                     else UnfilledRingColor,
+                        else UnfilledRingColor,
                         startAngle = startAngle,
                         sweepAngle = segmentSweep,
                         useCenter  = false,
@@ -1148,7 +1152,7 @@ fun MasteryRingIcon(
 
             Text(
                 text       = count.toString(),
-                color      = Color.White,
+                color      = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize   = 16.sp
             )
@@ -1158,7 +1162,7 @@ fun MasteryRingIcon(
 
         Text(
             text     = label,
-            color    = Color.Gray,
+            color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
             fontSize = 10.sp,
             textAlign = TextAlign.Center,
             maxLines  = 1,
@@ -1172,13 +1176,13 @@ fun MasteryRingIcon(
 fun CefrLevelCard(level: CefrLevel, onClick: () -> Unit) {
     val bgColor = remember(level.id) {
         when (level.id) {
-            0 -> Color(0xFF555555)
-            1 -> Color(0xFF1E4C31)
-            2 -> Color(0xFF16566A)
-            3 -> Color(0xFF1A3E66)
-            4 -> Color(0xFF472066)
-            5 -> Color(0xFF6A4315)
-            else -> Color(0xFF6A1B1B)
+            0 -> Color(0xFFF1F1F1)
+            1 -> Color(0xFFE8F5E9)
+            2 -> Color(0xFFE0F7FA)
+            3 -> Color(0xFFE3F2FD)
+            4 -> Color(0xFFF3E5F5)
+            5 -> Color(0xFFFFF3E0)
+            else -> Color(0xFFFFEBEE)
         }
     }
     val badgeColor = remember(level.badge) { cefrBadgeColor(level.badge) }
@@ -1207,7 +1211,7 @@ fun CefrLevelCard(level: CefrLevel, onClick: () -> Unit) {
             Column {
                 Text(
                     text = level.name,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
@@ -1218,9 +1222,9 @@ fun CefrLevelCard(level: CefrLevel, onClick: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(3.dp))
-                        Text("${level.learnedCount}/${level.wordCount}", color = Color.LightGray, fontSize = 11.sp)
+                        Text("${level.learnedCount}/${level.wordCount}", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f), fontSize = 11.sp)
                     }
-                    
+
                 }
             }
         }
@@ -1230,16 +1234,18 @@ fun CefrLevelCard(level: CefrLevel, onClick: () -> Unit) {
 
 @Composable
 fun TopicCard(topicWithCount: TopicWithCount, learnedCount: Int, onClick: () -> Unit) {
-    val bgColor = remember(topicWithCount.topic.level) {
+    val colorScheme = MaterialTheme.colorScheme
+
+    val bgColor = remember(topicWithCount.topic.level, colorScheme.surface) {
         when (topicWithCount.topic.level) {
-            "A0" -> Color(0xFF2A2A2A)
-            "A1" -> Color(0xFF1B3A2D)
-            "A2" -> Color(0xFF1A3340)
-            "B1" -> Color(0xFF1A2E40)
-            "B2" -> Color(0xFF2D1B3A)
-            "C1" -> Color(0xFF3A2A1A)
-            "C2" -> Color(0xFF3A1B1B)
-            else -> CardBg
+            "A0" -> Color(0xFFF1F1F1)
+            "A1" -> Color(0xFFE8F5E9)
+            "A2" -> Color(0xFFE0F7FA)
+            "B1" -> Color(0xFFE3F2FD)
+            "B2" -> Color(0xFFF3E5F5)
+            "C1" -> Color(0xFFFFF3E0)
+            "C2" -> Color(0xFFFFEBEE)
+            else -> colorScheme.surface
         }
     }
 
@@ -1286,7 +1292,7 @@ fun TopicCard(topicWithCount: TopicWithCount, learnedCount: Int, onClick: () -> 
             Column(modifier = Modifier.align(Alignment.BottomStart)) {
                 Text(
                     text = topicWithCount.topic.name,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
@@ -1296,7 +1302,7 @@ fun TopicCard(topicWithCount: TopicWithCount, learnedCount: Int, onClick: () -> 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(3.dp))
-                    Text("$learnedCount/${topicWithCount.wordCount}", color = Color.LightGray, fontSize = 11.sp)
+                    Text("$learnedCount/${topicWithCount.wordCount}", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f), fontSize = 11.sp)
                 }
             }
         }

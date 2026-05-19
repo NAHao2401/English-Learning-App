@@ -70,9 +70,11 @@ fun SavedVocabScreen(
     val savedVocabIds by userTopicViewModel.savedVocabIds.collectAsState()
 
     val audioPlayer = rememberVocabAudioPlayer()
+    val textPrimary = Color(0xFF1D1B2F)
+    val textSecondary = Color(0xFF77738A)
 
     Scaffold(
-        containerColor = Color(0xFF1A1A1A),
+        containerColor = Color(0xFFF8F6FF),
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -80,7 +82,7 @@ fun SavedVocabScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Từ đã lưu")
+                        Text("Từ đã lưu", color = textPrimary)
                         Badge(
                             containerColor = Color(0xFF4CAF50),
                             contentColor = Color.White
@@ -91,11 +93,11 @@ fun SavedVocabScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = textPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color(0xFF1A1A1A)
+                    containerColor = Color(0xFFF8F6FF)
                 )
             )
         }
@@ -114,14 +116,14 @@ fun SavedVocabScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     "Chưa có từ nào được lưu",
-                    color = Color.White,
+                    color = textPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     "Nhấn biểu tượng dấu trang ở bất kỳ từ nào để lưu lại",
-                    color = Color.Gray,
+                    color = textSecondary,
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center
                 )

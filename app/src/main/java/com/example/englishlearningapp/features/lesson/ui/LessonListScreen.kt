@@ -74,9 +74,9 @@ fun LessonListScreen(
 ) {
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFF8F6FF),
-            Color(0xFFF6F9FF),
-            Color(0xFFFFFFFF)
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface
         )
     )
 
@@ -90,12 +90,12 @@ fun LessonListScreen(
                             text = "Lessons",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1D1B2F)
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = "Continue your learning journey",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF77738A)
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
                         )
                     }
                 },
@@ -105,12 +105,12 @@ fun LessonListScreen(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.85f))
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color(0xFF232136)
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
@@ -312,7 +312,7 @@ private fun HeroStatChip(
             )
             Text(
                 text = label,
-                color = Color.White.copy(alpha = 0.88f),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
                 style = MaterialTheme.typography.labelSmall
             )
         }
@@ -325,7 +325,7 @@ private fun SectionHeader() {
         Text(
             text = "Lesson roadmap",
             style = MaterialTheme.typography.titleMedium,
-            color = Color(0xFF1D1B2F),
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold
         )
         Text(
@@ -358,7 +358,7 @@ private fun LessonCard(
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 5.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = if (enabled) Color.White else Color(0xFFF5F4F8)
+            containerColor = if (enabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)
         )
     ) {
         Box(

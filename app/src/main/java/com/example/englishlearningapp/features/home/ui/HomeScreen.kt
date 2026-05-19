@@ -77,7 +77,7 @@ fun HomeScreen(
     onAiScanClick: () -> Unit = {},
     onSpeakingClick: () -> Unit = {},
     onContinueLearningClick: () -> Unit = {},
-    onLogoutClick: () -> Unit = {}
+    onNavigateToChat: () -> Unit = {}
 ) {
     val featureItems = listOf(
         HomeFeatureItem(
@@ -112,15 +112,22 @@ fun HomeScreen(
             icon = Icons.Default.Mic,
             isAvailable = true,
             onClick = onSpeakingClick
+        ),
+        HomeFeatureItem(
+            title = "AI Chat",
+            subtitle = "Practice with AI",
+            icon = Icons.Default.AutoStories,
+            isAvailable = true,
+            onClick = onNavigateToChat
         )
     )
 
     val safeCompletionPercent = completionPercent.coerceIn(0, 100)
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFF8F6FF),
-            Color(0xFFF6F9FF),
-            Color(0xFFFFFFFF)
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface
         )
     )
 
@@ -143,7 +150,6 @@ fun HomeScreen(
             item {
                 HomeHeader(
                     userName = userName,
-                    onLogoutClick = onLogoutClick
                 )
             }
 
@@ -229,7 +235,6 @@ fun HomeScreen(
 @Composable
 private fun HomeHeader(
     userName: String,
-    onLogoutClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -240,7 +245,7 @@ private fun HomeHeader(
             Text(
                 text = "Hello, ${userName.ifBlank { "Learner" }} 👋",
                 style = MaterialTheme.typography.headlineSmall,
-                color = Color(0xFF1D1B2F),
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -249,42 +254,7 @@ private fun HomeHeader(
             Text(
                 text = "Ready for a quick English boost today?",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF77738A)
-            )
-        }
-
-        LogoutPill(onClick = onLogoutClick)
-    }
-}
-
-@Composable
-private fun LogoutPill(
-    onClick: () -> Unit
-) {
-    Surface(
-        modifier = Modifier
-            .clip(RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(18.dp),
-        color = Color.White.copy(alpha = 0.88f),
-        shadowElevation = 2.dp
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Logout,
-                contentDescription = null,
-                tint = Color(0xFF6C63FF),
-                modifier = Modifier.size(17.dp)
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = "Logout",
-                style = MaterialTheme.typography.labelMedium,
-                color = Color(0xFF3B356F),
-                fontWeight = FontWeight.Bold
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
             )
         }
     }
@@ -480,7 +450,7 @@ private fun StatCard(
     ElevatedCard(
         modifier = modifier,
         shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
     ) {
         Row(
@@ -509,14 +479,14 @@ private fun StatCard(
                 Text(
                     text = value,
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color(0xFF1D1B2F),
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.ExtraBold,
                     maxLines = 1
                 )
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF77738A),
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f),
                     maxLines = 1
                 )
             }
@@ -533,7 +503,7 @@ private fun ContinueLearningCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(26.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF6E8))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier
@@ -562,7 +532,7 @@ private fun ContinueLearningCard(
                 Text(
                     text = "Today's practice",
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color(0xFF2B2118),
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -573,7 +543,7 @@ private fun ContinueLearningCard(
                         "Pick a topic and complete your first lesson."
                     },
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF7A604A)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
                 )
             }
 
@@ -593,14 +563,14 @@ private fun SectionTitle(
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge,
-            color = Color(0xFF1D1B2F),
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF77738A)
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
         )
     }
 }
@@ -616,7 +586,7 @@ private fun FeatureCard(
             .clickable(enabled = item.isAvailable) { item.onClick() },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = if (item.isAvailable) Color.White else Color(0xFFF1F1F6)
+            containerColor = if (item.isAvailable) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)
         ),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = if (item.isAvailable) 3.dp else 0.dp)
     ) {
@@ -639,7 +609,7 @@ private fun FeatureCard(
                             if (item.isAvailable) {
                                 Color(0xFF6C63FF).copy(alpha = 0.12f)
                             } else {
-                                Color(0xFF77738A).copy(alpha = 0.12f)
+                                MaterialTheme.colorScheme.onBackground.copy(alpha = 0.12f)
                             }
                         ),
                     contentAlignment = Alignment.Center
@@ -647,7 +617,7 @@ private fun FeatureCard(
                     Icon(
                         imageVector = item.icon,
                         contentDescription = item.title,
-                        tint = if (item.isAvailable) Color(0xFF6C63FF) else Color(0xFF77738A)
+                        tint = if (item.isAvailable) Color(0xFF6C63FF) else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
                     )
                 }
 
@@ -665,7 +635,7 @@ private fun FeatureCard(
                 Text(
                     text = item.title,
                     style = MaterialTheme.typography.titleMedium,
-                    color = if (item.isAvailable) Color(0xFF1D1B2F) else Color(0xFF77738A),
+                    color = if (item.isAvailable) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f),
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -674,7 +644,7 @@ private fun FeatureCard(
                 Text(
                     text = item.subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF77738A),
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -688,7 +658,7 @@ private fun DailyMotivationCard(streakCount: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(26.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFEFF9F2))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier
@@ -716,14 +686,14 @@ private fun DailyMotivationCard(streakCount: Int) {
                 Text(
                     text = if (streakCount > 0) "Great streak: $streakCount days" else "Build your first streak",
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color(0xFF173B24),
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Practice a little every day, and your English will grow faster.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF55705C)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
                 )
             }
         }
@@ -735,7 +705,7 @@ private fun InlineInfoCard(message: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF1F0))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
     ) {
         Text(
             text = message,
