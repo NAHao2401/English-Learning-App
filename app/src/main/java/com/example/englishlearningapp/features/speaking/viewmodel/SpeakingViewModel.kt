@@ -13,7 +13,7 @@ import com.example.englishlearningapp.data.local.db.DatabaseProvider
 import com.example.englishlearningapp.data.local.db.dao.SpeakingPracticeDao
 import com.example.englishlearningapp.data.local.db.entity.SpeakingPracticeEntity
 import com.example.englishlearningapp.data.local.db.entity.UserEntity
-import com.example.englishlearningapp.features.speaking.viewmodel.SpeakingUiState
+import com.example.englishlearningapp.data.remote.api.SpeakingApiService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +24,8 @@ import java.util.Locale
 
 class SpeakingViewModel(
     context: Context,
-    private val speakingPracticeDao: SpeakingPracticeDao
+    private val speakingPracticeDao: SpeakingPracticeDao,
+    private val apiService: SpeakingApiService
 ) : ViewModel() {
 
     private val appContext = context.applicationContext
@@ -34,6 +35,90 @@ class SpeakingViewModel(
 
     private val _uiState = MutableStateFlow(SpeakingUiState())
     val uiState: StateFlow<SpeakingUiState> = _uiState.asStateFlow()
+
+    fun loadTopics() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            try {
+                val topics = apiService.getSpeakingTopics()
+                _uiState.update { it.copy(topics = topics, isLoading = false) }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Failed to load topics: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    fun selectTopic(topic: com.example.englishlearningapp.data.remote.dto.SpeakingTopicDto) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    selectedTopic = topic,
+                    isLoading = true,
+                    errorMessage = null,
+                    currentIndex = 0
+                )
+            }
+            try {
+                val sentences = apiService.getSpeakingSentences(topic.id)
+                _uiState.update {
+                    it.copy(
+                        sentences = sentences,
+                        currentSentence = sentences.firstOrNull(),
+                        isLoading = false,
+                        progress = if (sentences.isNotEmpty()) 1f / sentences.size else 0f
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Failed to load sentences: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    fun nextSentence() {
+        val currentState = _uiState.value
+        val nextIndex = currentState.currentIndex + 1
+        if (nextIndex < currentState.sentences.size) {
+            _uiState.update {
+                it.copy(
+                    currentIndex = nextIndex,
+                    currentSentence = currentState.sentences[nextIndex],
+                    hasResult = false,
+                    spokenText = "",
+                    score = 0,
+                    feedback = "",
+                    progress = (nextIndex + 1) / currentState.sentences.size.toFloat()
+                )
+            }
+        }
+    }
+
+    fun previousSentence() {
+        val currentState = _uiState.value
+        val prevIndex = currentState.currentIndex - 1
+        if (prevIndex >= 0) {
+            _uiState.update {
+                it.copy(
+                    currentIndex = prevIndex,
+                    currentSentence = currentState.sentences[prevIndex],
+                    hasResult = false,
+                    spokenText = "",
+                    score = 0,
+                    feedback = "",
+                    progress = (prevIndex + 1) / currentState.sentences.size.toFloat()
+                )
+            }
+        }
+    }
 
     fun startListening() {
         if (!SpeechRecognizer.isRecognitionAvailable(appContext)) {
@@ -79,8 +164,19 @@ class SpeakingViewModel(
     }
 
     fun processResult(spoken: String) {
-        val currentSample = uiState.value.sampleSentence
-        val calculatedScore = calculateScore(currentSample, spoken)
+        val currentSentence = _uiState.value.currentSentence
+        if (currentSentence == null) {
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    isListening = false,
+                    errorMessage = "No sentence selected"
+                )
+            }
+            return
+        }
+
+        val calculatedScore = calculateScore(currentSentence.text, spoken)
         val calculatedFeedback = getFeedback(calculatedScore)
 
         _uiState.update {
@@ -97,24 +193,10 @@ class SpeakingViewModel(
 
         viewModelScope.launch {
             savePracticeResult(
-                sample = currentSample,
+                sentenceId = currentSentence.id,
+                sample = currentSentence.text,
                 spoken = spoken,
                 score = calculatedScore
-            )
-        }
-    }
-
-    fun loadNewSentence(sentence: String) {
-        _uiState.update {
-            it.copy(
-                isLoading = false,
-                sampleSentence = sentence,
-                isListening = false,
-                spokenText = "",
-                score = 0,
-                feedback = "",
-                hasResult = false,
-                errorMessage = null
             )
         }
     }
@@ -186,6 +268,7 @@ class SpeakingViewModel(
     }
 
     private suspend fun savePracticeResult(
+        sentenceId: Int,
         sample: String,
         spoken: String,
         score: Int

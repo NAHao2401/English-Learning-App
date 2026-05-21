@@ -16,6 +16,8 @@ import androidx.navigation.navArgument
 import com.example.englishlearningapp.core.session.SessionManager
 import com.example.englishlearningapp.data.local.datastore.AppDataStore
 import com.example.englishlearningapp.data.local.db.DatabaseProvider
+import com.example.englishlearningapp.data.remote.api.RetrofitClient
+import com.example.englishlearningapp.data.remote.api.SpeakingApiService
 import com.example.englishlearningapp.features.auth.ui.LoginScreen
 import com.example.englishlearningapp.features.auth.ui.RegisterScreen
 import com.example.englishlearningapp.features.auth.viewmodel.AuthViewModel
@@ -102,6 +104,7 @@ fun AppNavGraph(
             )
         }
 
+<<<<<<< Updated upstream
         composable(Screen.Home.route) {
             HomeScreen(
                 userName = userName.ifBlank { "Learner" },
@@ -125,6 +128,34 @@ fun AppNavGraph(
                 },
                 onLogoutClick = {
                     authViewModel.logout {
+=======
+            composable(Screen.Speaking.route) {
+                val factory = SpeakingViewModelFactory(
+                    context = context.applicationContext,
+                    speakingPracticeDao = appDatabase.speakingPracticeDao(),
+                    apiService = RetrofitClient.speakingApiService
+                )
+                val speakingViewModel: SpeakingViewModel = viewModel(factory = factory)
+
+                SpeakingScreen(
+                    viewModel = speakingViewModel,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(Screen.Chat.route) {
+                ChatScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.Profile.route) {
+                ProfileScreen(
+                    viewModel = profileViewModel,
+                    onLogoutSuccess = {
+>>>>>>> Stashed changes
                         navController.navigate(Screen.Login.route) {
                             popUpTo(navController.graph.id) {
                                 inclusive = true

@@ -34,4 +34,8 @@ object RetrofitClient {
     val progressApiService: ProgressApiService by lazy {
         retrofit.create(ProgressApiService::class.java)
     }
+
+    val speakingApiService: SpeakingApiService by lazy {
+        retrofit.create(SpeakingApiService::class.java)
+    }
 }
