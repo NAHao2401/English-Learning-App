@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,6 +28,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -122,14 +124,20 @@ fun FreePracticeQuizScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFFF8F6FF),
+        containerColor = vocabScreenBackground(),
         topBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                androidx.compose.material3.IconButton(onClick = { navController.navigateUp() }) {
+            Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
+                androidx.compose.material3.IconButton(
+                    onClick = { navController.navigateUp() },
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .clip(CircleShape)
+                        .background(vocabCardContainer().copy(alpha = 0.85f))
+                ) {
                     androidx.compose.material3.Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color(0xFF1D1B2F)
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Row(
@@ -165,7 +173,7 @@ fun FreePracticeQuizScreen(
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "Chọn nghĩa",
-                    color = Color(0xFF1D1B2F),
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
                 )
@@ -178,7 +186,7 @@ fun FreePracticeQuizScreen(
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = vocabCardContainer()),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(6.dp)
             ) {
@@ -195,7 +203,7 @@ fun FreePracticeQuizScreen(
                     Spacer(Modifier.height(16.dp))
                     Text(
                         text = question?.word ?: "",
-                        color = Color(0xFF1D1B2F),
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 32.sp,
                         textAlign = TextAlign.Center
@@ -216,15 +224,18 @@ fun FreePracticeQuizScreen(
             Spacer(Modifier.height(24.dp))
 
             val optionLabels = listOf("A", "B", "C", "D")
+            val optionBgColor = vocabCardContainer()
+            val optionBorderColor = vocabDividerColor()
+            val optionTextColor = MaterialTheme.colorScheme.onSurface
             question?.options?.forEachIndexed { index, option ->
                 val isSelected = selectedIndex == index
                 val isThisCorrect = index == question.correctIndex
 
                 val (bgColor, borderColor, textColor) = when {
-                    !isAnswered -> Triple(Color.White, Color(0xFFE0DDEB), Color(0xFF1D1B2F))
+                    !isAnswered -> Triple(optionBgColor, optionBorderColor, optionTextColor)
                     isThisCorrect -> Triple(Color(0xFFE8F5E9), Color(0xFF4CAF50), Color(0xFF2E7D32))
                     isSelected && !isThisCorrect -> Triple(Color(0xFFFFEDEC), Color(0xFFF44336), Color(0xFFC62828))
-                    else -> Triple(Color(0xFFF3F1FA), Color(0xFFE0DDEB), Color(0xFF9A97A8))
+                    else -> Triple(vocabPanelBackground(), optionBorderColor, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                 }
 
                 Card(

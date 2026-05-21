@@ -57,7 +57,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.min
@@ -66,6 +65,7 @@ import androidx.compose.ui.unit.times
 import androidx.navigation.NavController
 import androidx.core.graphics.toColorInt
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.englishlearningapp.data.local.db.entity.TopicWithCount
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
@@ -114,31 +114,40 @@ fun AllTopicsScreen(
         }
     }
     val topicRows = remember(topics) { topics.chunked(2) }
+    val backgroundColor = vocabScreenBackground()
+    val cardColor = vocabCardContainer()
+    val primaryTextColor = MaterialTheme.colorScheme.onBackground
 
     Scaffold(
-        containerColor = AllTopicsBg,
+        containerColor = backgroundColor,
         topBar = {
             CenterAlignedTopAppBar(
-                windowInsets = WindowInsets(0),
                 title = {
                     Text(
                         text = "Tất cả chủ đề",
-                        color = AllTopicsTextPrimary,
+                        color = primaryTextColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(
+                        onClick = { navController.navigateUp() },
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .clip(CircleShape)
+                            .background(cardColor.copy(alpha = 0.85f))
+                    ) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Quay lại",
-                            tint = AllTopicsTextPrimary
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = AllTopicsBg
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent
                 )
             )
         }
@@ -250,6 +259,9 @@ private fun SectionHeader(
         targetValue = if (expanded) 0f else 180f,
         label = "section_arrow"
     )
+    val primaryTextColor = MaterialTheme.colorScheme.onBackground
+    val secondaryTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+    val accentColor = vocabAccent()
 
     Row(
         modifier = Modifier
@@ -265,13 +277,13 @@ private fun SectionHeader(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                color = AllTopicsTextPrimary,
+                color = primaryTextColor,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
             Text(
                 text = subtitle,
-                color = AllTopicsPrimary,
+                color = accentColor,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -280,7 +292,7 @@ private fun SectionHeader(
         Icon(
             imageVector = Icons.Default.KeyboardArrowUp,
             contentDescription = null,
-            tint = AllTopicsTextSecondary,
+            tint = secondaryTextColor,
             modifier = Modifier
                 .size(24.dp)
                 .rotate(rotation)
@@ -294,6 +306,9 @@ private fun AllTopicsCefrCard(
     onClick: () -> Unit
 ) {
     val bgColor = cefrCardBgColor(item.code)
+    val primaryTextColor = MaterialTheme.colorScheme.onSurface
+    val secondaryTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+    val accentColor = vocabAccent()
 
     Card(
         onClick = onClick,
@@ -320,12 +335,12 @@ private fun AllTopicsCefrCard(
                     .padding(14.dp)
             ) {
                 Surface(
-                    color = Color.White.copy(alpha = 0.2f),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = if (vocabIsDarkTheme()) 0.35f else 0.82f),
                     shape = RoundedCornerShape(6.dp)
                 ) {
                     Text(
                         text = item.code,
-                        color = AllTopicsTextPrimary,
+                        color = primaryTextColor,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -336,14 +351,14 @@ private fun AllTopicsCefrCard(
 
                 Text(
                     text = item.label,
-                    color = AllTopicsTextSecondary,
+                    color = secondaryTextColor,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = "Cấp độ ${item.code}",
-                    color = AllTopicsTextPrimary,
+                    color = primaryTextColor,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     maxLines = 2,
@@ -356,28 +371,28 @@ private fun AllTopicsCefrCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
-                            tint = AllTopicsPrimary,
+                            tint = accentColor,
                             modifier = Modifier.size(13.dp),
                             contentDescription = null
                         )
                         Spacer(Modifier.width(3.dp))
                         Text(
                             text = "0/${item.wordCount}",
-                            color = AllTopicsTextSecondary,
+                            color = secondaryTextColor,
                             fontSize = 11.sp
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.NightsStay,
-                            tint = AllTopicsTextSecondary,
+                            tint = secondaryTextColor,
                             modifier = Modifier.size(13.dp),
                             contentDescription = null
                         )
                         Spacer(Modifier.width(3.dp))
                         Text(
                             text = "0",
-                            color = AllTopicsTextSecondary,
+                            color = secondaryTextColor,
                             fontSize = 11.sp
                         )
                     }
@@ -394,6 +409,9 @@ private fun AllTopicsTopicCard(
 ) {
     val topic = topicWithCount.topic
     val bgColor = topicCardBgColor(topic.level)
+    val primaryTextColor = MaterialTheme.colorScheme.onSurface
+    val secondaryTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+    val accentColor = vocabAccent()
     val topicIconText = remember(topic.iconUrl) {
         topic.iconUrl?.takeUnless { it.startsWith("#") } ?: "📚"
     }
@@ -430,12 +448,12 @@ private fun AllTopicsTopicCard(
             ) {
                 if (!topic.level.isNullOrBlank()) {
                     Surface(
-                        color = Color.White.copy(alpha = 0.2f),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = if (vocabIsDarkTheme()) 0.35f else 0.82f),
                         shape = RoundedCornerShape(6.dp)
                     ) {
                         Text(
                             text = topic.level,
-                            color = AllTopicsTextPrimary,
+                            color = primaryTextColor,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -447,7 +465,7 @@ private fun AllTopicsTopicCard(
 
                 Text(
                     text = topic.name,
-                    color = AllTopicsTextPrimary,
+                    color = primaryTextColor,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     maxLines = 2,
@@ -460,28 +478,28 @@ private fun AllTopicsTopicCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
-                            tint = AllTopicsPrimary,
+                            tint = accentColor,
                             modifier = Modifier.size(13.dp),
                             contentDescription = null
                         )
                         Spacer(Modifier.width(3.dp))
                         Text(
                             text = "0/${topicWithCount.wordCount}",
-                            color = AllTopicsTextSecondary,
+                            color = secondaryTextColor,
                             fontSize = 11.sp
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.NightsStay,
-                            tint = AllTopicsTextSecondary,
+                            tint = secondaryTextColor,
                             modifier = Modifier.size(13.dp),
                             contentDescription = null
                         )
                         Spacer(Modifier.width(3.dp))
                         Text(
                             text = "0",
-                            color = AllTopicsTextSecondary,
+                            color = secondaryTextColor,
                             fontSize = 11.sp
                         )
                     }
@@ -513,24 +531,8 @@ private fun calculateGridHeight(
     return (verticalPadding * 2) + (itemHeight * rows.toFloat()) + (spacing * (rows - 1).coerceAtLeast(0).toFloat())
 }
 
-private fun cefrCardBgColor(code: String): Color = when (code) {
-    "A0" -> Color(0xFFF1F1F1)
-    "A1" -> Color(0xFFE8F5E9)
-    "A2" -> Color(0xFFE0F7FA)
-    "B1" -> Color(0xFFE3F2FD)
-    "B2" -> Color(0xFFF3E5F5)
-    "C1" -> Color(0xFFFFF3E0)
-    "C2" -> Color(0xFFFFEBEE)
-    else -> Color(0xFFF5F5F5)
-}
+@Composable
+private fun cefrCardBgColor(code: String): Color = vocabLevelCardContainer(code)
 
-private fun topicCardBgColor(level: String?): Color = when (level) {
-    "A0" -> Color(0xFFF1F1F1)
-    "A1" -> Color(0xFFE8F5E9)
-    "A2" -> Color(0xFFE0F7FA)
-    "B1" -> Color(0xFFE3F2FD)
-    "B2" -> Color(0xFFF3E5F5)
-    "C1" -> Color(0xFFFFF3E0)
-    "C2" -> Color(0xFFFFEBEE)
-    else -> Color(0xFFF5F5F5)
-}
+@Composable
+private fun topicCardBgColor(level: String?): Color = vocabLevelCardContainer(level)

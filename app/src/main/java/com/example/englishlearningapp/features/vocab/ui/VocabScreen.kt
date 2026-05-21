@@ -24,7 +24,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
@@ -66,6 +65,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.StrokeCap
@@ -105,6 +105,26 @@ private val TextSecondary = Color(0xFF77738A)
 private val TextMuted = Color(0xFF9A97A8)
 private const val LEARNED_COUNT = 7
 private const val REVIEW_DUE_COUNT = 2
+
+@Composable
+private fun vocabAccentColor(): Color =
+    vocabAccent()
+
+@Composable
+private fun vocabAccentTextColor(): Color =
+    vocabAccentText()
+
+@Composable
+private fun vocabSoftAccentColor(): Color =
+    vocabSoftAccent()
+
+@Composable
+private fun vocabPrimaryActionColor(): Color =
+    vocabPrimaryAction()
+
+@Composable
+private fun vocabWarmActionColor(): Color =
+    vocabWarmAccent()
 
 data class CefrLevel(
     val id: Int,
@@ -162,6 +182,7 @@ fun VocabScreen(
             "Thông thạo" to 5
         )
     }
+    val backgroundBrush = vocabBackgroundBrush()
 
     LaunchedEffect(Unit) {
         viewModel.loadVocabOverview()
@@ -170,12 +191,13 @@ fun VocabScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = Color.Transparent,
         topBar = {}
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(backgroundBrush)
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(16.dp)
@@ -296,8 +318,8 @@ private fun SearchEntryBar(
                 unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedBorderColor = Color.Transparent,
-                focusedBorderColor = PrimaryGreen,
-                cursorColor = PrimaryGreen,
+                focusedBorderColor = vocabAccentColor(),
+                cursorColor = vocabAccentColor(),
                 unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
                 focusedTextColor = MaterialTheme.colorScheme.onBackground
             ),
@@ -332,7 +354,7 @@ fun MyFolderCard(
                     modifier = Modifier
                         .size(52.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFE8F5E9)),
+                        .background(vocabSoftAccentColor()),
                     contentAlignment = Alignment.Center
                 ) {
                     if (!user?.avatarUrl.isNullOrBlank()) {
@@ -345,7 +367,7 @@ fun MyFolderCard(
                     } else {
                         Text(
                             text = user?.name?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-                            color = PrimaryGreen,
+                            color = vocabAccentColor(),
                             fontWeight = FontWeight.Bold,
                             fontSize = 22.sp
                         )
@@ -370,7 +392,7 @@ fun MyFolderCard(
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
                                 contentDescription = null,
-                                tint = PrimaryGreen,
+                                tint = vocabAccentColor(),
                                 modifier = Modifier.size(14.dp)
                             )
                             Spacer(Modifier.width(3.dp))
@@ -392,7 +414,7 @@ fun MyFolderCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0)),
+                colors = ButtonDefaults.buttonColors(containerColor = vocabPrimaryActionColor()),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
@@ -447,14 +469,14 @@ private fun CefrSection(
             TextButton(onClick = { navController.navigate(Screen.AllTopics.route) }) {
                 Text(
                     text = "Xem tất cả",
-                    color = PrimaryGreen,
+                    color = vocabAccentColor(),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 Icon(
                     imageVector = Icons.Default.ChevronRight,
                     contentDescription = null,
-                    tint = PrimaryGreen,
+                    tint = vocabAccentColor(),
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -583,7 +605,7 @@ private fun LearningProgressCard(
                     Text(
                         text = buildAnnotatedString {
                             withStyle(SpanStyle(
-                                color      = PrimaryGreen,
+                                color      = vocabAccentColor(),
                                 fontSize   = 28.sp,
                                 fontWeight = FontWeight.ExtraBold
                             )) { append("$learned") }
@@ -636,7 +658,7 @@ private fun LearningProgressCard(
                     Spacer(Modifier.width(6.dp))
                     Text(
                         "$dueCount từ cần luyện tập",
-                        color      = OrangeAccent,
+                        color      = vocabWarmActionColor(),
                         fontWeight = FontWeight.SemiBold,
                         fontSize   = 14.sp
                     )
@@ -645,7 +667,7 @@ private fun LearningProgressCard(
                         Icons.Default.Info,
                         contentDescription = null,
                         modifier = Modifier.size(15.dp),
-                        tint = OrangeAccent
+                        tint = vocabWarmActionColor()
                     )
                 }
                 Spacer(Modifier.height(10.dp))
@@ -654,7 +676,7 @@ private fun LearningProgressCard(
                 Button(
                     onClick  = { onStudyClick() },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
-                    colors   = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF8C00)),
+                    colors   = ButtonDefaults.buttonColors(containerColor = vocabWarmActionColor()),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Row(
@@ -701,7 +723,7 @@ private fun LearningProgressCard(
                     Spacer(Modifier.width(6.dp))
                     Text(
                         "Khu vườn của bạn đang tươi tốt",
-                        color      = PrimaryGreen,
+                        color      = vocabAccentColor(),
                         fontWeight = FontWeight.SemiBold,
                         fontSize   = 14.sp
                     )
@@ -818,7 +840,7 @@ fun PracticeModeBottomSheet(
                         .height(64.dp)
                         .padding(bottom = 10.dp),
                     colors   = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFF8C00)
+                        containerColor = vocabWarmActionColor()
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -919,7 +941,7 @@ fun FreePracticeModeBottomSheet(
                         .fillMaxWidth()
                         .height(64.dp)
                         .padding(bottom = 10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                    colors = ButtonDefaults.buttonColors(containerColor = vocabAccentColor()),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Row(
@@ -982,7 +1004,7 @@ private fun SearchResultItem(
                 Icon(
                     if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                     contentDescription = null,
-                    tint = if (isSaved) PrimaryGreen else TextMuted
+                    tint = if (isSaved) vocabAccentColor() else TextMuted
                 )
             }
         }
@@ -1009,13 +1031,13 @@ private fun PracticeSectionCard(
             Spacer(Modifier.height(4.dp))
             Text(
                 "0/$LEARNED_COUNT từ đã đặt câu",
-                color = PrimaryGreen,
+                color = vocabAccentColor(),
                 fontSize = 14.sp
             )
             Spacer(Modifier.height(12.dp))
             Button(
                 onClick = onSentencePractice,
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                colors = ButtonDefaults.buttonColors(containerColor = vocabAccentColor()),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1049,14 +1071,14 @@ private fun SectionHeader(title: String, subtitle: String, onClick: () -> Unit) 
         TextButton(onClick = onClick) {
             Text(
                 text = "Xem tất cả",
-                color = PrimaryGreen,
+                color = vocabAccentColor(),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold
             )
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint = PrimaryGreen,
+                tint = vocabAccentColor(),
                 modifier = Modifier.size(16.dp)
             )
         }
@@ -1066,6 +1088,7 @@ private fun SectionHeader(title: String, subtitle: String, onClick: () -> Unit) 
 
 @Composable
 fun CircularProgressRing(label: String, count: Int) {
+    val accentColor = vocabAccentColor()
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.size(52.dp)) {
             Canvas(modifier = Modifier.fillMaxSize()) {
@@ -1078,7 +1101,7 @@ fun CircularProgressRing(label: String, count: Int) {
                     val filled = count > 0
 
                     drawArc(
-                        color      = if (filled) PrimaryGreen else DividerBg,
+                        color      = if (filled) accentColor else DividerBg,
                         startAngle = startAngle,
                         sweepAngle = segmentSweep,
                         useCenter  = false,
@@ -1119,6 +1142,7 @@ fun MasteryRingIcon(
     filledSegments: Int = 0,
     modifier      : Modifier = Modifier
 ) {
+    val accentColor = vocabAccentColor()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier            = modifier.width(56.dp)
@@ -1137,7 +1161,7 @@ fun MasteryRingIcon(
                     val filled = i < filledSegments
 
                     drawArc(
-                        color      = if (filled) PrimaryGreen
+                        color      = if (filled) accentColor
                         else UnfilledRingColor,
                         startAngle = startAngle,
                         sweepAngle = segmentSweep,
@@ -1174,17 +1198,7 @@ fun MasteryRingIcon(
 
 @Composable
 fun CefrLevelCard(level: CefrLevel, onClick: () -> Unit) {
-    val bgColor = remember(level.id) {
-        when (level.id) {
-            0 -> Color(0xFFF1F1F1)
-            1 -> Color(0xFFE8F5E9)
-            2 -> Color(0xFFE0F7FA)
-            3 -> Color(0xFFE3F2FD)
-            4 -> Color(0xFFF3E5F5)
-            5 -> Color(0xFFFFF3E0)
-            else -> Color(0xFFFFEBEE)
-        }
-    }
+    val bgColor = vocabLevelCardContainer(level.levelCode)
     val badgeColor = remember(level.badge) { cefrBadgeColor(level.badge) }
 
     Card(
@@ -1220,7 +1234,7 @@ fun CefrLevelCard(level: CefrLevel, onClick: () -> Unit) {
                 Spacer(Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
+                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = vocabAccentColor(), modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(3.dp))
                         Text("${level.learnedCount}/${level.wordCount}", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f), fontSize = 11.sp)
                     }
@@ -1235,19 +1249,7 @@ fun CefrLevelCard(level: CefrLevel, onClick: () -> Unit) {
 @Composable
 fun TopicCard(topicWithCount: TopicWithCount, learnedCount: Int, onClick: () -> Unit) {
     val colorScheme = MaterialTheme.colorScheme
-
-    val bgColor = remember(topicWithCount.topic.level, colorScheme.surface) {
-        when (topicWithCount.topic.level) {
-            "A0" -> Color(0xFFF1F1F1)
-            "A1" -> Color(0xFFE8F5E9)
-            "A2" -> Color(0xFFE0F7FA)
-            "B1" -> Color(0xFFE3F2FD)
-            "B2" -> Color(0xFFF3E5F5)
-            "C1" -> Color(0xFFFFF3E0)
-            "C2" -> Color(0xFFFFEBEE)
-            else -> colorScheme.surface
-        }
-    }
+    val bgColor = vocabLevelCardContainer(topicWithCount.topic.level)
 
     val topicIconText = remember(topicWithCount.topic.iconUrl) { topicWithCount.topic.iconUrl?.takeUnless { it.startsWith("#") } ?: "📚" }
     val topicAccentColor = remember(topicWithCount.topic.iconUrl, topicWithCount.topic.level) {
@@ -1300,7 +1302,7 @@ fun TopicCard(topicWithCount: TopicWithCount, learnedCount: Int, onClick: () -> 
                 )
                 Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = vocabAccentColor(), modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(3.dp))
                     Text("$learnedCount/${topicWithCount.wordCount}", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f), fontSize = 11.sp)
                 }

@@ -26,6 +26,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -71,8 +72,14 @@ fun VocabExpandableCard(
         label = "expand_arrow"
     )
 
+    val accentColor = vocabAccent()
+    val primaryTextColor = MaterialTheme.colorScheme.onSurface
+    val secondaryTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+    val mutedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+    val dividerColor = vocabDividerColor()
+
     Card(
-        colors = CardDefaults.cardColors(containerColor = VocabCardBg),
+        colors = CardDefaults.cardColors(containerColor = vocabCardContainer()),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -81,9 +88,9 @@ fun VocabExpandableCard(
         Column(Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(vocab.word, color = VocabTextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(vocab.word, color = primaryTextColor, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     if (!vocab.pronunciation.isNullOrBlank()) {
-                        Text(vocab.pronunciation, color = VocabTextSecondary, fontSize = 12.sp, fontStyle = FontStyle.Italic)
+                        Text(vocab.pronunciation, color = secondaryTextColor, fontSize = 12.sp, fontStyle = FontStyle.Italic)
                     }
                 }
 
@@ -92,7 +99,7 @@ fun VocabExpandableCard(
                         Icon(
                             if (savedVocabIds.contains(vocab.id)) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                             contentDescription = "Save",
-                            tint = if (savedVocabIds.contains(vocab.id)) Color(0xFF4CAF50) else VocabTextMuted
+                            tint = if (savedVocabIds.contains(vocab.id)) accentColor else mutedTextColor
                         )
                     }
                 } else if (onRemoveFromTopic != null) {
@@ -108,7 +115,7 @@ fun VocabExpandableCard(
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = VocabTextMuted,
+                    tint = mutedTextColor,
                     modifier = Modifier.rotate(rotation)
                 )
             }
@@ -116,17 +123,17 @@ fun VocabExpandableCard(
             AnimatedVisibility(visible = expanded) {
                 Column {
                     Spacer(modifier = Modifier.height(8.dp))
-                    HorizontalDivider(color = VocabDivider)
+                    HorizontalDivider(color = dividerColor)
                     Spacer(modifier = Modifier.height(8.dp))
                     Row {
-                        Text("Nghĩa  ", color = VocabTextSecondary, fontSize = 12.sp)
-                        Text(vocab.meaning, color = VocabTextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                        Text("Nghĩa  ", color = secondaryTextColor, fontSize = 12.sp)
+                        Text(vocab.meaning, color = primaryTextColor, fontSize = 15.sp, fontWeight = FontWeight.Medium)
                     }
                     if (!vocab.exampleSentence.isNullOrBlank()) {
                         Spacer(modifier = Modifier.height(6.dp))
                         Row {
-                            Text("Ví dụ  ", color = VocabTextSecondary, fontSize = 12.sp)
-                            Text(vocab.exampleSentence, color = VocabTextSecondary, fontSize = 13.sp, fontStyle = FontStyle.Italic)
+                            Text("Ví dụ  ", color = secondaryTextColor, fontSize = 12.sp)
+                            Text(vocab.exampleSentence, color = secondaryTextColor, fontSize = 13.sp, fontStyle = FontStyle.Italic)
                         }
                     }
                     Spacer(modifier = Modifier.height(10.dp))
@@ -142,7 +149,7 @@ fun VocabExpandableCard(
                             baseUrl = NetworkConfig.BASE_URL,
                             fallbackText = vocab.word,
                             audioPlayer = audioPlayer,
-                            tint = Color(0xFF4CAF50),
+                            tint = accentColor,
                             size = 20.dp
                         )
                     }
@@ -209,8 +216,14 @@ fun VocabRowWithSeed(
         label = "expand_arrow"
     )
 
+    val accentColor = vocabAccent()
+    val primaryTextColor = MaterialTheme.colorScheme.onSurface
+    val secondaryTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+    val mutedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+    val dividerColor = vocabDividerColor()
+
     Card(
-        colors = CardDefaults.cardColors(containerColor = VocabCardBg),
+        colors = CardDefaults.cardColors(containerColor = vocabCardContainer()),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -236,7 +249,7 @@ fun VocabRowWithSeed(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = vocab.word,
-                            color = if (masteryLevel > 0) Color(0xFF4CAF50) else VocabTextPrimary,
+                            color = if (masteryLevel > 0) accentColor else primaryTextColor,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
@@ -245,39 +258,39 @@ fun VocabRowWithSeed(
                             baseUrl = NetworkConfig.BASE_URL,
                             fallbackText = vocab.word,
                             audioPlayer = audioPlayer,
-                            tint = if (masteryLevel > 0) Color(0xFF4CAF50) else VocabTextPrimary,
+                            tint = if (masteryLevel > 0) accentColor else primaryTextColor,
                             size = 18.dp
                         )
                     }
 
                     if (!vocab.pronunciation.isNullOrBlank()) {
                         Spacer(Modifier.height(2.dp))
-                        Text(text = vocab.pronunciation, color = VocabTextSecondary, fontSize = 13.sp, fontStyle = FontStyle.Italic)
+                        Text(text = vocab.pronunciation, color = secondaryTextColor, fontSize = 13.sp, fontStyle = FontStyle.Italic)
                     }
                 }
 
                 IconButton(onClick = onSaveClick) {
-                    Icon(Icons.Default.BookmarkBorder, contentDescription = "Lưu từ", tint = VocabTextMuted)
+                    Icon(Icons.Default.BookmarkBorder, contentDescription = "Lưu từ", tint = mutedTextColor)
                 }
                 Icon(
                     Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = VocabTextMuted,
+                    tint = mutedTextColor,
                     modifier = Modifier.rotate(rotation)
                 )
             }
 
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.fillMaxWidth().padding(start = 74.dp, end = 14.dp, bottom = 14.dp)) {
-                    HorizontalDivider(color = VocabDivider)
+                    HorizontalDivider(color = dividerColor)
                     Spacer(Modifier.height(8.dp))
-                    Text(text = vocab.meaning, color = VocabTextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                    Text(text = vocab.meaning, color = primaryTextColor, fontSize = 15.sp, fontWeight = FontWeight.Medium)
                     if (!vocab.exampleSentence.isNullOrBlank()) {
                         Spacer(Modifier.height(6.dp))
                         Row {
                             Text(
                                 text = vocab.exampleSentence,
-                                color = VocabTextSecondary,
+                                color = secondaryTextColor,
                                 fontSize = 13.sp,
                                 fontStyle = FontStyle.Italic,
                                 modifier = Modifier.weight(1f)
@@ -287,7 +300,7 @@ fun VocabRowWithSeed(
                                 baseUrl = NetworkConfig.BASE_URL,
                                 fallbackText = vocab.exampleSentence,
                                 audioPlayer = audioPlayer,
-                                tint = VocabTextMuted,
+                                tint = mutedTextColor,
                                 size = 16.dp
                             )
                         }
@@ -296,8 +309,8 @@ fun VocabRowWithSeed(
                     if (masteryLevel > 0) {
                         Spacer(Modifier.height(8.dp))
                         val masteryLabels = mapOf(1 to "Chưa biết", 2 to "Mới học", 3 to "Nhớ tạm", 4 to "Nhớ lâu", 5 to "Thông thạo")
-                        Badge(containerColor = Color(0xFF4CAF50).copy(alpha = 0.2f)) {
-                            Text(masteryLabels[masteryLevel] ?: "", color = Color(0xFF4CAF50), fontSize = 11.sp)
+                        Badge(containerColor = accentColor.copy(alpha = 0.2f)) {
+                            Text(masteryLabels[masteryLevel] ?: "", color = accentColor, fontSize = 11.sp)
                         }
                     }
                 }

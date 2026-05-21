@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -16,10 +16,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
@@ -71,6 +74,17 @@ fun UserTopicDetailScreen(
 
     var pendingRemoveVocab by remember { mutableStateOf<com.example.englishlearningapp.data.remote.api.response.VocabularyResponse?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val accentColor = if (isDarkTheme) Color(0xFF4CAF50) else Color(0xFF2F7D62)
+    val dividerColor = if (isDarkTheme) Color(0xFFE6E2F2) else Color(0xFFE2E7E4)
+    val panelColor = if (isDarkTheme) MaterialTheme.colorScheme.surface else Color(0xFFFCFBF7)
+    val backgroundBrush = Brush.verticalGradient(
+        colors = listOf(
+            MaterialTheme.colorScheme.background,
+            if (isDarkTheme) MaterialTheme.colorScheme.background else Color(0xFFF5F2EA),
+            panelColor
+        )
+    )
 
     LaunchedEffect(removeSuccess) {
         if (!removeSuccess.isNullOrBlank()) {
@@ -86,12 +100,12 @@ fun UserTopicDetailScreen(
     val audioPlayer = rememberVocabAudioPlayer()
 
     Scaffold(
-        containerColor = Color(0xFF4CAF50),
+        containerColor = Color.Transparent,
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
                 Snackbar(
                     snackbarData = data,
-                    containerColor = Color(0xFF4CAF50),
+                    containerColor = accentColor,
                     contentColor = Color.White
                 )
             }
@@ -99,7 +113,6 @@ fun UserTopicDetailScreen(
         topBar = {
             TopAppBar(
                 expandedHeight = 94.dp,
-                windowInsets = WindowInsets(0),
                 title = {
                     Column(
                         verticalArrangement = Arrangement.Center
@@ -109,27 +122,34 @@ fun UserTopicDetailScreen(
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Medium
                             ),
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "${topicVocabs.size} từ",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.7f)
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
                         )
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(
+                        onClick = { navController.navigateUp() },
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
+                    ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "back",
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF4CAF50)
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent
                 )
             )
         },
@@ -137,7 +157,7 @@ fun UserTopicDetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF4CAF50))
+                    .background(MaterialTheme.colorScheme.background)
 
             ){}
         }
@@ -145,19 +165,18 @@ fun UserTopicDetailScreen(
         Box(modifier = Modifier
             .fillMaxSize()
             .padding(inner)
-            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .background(Color(0xFF1A1A1A))) {
+            .background(backgroundBrush)) {
             when {
-                isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Color(0xFF4CAF50)) }
+                isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = accentColor) }
                 error != null -> Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Text(error ?: "", color = Color.Gray)
+                    Text(error ?: "", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f))
                     Spacer(Modifier.height(12.dp))
-                    Button(onClick = { viewModel.loadTopicVocabs(userTopicId) }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))) { Text("Thử lại") }
+                    Button(onClick = { viewModel.loadTopicVocabs(userTopicId) }, colors = ButtonDefaults.buttonColors(containerColor = accentColor)) { Text("Thử lại") }
                 }
                 topicVocabs.isEmpty() -> Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     Text("📭", fontSize = MaterialTheme.typography.headlineLarge.fontSize)
                     Spacer(Modifier.height(12.dp))
-                    Text("Thư mục này chưa có từ nào", color = Color.White)
+                    Text("Thư mục này chưa có từ nào", color = MaterialTheme.colorScheme.onBackground)
                 }
                 else -> {
                     val learnedMastery by viewModel.learnedVocabMastery.collectAsState(initial = emptyMap())
@@ -174,7 +193,7 @@ fun UserTopicDetailScreen(
                             )
 
                             HorizontalDivider(
-                                color = Color(0xFF2A2A2A),
+                                color = dividerColor,
                                 thickness = 0.5.dp,
                                 modifier = Modifier.padding(horizontal = 16.dp)
                             )
@@ -215,9 +234,14 @@ private fun UserTopicVocabRowWithRemove(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val rotation by animateFloatAsState(targetValue = if (expanded) 180f else 0f, animationSpec = tween(durationMillis = 300))
+    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val accentColor = if (isDarkTheme) Color(0xFF4CAF50) else Color(0xFF2F7D62)
+    val accentSoftColor = if (isDarkTheme) Color(0xFF4CAF50).copy(alpha = 0.2f) else Color(0xFFEAF4EF)
+    val dividerColor = if (isDarkTheme) Color(0xFFE6E2F2) else Color(0xFFE2E7E4)
+    val secondaryTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isDarkTheme) 0.65f else 0.58f)
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -239,7 +263,7 @@ private fun UserTopicVocabRowWithRemove(
                     Row {
                         Text(
                             text = vocab.word,
-                            color = if (masteryLevel > 0) Color(0xFF4CAF50) else Color.White,
+                            color = if (masteryLevel > 0) accentColor else MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
@@ -249,38 +273,38 @@ private fun UserTopicVocabRowWithRemove(
                             baseUrl = NetworkConfig.BASE_URL,
                             fallbackText = vocab.word,
                             audioPlayer = audioPlayer,
-                            tint = if (masteryLevel > 0) Color(0xFF4CAF50) else Color.White,
+                            tint = if (masteryLevel > 0) accentColor else MaterialTheme.colorScheme.onSurface,
                             size = 18.dp
                         )
                     }
 
                     if (!vocab.pronunciation.isNullOrBlank()) {
                         Spacer(Modifier.height(2.dp))
-                        Text(text = vocab.pronunciation, color = Color.Gray, fontSize = 13.sp, fontStyle = FontStyle.Italic)
+                        Text(text = vocab.pronunciation, color = secondaryTextColor, fontSize = 13.sp, fontStyle = FontStyle.Italic)
                     }
                 }
 
                 IconButton(onClick = onRemoveClick) {
                     Icon(Icons.Default.Remove, contentDescription = "Remove", tint = Color(0xFFB71C1C))
                 }
-                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = Color.Gray, modifier = Modifier.rotate(rotation))
+                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = secondaryTextColor, modifier = Modifier.rotate(rotation))
             }
 
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.fillMaxWidth().padding(start = 74.dp, end = 14.dp, bottom = 14.dp)) {
-                    HorizontalDivider(color = Color(0xFF3A3A3A))
+                    HorizontalDivider(color = dividerColor)
                     Spacer(Modifier.height(8.dp))
-                    Text(text = vocab.meaning, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                    Text(text = vocab.meaning, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, fontWeight = FontWeight.Medium)
                     if (!vocab.exampleSentence.isNullOrBlank()) {
                         Spacer(Modifier.height(6.dp))
                         Row {
-                            Text(text = vocab.exampleSentence, color = Color.LightGray, fontSize = 13.sp, fontStyle = FontStyle.Italic, modifier = Modifier.weight(1f))
+                            Text(text = vocab.exampleSentence, color = secondaryTextColor, fontSize = 13.sp, fontStyle = FontStyle.Italic, modifier = Modifier.weight(1f))
                             SpeakerIconButton(
                                 audioUrl = vocab.exampleAudioUrl,
                                 baseUrl = NetworkConfig.BASE_URL,
                                 fallbackText = vocab.exampleSentence,
                                 audioPlayer = audioPlayer,
-                                tint = Color(0xFF7A7A7A),
+                                tint = secondaryTextColor,
                                 size = 16.dp
                             )
                         }
@@ -289,8 +313,8 @@ private fun UserTopicVocabRowWithRemove(
                     if (masteryLevel > 0) {
                         Spacer(Modifier.height(8.dp))
                         val masteryLabels = mapOf(1 to "Chưa biết", 2 to "Mới học", 3 to "Nhớ tạm", 4 to "Nhớ lâu", 5 to "Thông thạo")
-                        Badge(containerColor = Color(0xFF4CAF50).copy(alpha = 0.2f)) {
-                            Text(masteryLabels[masteryLevel] ?: "", color = Color(0xFF4CAF50), fontSize = 11.sp)
+                        Badge(containerColor = accentSoftColor) {
+                            Text(masteryLabels[masteryLevel] ?: "", color = accentColor, fontSize = 11.sp)
                         }
                     }
                 }

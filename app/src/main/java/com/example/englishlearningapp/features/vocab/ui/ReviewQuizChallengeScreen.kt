@@ -3,6 +3,7 @@ package com.example.englishlearningapp.features.vocab.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +16,9 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -29,6 +32,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -46,6 +50,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -165,31 +170,40 @@ fun ReviewQuizChallengeScreen(
     }
     if (questions.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Không có từ nào cần ôn tập!", color = Color(0xFF77738A))
+            Text("Không có từ nào cần ôn tập!", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f))
         }
         return
     }
 
+    val accentColor = vocabAccent()
+    val primaryActionColor = vocabPrimaryAction()
+    val secondaryTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
     val inputBorderColor = when (checkState) {
-        CheckState.CORRECT -> Color(0xFF4CAF50)
+        CheckState.CORRECT -> accentColor
         CheckState.WRONG -> Color(0xFFF44336)
-        CheckState.IDLE -> Color(0xFF1565C0)
+        CheckState.IDLE -> primaryActionColor
     }
     val inputBgColor = when (checkState) {
         CheckState.CORRECT -> Color(0xFFE8F5E9)
         CheckState.WRONG -> Color(0xFFFFEBEE)
-        CheckState.IDLE -> Color.White
+        CheckState.IDLE -> vocabCardContainer()
     }
 
     Scaffold(
-        containerColor = Color(0xFFF8F6FF),
+        containerColor = vocabScreenBackground(),
         topBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                IconButton(onClick = { navController.navigateUp() }) {
+            Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
+                IconButton(
+                    onClick = { navController.navigateUp() },
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .clip(CircleShape)
+                        .background(vocabCardContainer().copy(alpha = 0.85f))
+                ) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color(0xFF1D1B2F)
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Row(
@@ -205,12 +219,12 @@ fun ReviewQuizChallengeScreen(
                             .weight(1f)
                             .height(6.dp)
                             .clip(RoundedCornerShape(3.dp)),
-                        color = Color(0xFF4CAF50),
-                        trackColor = Color(0xFFE0DDEB)
+                        color = accentColor,
+                        trackColor = vocabDividerColor()
                     )
                     Text(
                         "${currentIndex + 1}/${questions.size}",
-                        color = Color(0xFF77738A),
+                        color = secondaryTextColor,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
@@ -256,7 +270,7 @@ fun ReviewQuizChallengeScreen(
                                 CheckState.CORRECT -> "Chính xác!"
                                 else -> "Nhập từ"
                             },
-                            color = if (checkState == CheckState.CORRECT) Color(0xFF4CAF50) else Color(0xFF1D1B2F),
+                            color = if (checkState == CheckState.CORRECT) accentColor else MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
                         )
@@ -269,7 +283,7 @@ fun ReviewQuizChallengeScreen(
 
                 Text(
                     text = question?.correctAnswer ?: "",
-                    color = Color(0xFF77738A),
+                    color = secondaryTextColor,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -284,16 +298,16 @@ fun ReviewQuizChallengeScreen(
                     singleLine = true,
                     trailingIcon = {
                         if (checkState == CheckState.WRONG) Icon(Icons.Default.Close, tint = Color(0xFFF44336), contentDescription = "Error")
-                        if (checkState == CheckState.CORRECT) Icon(Icons.Default.Check, tint = Color(0xFF4CAF50), contentDescription = "Correct")
+                        if (checkState == CheckState.CORRECT) Icon(Icons.Default.Check, tint = accentColor, contentDescription = "Correct")
                     },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = inputBorderColor,
                         unfocusedBorderColor = inputBorderColor,
                         disabledBorderColor = inputBorderColor,
-                        focusedTextColor = Color(0xFF1D1B2F),
-                        unfocusedTextColor = Color(0xFF1D1B2F),
-                        disabledTextColor = Color(0xFF1D1B2F),
-                        cursorColor = Color(0xFF1565C0),
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                        cursorColor = primaryActionColor,
                         focusedContainerColor = inputBgColor,
                         unfocusedContainerColor = inputBgColor,
                         disabledContainerColor = inputBgColor
@@ -318,12 +332,12 @@ fun ReviewQuizChallengeScreen(
                     ) {
                         Text(
                             text = buildAnnotatedString {
-                                withStyle(SpanStyle(color = Color(0xFF1D1B2F), fontSize = 16.sp)) {
+                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)) {
                                     append("Đáp án đúng: ")
                                 }
                                 withStyle(
                                     SpanStyle(
-                                        color = Color(0xFF4CAF50),
+                                        color = accentColor,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 16.sp
                                     )
@@ -350,20 +364,20 @@ fun ReviewQuizChallengeScreen(
                                 modifier = Modifier.height(50.dp),
                                 border = BorderStroke(
                                     1.5.dp,
-                                    if (hintsLeft > 0) Color(0xFF4CAF50) else Color(0xFFD2CEDF)
+                                    if (hintsLeft > 0) accentColor else vocabDividerColor()
                                 ),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
                                 Icon(
                                     Icons.Default.Lightbulb,
                                     contentDescription = "Hint",
-                                    tint = if (hintsLeft > 0) Color(0xFF4CAF50) else Color(0xFFB0ABBE),
+                                    tint = if (hintsLeft > 0) accentColor else secondaryTextColor,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(Modifier.size(6.dp))
                                 Text(
                                     "Gợi ý ($hintsLeft)",
-                                    color = if (hintsLeft > 0) Color(0xFF4CAF50) else Color(0xFFB0ABBE),
+                                    color = if (hintsLeft > 0) accentColor else secondaryTextColor,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 14.sp
                                 )
@@ -375,7 +389,7 @@ fun ReviewQuizChallengeScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(50.dp),
-                            colors = ButtonDefaults.buttonColors(Color(0xFF4CAF50)),
+                            colors = ButtonDefaults.buttonColors(primaryActionColor),
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Text("Kiểm tra", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
@@ -391,7 +405,7 @@ fun ReviewQuizChallengeScreen(
             ) {
                 val isCorrect = checkState == CheckState.CORRECT
                 val panelBg = if (isCorrect) Color(0xFFEAF7EE) else Color(0xFFFDECEC)
-                val accentColor = if (isCorrect) Color(0xFF4CAF50) else Color(0xFFF44336)
+                val resultAccentColor = if (isCorrect) accentColor else Color(0xFFF44336)
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -411,22 +425,22 @@ fun ReviewQuizChallengeScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = if (isCorrect) "Chính xác" else "Không chính xác",
-                                    color = accentColor,
+                                    color = resultAccentColor,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 18.sp
                                 )
                                 Text(
                                     text = correctWord,
-                                    color = accentColor,
+                                    color = resultAccentColor,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp,
                                     textDecoration = TextDecoration.Underline
                                 )
                             }
                             TextButton(onClick = { /* report error */ }) {
-                                Icon(Icons.Default.Close, tint = Color(0xFF77738A), contentDescription = "Report", modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.Close, tint = secondaryTextColor, contentDescription = "Report", modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.size(4.dp))
-                                Text("Báo lỗi", color = Color(0xFF77738A), fontSize = 13.sp)
+                                Text("Báo lỗi", color = secondaryTextColor, fontSize = 13.sp)
                             }
                         }
 
@@ -434,7 +448,7 @@ fun ReviewQuizChallengeScreen(
 
                         Text(
                             text = question?.correctAnswer ?: "",
-                            color = Color(0xFF77738A),
+                            color = secondaryTextColor,
                             fontSize = 14.sp
                         )
 
@@ -445,7 +459,7 @@ fun ReviewQuizChallengeScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = accentColor),
+                            colors = ButtonDefaults.buttonColors(containerColor = resultAccentColor),
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(

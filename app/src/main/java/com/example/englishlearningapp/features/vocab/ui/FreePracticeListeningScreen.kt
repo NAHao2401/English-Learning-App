@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,6 +28,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -103,10 +105,16 @@ fun FreePracticeListeningScreen(
         return
     }
 
-    Scaffold(containerColor = Color(0xFFF8F6FF), topBar = {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            IconButton(onClick = { navController.navigateUp() }) {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back", tint = Color(0xFF1D1B2F))
+    Scaffold(containerColor = vocabScreenBackground(), topBar = {
+        Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
+            IconButton(
+                onClick = { navController.navigateUp() },
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .clip(CircleShape)
+                    .background(vocabCardContainer().copy(alpha = 0.85f))
+            ) {
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
             }
             Row(modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 16.dp, bottom = 8.dp, top = 0.dp), verticalAlignment = Alignment.CenterVertically) {
                 Spacer(Modifier.width(16.dp))
@@ -120,7 +128,7 @@ fun FreePracticeListeningScreen(
             Spacer(Modifier.height(8.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text("Chọn nghĩa", color = Color(0xFF1D1B2F), fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 20.sp)
+                Text("Chọn nghĩa", color = MaterialTheme.colorScheme.onBackground, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 20.sp)
                 Spacer(Modifier.weight(1f))
                 val mastery = question?.vocabId?.let { masteryMap[it] } ?: 0
                 LearnedSeedIcon(masteryLevel = mastery)

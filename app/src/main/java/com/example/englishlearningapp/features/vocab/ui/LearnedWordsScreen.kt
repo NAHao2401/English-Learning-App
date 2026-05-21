@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -106,16 +107,20 @@ fun LearnedWordsScreen(
     var showFreePracticeSheet by remember { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = DarkBg,
+        containerColor = vocabScreenBackground(),
         topBar = {
             TopAppBar(
-                windowInsets = WindowInsets(0),
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkBg
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent
                 ),
                 navigationIcon = {
                     IconButton(
-                        onClick = { navController.navigateUp() }
+                        onClick = { navController.navigateUp() },
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .clip(CircleShape)
+                            .background(vocabCardContainer().copy(alpha = 0.85f))
                     ) {
                         Icon(
                             Icons.Default.ArrowBack,
@@ -137,7 +142,7 @@ fun LearnedWordsScreen(
         bottomBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = CardBg,
+                color = vocabCardContainer(),
                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
             ) {
                 Box(
@@ -349,7 +354,7 @@ fun LearnedWordsFreePracticeModeBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color.White,
+        containerColor = vocabCardContainer(),
         dragHandle = {
             Box(
                 Modifier
@@ -488,7 +493,7 @@ fun LearnedWordRow(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(DarkBg)
+            .background(vocabScreenBackground())
     ) {
         Row(
             modifier = Modifier

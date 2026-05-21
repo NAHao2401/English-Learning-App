@@ -109,17 +109,23 @@ fun CefrLevelDetailScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFF4CAF50),
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 expandedHeight = 94.dp,
-                windowInsets = WindowInsets(0),
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF4CAF50)
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent
                 ),
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "back", tint = Color.White)
+                    IconButton(
+                        onClick = { navController.navigateUp() },
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
+                    ) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "back", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 title = {
@@ -136,15 +142,15 @@ fun CefrLevelDetailScreen(
                             Box(
                                 modifier = Modifier
                                     .size(44.dp)
-                                    .border(2.5.dp, Color.White, CircleShape)
+                                    .border(2.5.dp, Color(0xFFE6E2F2), CircleShape)
                                     .padding(2.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFF1B3A2D)),
+                                    .background(cefrLevelColor(level).copy(alpha = 0.16f)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = level,
-                                    color = Color.White,
+                                    color = cefrLevelColor(level),
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp
                                 )
@@ -158,20 +164,20 @@ fun CefrLevelDetailScreen(
                             ) {
                                 Text(
                                     text = levelDisplayName(level),
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onBackground,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 17.sp
                                 )
                                 Spacer(Modifier.height(4.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Surface(
-                                        color = Color(0xFF2E7D32),
+                                        color = Color(0xFFE8F5E9),
                                         shape = RoundedCornerShape(20.dp)
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)) {
-                                            Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
+                                            Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF4CAF50), modifier = Modifier.size(12.dp))
                                             Spacer(Modifier.width(4.dp))
-                                            Text("$totalLearned/$totalWords đã học", color = Color.White, fontSize = 11.sp)
+                                            Text("$totalLearned/$totalWords đã học", color = Color(0xFF2E7D32), fontSize = 11.sp)
                                         }
                                     }
                                     
@@ -186,7 +192,7 @@ fun CefrLevelDetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF4CAF50))
+                    .background(vocabScreenBackground())
 
             ){}
         }
@@ -194,8 +200,7 @@ fun CefrLevelDetailScreen(
         Box(modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
-            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .background(Color(0xFFF8F6FF))) {
+            .background(vocabScreenBackground())) {
 
             when {
                 isLoading -> {
@@ -222,7 +227,7 @@ fun CefrLevelDetailScreen(
                     Column(modifier = Modifier.fillMaxSize().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                         Text("📭", fontSize = 56.sp)
                         Spacer(Modifier.height(12.dp))
-                        Text("Chưa có chủ đề nào ở cấp độ $level", color = Color(0xFF1D1B2F), fontWeight = FontWeight.Bold, fontSize = 16.sp, textAlign = TextAlign.Center)
+                        Text("Chưa có chủ đề nào ở cấp độ $level", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 16.sp, textAlign = TextAlign.Center)
                     }
                 }
 
@@ -308,7 +313,7 @@ fun CefrTopicCircleItem(item: TopicProgressItem, level: String, onClick: () -> U
                 strokeCap = StrokeCap.Round
             )
 
-            Box(modifier = Modifier.size(100.dp).clip(CircleShape).background(Color.White), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.size(100.dp).clip(CircleShape).background(vocabCardContainer()), contentAlignment = Alignment.Center) {
                 val emoji = item.topic.iconEmoji ?: ""
                 if (emoji.isNotBlank()) {
                     Text(text = emoji, fontSize = 42.sp)
@@ -320,7 +325,7 @@ fun CefrTopicCircleItem(item: TopicProgressItem, level: String, onClick: () -> U
 
         Spacer(Modifier.height(14.dp))
 
-        Text(text = item.topic.name, color = Color(0xFF1D1B2F), fontWeight = FontWeight.Bold, fontSize = 17.sp, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Text(text = item.topic.name, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 17.sp, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
 
         Spacer(Modifier.height(8.dp))
 

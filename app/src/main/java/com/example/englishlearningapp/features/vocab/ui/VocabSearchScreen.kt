@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -35,6 +36,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -113,12 +115,22 @@ fun VocabSearchScreen(
         }
     }
 
+    val backgroundColor = vocabScreenBackground()
+    val cardColor = vocabCardContainer()
+    val dividerColor = vocabDividerColor()
+    val accentColor = vocabAccent()
+    val primaryTextColor = MaterialTheme.colorScheme.onSurface
+    val secondaryTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+    val mutedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+
     Scaffold(
-        containerColor = SearchBg,
+        containerColor = backgroundColor,
         topBar = {
             Surface(
-                color = SearchCardBg,
-                modifier = Modifier.fillMaxWidth()
+                color = cardColor,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
             ) {
                 Row(
                     modifier = Modifier
@@ -127,15 +139,21 @@ fun VocabSearchScreen(
                         .padding(horizontal = 8.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = {
-                        focusManager.clearFocus()
-                        viewModel.clearSearch()
-                        navController.navigateUp()
-                    }) {
+                    IconButton(
+                        onClick = {
+                            focusManager.clearFocus()
+                            viewModel.clearSearch()
+                            navController.navigateUp()
+                        },
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
+                    ) {
                         Icon(
                             Icons.Default.ArrowBack,
                             contentDescription = "Back",
-                            tint = SearchTextPrimary
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -144,11 +162,11 @@ fun VocabSearchScreen(
                         onValueChange = viewModel::updateSearchQuery,
                         singleLine = true,
                         textStyle = TextStyle(
-                            color = SearchTextPrimary,
+                            color = primaryTextColor,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Medium
                         ),
-                        cursorBrush = SolidColor(SearchTextPrimary),
+                        cursorBrush = SolidColor(primaryTextColor),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         modifier = Modifier
                             .weight(1f)
@@ -158,7 +176,7 @@ fun VocabSearchScreen(
                                 if (searchQuery.isBlank()) {
                                     Text(
                                         "Tìm kiếm từ vựng...",
-                                        color = SearchTextSecondary,
+                                        color = secondaryTextColor,
                                         fontSize = 18.sp
                                     )
                                 }
@@ -172,7 +190,7 @@ fun VocabSearchScreen(
                             Icon(
                                 Icons.Default.Close,
                                 contentDescription = "Clear",
-                                tint = SearchTextPrimary
+                                tint = primaryTextColor
                             )
                         }
                     }
@@ -183,7 +201,7 @@ fun VocabSearchScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(SearchBg)
+                    .background(backgroundColor)
             ) {}
         }
     ) { padding ->
@@ -192,7 +210,7 @@ fun VocabSearchScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-                .background(SearchBg)
+                .background(backgroundColor)
         ) {
             when {
                 searchQuery.isBlank() -> {
@@ -203,14 +221,14 @@ fun VocabSearchScreen(
                     ) {
                         Icon(
                             Icons.Default.Search,
-                            tint = SearchTextMuted,
+                            tint = mutedTextColor,
                             modifier = Modifier.size(64.dp),
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             "Tìm kiếm từ vựng",
-                            color = SearchTextSecondary,
+                            color = secondaryTextColor,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -222,7 +240,7 @@ fun VocabSearchScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = SearchGreen)
+                        CircularProgressIndicator(color = accentColor)
                     }
                 }
 
@@ -236,13 +254,13 @@ fun VocabSearchScreen(
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             "Không tìm thấy từ vựng bạn nhập",
-                            color = SearchTextSecondary,
+                            color = secondaryTextColor,
                             fontSize = 16.sp
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             "\"$searchQuery\"",
-                            color = SearchGreen,
+                            color = accentColor,
                             fontSize = 14.sp,
                             fontStyle = FontStyle.Italic
                         )
@@ -268,7 +286,7 @@ fun VocabSearchScreen(
                                 }
                             )
                             HorizontalDivider(
-                                color = SearchDivider,
+                                color = dividerColor,
                                 thickness = 0.5.dp,
                                 modifier = Modifier.padding(horizontal = 16.dp)
                             )
@@ -305,6 +323,10 @@ fun SearchResultVocabRow(
         targetValue = if (expanded) 180f else 0f,
         label = "expand"
     )
+    val accentColor = vocabAccent()
+    val dividerColor = vocabDividerColor()
+    val secondaryTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+    val mutedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
 
     Column(
         modifier = Modifier
@@ -324,7 +346,7 @@ fun SearchResultVocabRow(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = vocab.word,
-                        color = SearchGreen,
+                        color = accentColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp
                     )
@@ -340,7 +362,7 @@ fun SearchResultVocabRow(
                     ) {
                         Icon(
                             Icons.Default.VolumeUp,
-                            tint = SearchGreen,
+                            tint = accentColor,
                             modifier = Modifier.size(17.dp),
                             contentDescription = "Nghe từ"
                         )
@@ -349,7 +371,7 @@ fun SearchResultVocabRow(
 
                 Text(
                     text = vocab.meaning,
-                    color = SearchTextSecondary,
+                    color = secondaryTextColor,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = if (expanded) Int.MAX_VALUE else 1,
@@ -360,7 +382,7 @@ fun SearchResultVocabRow(
             IconButton(onClick = onSaveClick) {
                 Icon(
                     Icons.Default.BookmarkBorder,
-                    tint = SearchTextMuted,
+                    tint = mutedTextColor,
                     contentDescription = "Lưu từ",
                     modifier = Modifier.size(20.dp)
                 )
@@ -368,7 +390,7 @@ fun SearchResultVocabRow(
 
             Icon(
                 Icons.Default.KeyboardArrowDown,
-                tint = SearchTextMuted,
+                tint = mutedTextColor,
                 modifier = Modifier
                     .size(20.dp)
                     .rotate(rotation),
@@ -385,7 +407,7 @@ fun SearchResultVocabRow(
                 if (!vocab.pronunciation.isNullOrBlank()) {
                     Text(
                         text = vocab.pronunciation,
-                        color = SearchTextMuted,
+                        color = mutedTextColor,
                         fontSize = 13.sp,
                         fontStyle = FontStyle.Italic
                     )
@@ -394,7 +416,7 @@ fun SearchResultVocabRow(
 
                 if (!vocab.exampleSentence.isNullOrBlank()) {
                     HorizontalDivider(
-                        color = SearchDivider,
+                        color = dividerColor,
                         thickness = 0.5.dp,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
@@ -404,7 +426,7 @@ fun SearchResultVocabRow(
                     ) {
                         Text(
                             text = "\"${vocab.exampleSentence}\"",
-                            color = SearchTextSecondary,
+                            color = secondaryTextColor,
                             fontSize = 13.sp,
                             fontStyle = FontStyle.Italic,
                             modifier = Modifier.weight(1f)
@@ -421,7 +443,7 @@ fun SearchResultVocabRow(
                         ) {
                             Icon(
                                 Icons.Default.VolumeUp,
-                                tint = SearchTextMuted,
+                                tint = mutedTextColor,
                                 modifier = Modifier.size(16.dp),
                                 contentDescription = "Nghe câu ví dụ"
                             )

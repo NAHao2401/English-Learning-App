@@ -36,6 +36,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -183,7 +184,7 @@ fun StudyFlashcardSessionScreen(
         return
     }
 
-    Scaffold(containerColor = StudyBg) { padding ->
+    Scaffold(containerColor = vocabScreenBackground()) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -239,7 +240,7 @@ fun StudyFlashcardSessionScreen(
             ) {
                 Text(
                     text = if (isReviewWord) "Ôn tập" else "Từ mới",
-                    color = Color(0xFF1D1B2F),
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
@@ -266,7 +267,7 @@ fun StudyFlashcardSessionScreen(
                     .clickable(enabled = !isFlipped && !isRating) {
                         isFlipped = true
                     },
-                colors = CardDefaults.cardColors(containerColor = StudyCardBg),
+                colors = CardDefaults.cardColors(containerColor = vocabCardContainer()),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
@@ -297,7 +298,7 @@ fun StudyFlashcardSessionScreen(
                         Spacer(Modifier.height(16.dp))
                         Text(
                             text = vocab.word,
-                            color = Color(0xFF1D1B2F),
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold,
                             fontSize = 26.sp,
                             textAlign = TextAlign.Center
@@ -342,7 +343,7 @@ fun StudyFlashcardSessionScreen(
                     ) {
                         Text(
                             text = vocab.meaning,
-                            color = Color(0xFF1D1B2F),
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -401,7 +402,7 @@ fun StudyFlashcardSessionScreen(
                 ) {
                     Text(
                         text = "Bạn thuộc từ này ở mức nào?",
-                        color = Color(0xFF1D1B2F),
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -510,7 +511,7 @@ private fun LoadingState() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(StudyBg),
+            .background(vocabScreenBackground()),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -531,7 +532,7 @@ private fun ResultState(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(StudyBg),
+            .background(vocabScreenBackground()),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -542,7 +543,7 @@ private fun ResultState(
             Spacer(Modifier.height(16.dp))
             Text(
                 text = "Bạn đã học $ratedCount từ!",
-                color = Color(0xFF1D1B2F),
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
                 textAlign = TextAlign.Center

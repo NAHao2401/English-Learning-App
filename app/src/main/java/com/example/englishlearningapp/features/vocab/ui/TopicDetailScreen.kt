@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
@@ -43,6 +44,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -110,8 +112,10 @@ fun TopicDetailScreen(
     val isAllLearned = newWordCount == 0 && totalWords > 0
 
     val audioPlayer = rememberVocabAudioPlayer()
-    val textPrimary = Color(0xFF1D1B2F)
-    val textSecondary = Color(0xFF77738A)
+    val textPrimary = MaterialTheme.colorScheme.onSurface
+    val textSecondary = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+    val accentColor = vocabAccent()
+    val primaryActionColor = vocabPrimaryAction()
 
     LaunchedEffect(topicId) {
         viewModel.setDifficultyFilter(null)
@@ -119,24 +123,30 @@ fun TopicDetailScreen(
     }
 
     Scaffold(
+        containerColor = vocabScreenBackground(),
         topBar = {
             CenterAlignedTopAppBar(
-                windowInsets = WindowInsets(0),
                 title = { Text(topic?.name ?: "Topic", color = textPrimary) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(
+                        onClick = { navController.navigateUp() },
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .clip(CircleShape)
+                            .background(vocabCardContainer().copy(alpha = 0.85f))
+                    ) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = textPrimary)
                     }
                 },
                 actions = {},
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFFF8F6FF))
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent)
             )
         },
         bottomBar = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFF8F6FF))
+                    .background(vocabScreenBackground())
                     .padding(horizontal = 16.dp, vertical = 10.dp)
                     .navigationBarsPadding()
             ) {
@@ -149,10 +159,10 @@ fun TopicDetailScreen(
                         imageVector = Icons.Filled.CheckCircle,
                         contentDescription = null,
                         modifier = Modifier.size(13.dp),
-                        tint = Color(0xFF4CAF50)
+                        tint = accentColor
                     )
                     Spacer(Modifier.size(4.dp))
-                    Text("$learnedCount/$totalWords đã học", color = Color(0xFF4CAF50), fontSize = 12.sp)
+                    Text("$learnedCount/$totalWords đã học", color = accentColor, fontSize = 12.sp)
                     if (newWordCount > 0) {
                         Spacer(Modifier.width(12.dp))
                         Text("• $newWordCount từ mới", color = textSecondary, fontSize = 12.sp)
@@ -167,8 +177,8 @@ fun TopicDetailScreen(
                         .height(52.dp),
                     enabled = !isAllLearned,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isAllLearned) Color(0xFFE0DDEB) else Color(0xFF1565C0),
-                        disabledContainerColor = Color(0xFFE0DDEB)
+                        containerColor = if (isAllLearned) vocabDividerColor() else primaryActionColor,
+                        disabledContainerColor = vocabDividerColor()
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -188,7 +198,7 @@ fun TopicDetailScreen(
             // Header card
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = levelBgColor(topic?.level)),
+                colors = CardDefaults.cardColors(containerColor = vocabLevelCardContainer(topic?.level)),
                 shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)
             ) {
                 // Determine display icon vs color
@@ -221,10 +231,10 @@ fun TopicDetailScreen(
                         Text(topic?.description ?: "", color = textSecondary, fontSize = 13.sp)
                         Spacer(modifier = Modifier.height(6.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Badge(containerColor = Color.White) {
+                            Badge(containerColor = vocabCardContainer()) {
                                 Text(topic?.level ?: "", color = textPrimary, fontSize = 11.sp)
                             }
-                            Badge(containerColor = Color.White) {
+                            Badge(containerColor = vocabCardContainer()) {
                                 Text("${topicVocabs.size} từ", color = textPrimary, fontSize = 11.sp)
                             }
                         }
@@ -239,7 +249,7 @@ fun TopicDetailScreen(
             val filterLabels = listOf("Tất cả", "A0", "A1", "A2", "B1", "B2")
             LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(filterOptions.zip(filterLabels)) { (value, label) ->
-                    FilterChip(selected = difficultyFilter == value, onClick = { viewModel.setDifficultyFilter(value) }, label = { Text(label) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF4CAF50), selectedLabelColor = Color.White, containerColor = Color(0xFFF3F1FA), labelColor = textSecondary))
+                    FilterChip(selected = difficultyFilter == value, onClick = { viewModel.setDifficultyFilter(value) }, label = { Text(label) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accentColor, selectedLabelColor = Color.White, containerColor = vocabCardContainer(), labelColor = textSecondary))
                 }
             }
 
@@ -262,7 +272,7 @@ fun TopicDetailScreen(
                         )
 
                         androidx.compose.material3.HorizontalDivider(
-                            color = Color(0xFFE6E2F2),
+                            color = vocabDividerColor(),
                             thickness = 0.5.dp,
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
@@ -340,7 +350,7 @@ fun WordItem(
     val displayPron = remember(vocab.pronunciation) { vocab.pronunciation }
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = vocabCardContainer()),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -349,7 +359,7 @@ fun WordItem(
         Column(Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(vocab.word, color = Color(0xFF1D1B2F), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(vocab.word, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     if (!displayPron.isNullOrBlank()) Text(displayPron, color = Color.Gray, fontSize = 12.sp, fontStyle = FontStyle.Italic)
                 }
 
@@ -373,7 +383,7 @@ fun WordItem(
                     Spacer(modifier = Modifier.height(8.dp))
                     Row {
                         Text("Nghĩa  ", color = Color.Gray, fontSize = 12.sp)
-                        Text(vocab.meaning, color = Color(0xFF1D1B2F), fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                        Text(vocab.meaning, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, fontWeight = FontWeight.Medium)
                     }
                     if (!vocab.exampleSentence.isNullOrBlank()) {
                         Spacer(modifier = Modifier.height(6.dp))

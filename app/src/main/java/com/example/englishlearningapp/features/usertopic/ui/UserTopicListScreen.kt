@@ -29,7 +29,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -84,6 +86,19 @@ fun UserTopicListScreen(
     val topicLearnedCounts by viewModel.topicLearnedCounts.collectAsState()
     val displayTopicWordCounts = if (topicWordCounts.isNotEmpty()) topicWordCounts else userTopics.associate { it.id to it.wordCount }
     val displayTopicLearnedCounts = if (topicLearnedCounts.isNotEmpty()) topicLearnedCounts else userTopics.associate { it.id to it.learnedCount }
+    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val accentColor = if (isDarkTheme) Color(0xFF4CAF50) else Color(0xFF2F7D62)
+    val accentTextColor = if (isDarkTheme) Color(0xFF2E7D32) else Color(0xFF25684F)
+    val accentSoftColor = if (isDarkTheme) Color(0xFFE8F5E9) else Color(0xFFEAF4EF)
+    val borderColor = if (isDarkTheme) Color(0xFFE6E2F2) else Color(0xFFE2E7E4)
+    val panelColor = if (isDarkTheme) MaterialTheme.colorScheme.surface else Color(0xFFFCFBF7)
+    val backgroundBrush = Brush.verticalGradient(
+        colors = listOf(
+            MaterialTheme.colorScheme.background,
+            if (isDarkTheme) MaterialTheme.colorScheme.background else Color(0xFFF5F2EA),
+            panelColor
+        )
+    )
 
     LaunchedEffect(userTopics) {
         userTopics.forEach { topic ->
@@ -94,17 +109,27 @@ fun UserTopicListScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFF4CAF50),
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 expandedHeight = 94.dp,
-                windowInsets = WindowInsets(0),
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF4CAF50)
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent
                 ),
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "back", tint = Color.White)
+                    IconButton(
+                        onClick = { navController.navigateUp() },
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
+                    ) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "back",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
                 title = {
@@ -121,10 +146,10 @@ fun UserTopicListScreen(
                             Box(
                                 modifier = Modifier
                                     .size(44.dp)
-                                    .border(2.5.dp, Color.White, androidx.compose.foundation.shape.CircleShape)
+                                    .border(2.5.dp, borderColor, androidx.compose.foundation.shape.CircleShape)
                                     .padding(2.dp)
                                     .clip(androidx.compose.foundation.shape.CircleShape)
-                                    .background(Color(0xFF1B3A2D)),
+                                    .background(accentSoftColor),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (!currentUser?.avatarUrl.isNullOrBlank()) {
@@ -137,7 +162,7 @@ fun UserTopicListScreen(
                                 } else {
                                     Text(
                                         text = currentUser?.name?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-                                        color = Color.White,
+                                        color = accentColor,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -151,7 +176,7 @@ fun UserTopicListScreen(
                             ) {
                                 Text(
                                     text = "Thư mục của tôi",
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onBackground,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 17.sp
                                 )
@@ -165,7 +190,7 @@ fun UserTopicListScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Surface(
-                                        color = Color(0xFF388E3C),
+                                        color = accentSoftColor,
                                         shape = RoundedCornerShape(20.dp)
                                     ) {
                                         Row(
@@ -175,13 +200,13 @@ fun UserTopicListScreen(
                                             Icon(
                                                 imageVector = Icons.Default.CheckCircle,
                                                 contentDescription = null,
-                                                tint = Color.White,
+                                                tint = accentColor,
                                                 modifier = Modifier.size(12.dp)
                                             )
                                             Spacer(Modifier.width(4.dp))
                                             Text(
                                                 text = "$totalLearned/$totalWords đã học",
-                                                color = Color.White,
+                                                color = accentTextColor,
                                                 fontSize = 11.sp,
                                                 fontWeight = FontWeight.Medium
                                             )
@@ -200,7 +225,7 @@ fun UserTopicListScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF4CAF50))
+                    .background(MaterialTheme.colorScheme.background)
 
             ){}
         }
@@ -208,28 +233,27 @@ fun UserTopicListScreen(
         Box(modifier = Modifier
             .fillMaxSize()
             .padding(inner)
-            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .background(Color(0xFF1A1A1A))) {
+            .background(backgroundBrush)) {
 
             when {
                 isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF4CAF50))
+                    CircularProgressIndicator(color = accentColor)
                 }
                 error != null -> Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     Text("⚠️", fontSize = MaterialTheme.typography.headlineMedium.fontSize)
-                    Text(error ?: "", color = Color.Gray)
+                    Text(error ?: "", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f))
                     Spacer(Modifier.height(12.dp))
-                    Button(onClick = { viewModel.loadUserTopics() }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))) { Text("Thử lại") }
+                    Button(onClick = { viewModel.loadUserTopics() }, colors = ButtonDefaults.buttonColors(containerColor = accentColor)) { Text("Thử lại") }
                 }
                 userTopics.isEmpty() -> Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     Text("📂", fontSize = MaterialTheme.typography.headlineLarge.fontSize)
                     Spacer(Modifier.height(12.dp))
-                    Text("Chưa có thư mục nào", color = Color.White)
+                    Text("Chưa có thư mục nào", color = MaterialTheme.colorScheme.onBackground)
                 }
                 else -> LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color(0xFF1A1A1A)),
+                        .background(Color.Transparent),
                     contentPadding = PaddingValues(top = 28.dp, bottom = 120.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(28.dp)
@@ -249,7 +273,7 @@ fun UserTopicListScreen(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .background(Color(0xFF232323))
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 20.dp, vertical = 14.dp)
             ) {
                 Row(
@@ -259,14 +283,14 @@ fun UserTopicListScreen(
                 ) {
                     Text(
                         text = "Không có từ nào cần luyện tập",
-                        color = Color(0xFFB0B0B0),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                         fontSize = 14.sp
                     )
                         var showPracticeSheet by remember { mutableStateOf(false) }
                         Icon(
                             imageVector = Icons.Default.Menu,
                             contentDescription = null,
-                            tint = Color.Gray,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                             modifier = Modifier.clickable {
                                 viewModel.loadSelfPracticeWords()
                                 showPracticeSheet = true
@@ -287,7 +311,7 @@ fun UserTopicListScreen(
 
             FloatingActionButton(
                 onClick = { viewModel.showCreateDialog() },
-                containerColor = Color(0xFF4CAF50),
+                containerColor = accentColor,
                 contentColor = Color.White,
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
@@ -351,6 +375,10 @@ fun UserTopicCircleItem(
     learnedCount: Int,
     onClick: () -> Unit
 ) {
+    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val accentColor = if (isDarkTheme) Color(0xFF4CAF50) else Color(0xFF2F7D62)
+    val cardColor = MaterialTheme.colorScheme.surface
+    val iconMutedColor = if (isDarkTheme) Color(0xFF9A97A8) else Color(0xFF8B938F)
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -366,18 +394,18 @@ fun UserTopicCircleItem(
                 .size(110.dp)
                 .border(
                     width = 3.5.dp,
-                    color = Color(0xFF4CAF50),
+                    color = accentColor,
                     shape = androidx.compose.foundation.shape.CircleShape
                 )
                 .padding(5.dp)
                 .clip(androidx.compose.foundation.shape.CircleShape)
-                .background(Color(0xFF2A2A2A)),
+                .background(cardColor),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Image,
                 contentDescription = null,
-                tint = Color(0xFF5A5A5A),
+                tint = iconMutedColor,
                 modifier = Modifier.size(44.dp)
             )
         }
@@ -386,7 +414,7 @@ fun UserTopicCircleItem(
 
         Text(
             text = topic.name,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
@@ -404,13 +432,13 @@ fun UserTopicCircleItem(
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = null,
-                    tint = Color(0xFF4CAF50),
+                    tint = accentColor,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(Modifier.width(3.dp))
                 Text(
                     text = "$learnedCount/$wordCount",
-                    color = Color(0xFF4CAF50),
+                    color = accentColor,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold
                 )
