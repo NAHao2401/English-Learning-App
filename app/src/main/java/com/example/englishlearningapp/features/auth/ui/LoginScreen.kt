@@ -100,6 +100,7 @@ fun LoginScreen(
 
     LaunchedEffect(uiState.isLoginSuccess) {
         if (uiState.isLoginSuccess) {
+            viewModel.clearLoginSuccess()
             onLoginSuccess()
         }
     }

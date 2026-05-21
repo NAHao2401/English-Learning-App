@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -55,11 +56,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.englishlearningapp.features.profile.viewmodel.ProfileViewModel
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.window.Dialog
 
 @Composable
 fun ProfileScreen(
@@ -226,11 +237,6 @@ fun ProfileScreen(
                     contentColor = Color(0xFF6C63FF)
                 )
             ) {
-                Icon(
-                    imageVector = Icons.Rounded.Lock,
-                    contentDescription = "Change Password"
-                )
-
                 Spacer(modifier = Modifier.width(10.dp))
 
                 Text(
@@ -551,129 +557,327 @@ private fun ChangePasswordDialog(
     var currentPassword by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+
+    var currentPasswordVisible by remember { mutableStateOf(false) }
+    var newPasswordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+
     var message by remember { mutableStateOf<String?>(null) }
     var isSuccess by remember { mutableStateOf(false) }
 
-    AlertDialog(
+    val isFormValid = currentPassword.isNotBlank() &&
+            newPassword.isNotBlank() &&
+            confirmPassword.isNotBlank()
+
+    Dialog(
         onDismissRequest = {
-            if (!isLoading) {
-                onDismiss()
-            }
-        },
-        icon = {
-            Icon(
-                imageVector = Icons.Rounded.Lock,
-                contentDescription = null,
-                tint = Color(0xFF6C63FF)
-            )
-        },
-        title = {
-            Text(
-                text = "Change Password",
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Column {
-                OutlinedTextField(
+            if (!isLoading) onDismiss()
+        }
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(0.96f),
+            shape = RoundedCornerShape(26.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 20.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Lock,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Change Password",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Text(
+                            text = "Keep your account secure",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+
+                    IconButton(
+                        onClick = onDismiss,
+                        enabled = !isLoading,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Close,
+                            contentDescription = "Close",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(22.dp))
+
+                PasswordTextField(
                     value = currentPassword,
                     onValueChange = {
                         currentPassword = it
                         message = null
                     },
-                    label = { Text("Current password") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    label = "Current password",
+                    visible = currentPasswordVisible,
+                    onToggleVisibility = {
+                        currentPasswordVisible = !currentPasswordVisible
+                    }
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                OutlinedTextField(
+                PasswordTextField(
                     value = newPassword,
                     onValueChange = {
                         newPassword = it
                         message = null
                     },
-                    label = { Text("New password") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    label = "New password",
+                    visible = newPasswordVisible,
+                    onToggleVisibility = {
+                        newPasswordVisible = !newPasswordVisible
+                    },
+                    supportingText = "At least 6 characters"
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                OutlinedTextField(
+                PasswordTextField(
                     value = confirmPassword,
                     onValueChange = {
                         confirmPassword = it
                         message = null
                     },
-                    label = { Text("Confirm new password") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    label = "Confirm password",
+                    visible = confirmPasswordVisible,
+                    onToggleVisibility = {
+                        confirmPasswordVisible = !confirmPasswordVisible
+                    },
+                    isError = confirmPassword.isNotEmpty() && newPassword != confirmPassword,
+                    supportingText = if (
+                        confirmPassword.isNotEmpty() && newPassword != confirmPassword
+                    ) {
+                        "Password does not match"
+                    } else {
+                        null
+                    }
                 )
 
                 if (message != null) {
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
-                    Text(
-                        text = message ?: "",
-                        color = if (isSuccess) Color(0xFF43A047) else Color(0xFFE53935),
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(
+                                if (isSuccess) {
+                                    Color(0xFFE8F5E9)
+                                } else {
+                                    Color(0xFFFFEBEE)
+                                }
+                            )
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (isSuccess) {
+                                Icons.Rounded.CheckCircle
+                            } else {
+                                Icons.Rounded.Error
+                            },
+                            contentDescription = null,
+                            tint = if (isSuccess) Color(0xFF2E7D32) else Color(0xFFC62828),
+                            modifier = Modifier.size(18.dp)
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Text(
+                            text = message.orEmpty(),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = if (isSuccess) Color(0xFF2E7D32) else Color(0xFFC62828)
+                        )
+                    }
                 }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    onChangePassword(
-                        currentPassword,
-                        newPassword,
-                        confirmPassword
-                    ) { success, resultMessage ->
-                        isSuccess = success
-                        message = resultMessage
 
-                        if (success) {
-                            currentPassword = ""
-                            newPassword = ""
-                            confirmPassword = ""
+                Spacer(modifier = Modifier.height(22.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        enabled = !isLoading,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(50.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(
+                            text = "Cancel",
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            onChangePassword(
+                                currentPassword,
+                                newPassword,
+                                confirmPassword
+                            ) { success, resultMessage ->
+                                isSuccess = success
+                                message = resultMessage
+
+                                if (success) {
+                                    currentPassword = ""
+                                    newPassword = ""
+                                    confirmPassword = ""
+                                }
+                            }
+                        },
+                        enabled = !isLoading && isFormValid,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(50.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = Color.White
+                            )
+                        } else {
+                            Text(
+                                text = "Save",
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
-                },
-                enabled = !isLoading
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color = Color.White
-                    )
-                } else {
-                    Text("Save")
                 }
             }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-                enabled = !isLoading
-            ) {
-                Text("Cancel")
-            }
         }
+    }
+}
+
+@Composable
+private fun PasswordTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    visible: Boolean,
+    onToggleVisibility: () -> Unit,
+    isError: Boolean = false,
+    supportingText: String? = null
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 58.dp),
+        singleLine = true,
+        placeholder = {
+            Text(
+                text = label,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Rounded.Lock,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+        },
+        trailingIcon = {
+            IconButton(
+                onClick = onToggleVisibility,
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    imageVector = if (visible) {
+                        Icons.Rounded.VisibilityOff
+                    } else {
+                        Icons.Rounded.Visibility
+                    },
+                    contentDescription = if (visible) {
+                        "Hide password"
+                    } else {
+                        "Show password"
+                    },
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        },
+        visualTransformation = if (visible) {
+            VisualTransformation.None
+        } else {
+            PasswordVisualTransformation()
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password
+        ),
+        isError = isError,
+        supportingText = {
+            if (!supportingText.isNullOrBlank()) {
+                Text(
+                    text = supportingText,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        },
+        shape = RoundedCornerShape(16.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f),
+            focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+            unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+            focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+            unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+            cursorColor = MaterialTheme.colorScheme.primary
+        )
     )
 }

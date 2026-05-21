@@ -71,4 +71,12 @@ class AuthViewModel(context: Context) : ViewModel() {
     fun clearError() {
         _uiState.value = _uiState.value.copy(errorMessage = null)
     }
+
+    fun clearLoginSuccess() {
+        _uiState.value = _uiState.value.copy(isLoginSuccess = false)
+    }
+
+    fun resetState() {
+        _uiState.value = AuthUiState()
+    }
 }

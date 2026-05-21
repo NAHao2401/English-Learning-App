@@ -154,7 +154,13 @@ fun AppNavGraph(
         NavHost(
             navController = navController,
             startDestination = startDestination,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(
+                bottom = if (showBottomBar) {
+                    innerPadding.calculateBottomPadding()
+                } else {
+                    0.dp
+                }
+            )
         ) {
             composable(Screen.Login.route) {
                 LoginScreen(
@@ -420,8 +426,10 @@ fun AppNavGraph(
                 ProfileScreen(
                     viewModel = profileViewModel,
                     onLogoutSuccess = {
+                        authViewModel.resetState()
+
                         navController.navigate(Screen.Login.route) {
-                            popUpTo(Screen.Home.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
                                 inclusive = true
                             }
                             launchSingleTop = true
