@@ -63,6 +63,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.example.englishlearningapp.data.remote.NetworkConfig
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -850,11 +851,12 @@ private fun AudioPlayerCard(
                                 isPlaying = true
                             } else {
                                 isPreparing = true
+                                val fullAudioUrl = resolveAudioUrl(audioUrl)
 
                                 try {
                                     val player = MediaPlayer()
 
-                                    player.setDataSource(audioUrl)
+                                    player.setDataSource(fullAudioUrl)
                                     player.setOnPreparedListener {
                                         isPreparing = false
                                         it.start()
@@ -937,5 +939,17 @@ private fun AudioPlayerCard(
                 modifier = Modifier.size(24.dp)
             )
         }
+    }
+}
+
+private fun resolveAudioUrl(audioUrl: String): String {
+    if (audioUrl.startsWith("http://") || audioUrl.startsWith("https://")) {
+        return audioUrl
+    }
+
+    return if (audioUrl.startsWith("/")) {
+        NetworkConfig.BASE_URL.trimEnd('/') + audioUrl
+    } else {
+        NetworkConfig.BASE_URL + audioUrl
     }
 }
