@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.englishlearningapp.data.local.db.DatabaseProvider
 import com.example.englishlearningapp.data.local.db.AppDatabase
+import com.example.englishlearningapp.data.local.db.entity.TopicEntity
 import com.example.englishlearningapp.data.local.db.entity.TopicWithCount
 import com.example.englishlearningapp.data.local.db.entity.UserEntity
 import com.example.englishlearningapp.data.local.db.entity.VocabularyEntity
@@ -34,6 +35,11 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+private const val VOCAB_TOPIC_MIN_ID = 7
+
+private val TopicEntity.displayTopicId: Int
+    get() = remoteTopicId ?: id
 
 class VocabViewModel(context: Context) : ViewModel() {
 
@@ -85,6 +91,11 @@ class VocabViewModel(context: Context) : ViewModel() {
     val isLoadingLearned: StateFlow<Boolean> = _isLoadingLearned.asStateFlow()
 
     val topics: StateFlow<List<TopicWithCount>> = repository.getTopicsWithWordCount()
+        .map { topics ->
+            topics.filter { topicWithCount ->
+                topicWithCount.topic.displayTopicId >= VOCAB_TOPIC_MIN_ID
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val vocabCountByLevel: StateFlow<Map<String, Int>> = _vocabCountByLevel.asStateFlow()
@@ -171,9 +182,12 @@ class VocabViewModel(context: Context) : ViewModel() {
     fun loadTopics() {
         viewModelScope.launch(Dispatchers.IO) {
             if (_selectedTopicId.value == null) {
-                repository.getTopicsWithWordCount().firstOrNull()?.firstOrNull()?.let { firstTopic ->
-                    _selectedTopicId.value = firstTopic.topic.id
-                }
+                repository.getTopicsWithWordCount()
+                    .firstOrNull()
+                    ?.firstOrNull { it.topic.displayTopicId >= VOCAB_TOPIC_MIN_ID }
+                    ?.let { firstTopic ->
+                        _selectedTopicId.value = firstTopic.topic.id
+                    }
             }
         }
     }

@@ -3,11 +3,18 @@ package com.example.englishlearningapp.navigation
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoStories
@@ -20,8 +27,6 @@ import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,13 +34,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavController
@@ -94,10 +98,11 @@ import com.example.englishlearningapp.features.vocab.ui.StudyFlashcardSessionScr
 import com.example.englishlearningapp.features.vocab.ui.TopicDetailScreen
 import com.example.englishlearningapp.features.vocab.ui.VocabScreen
 import com.example.englishlearningapp.features.vocab.ui.VocabSearchScreen
+import com.example.englishlearningapp.features.vocab.ui.vocabScreenBackground
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModelFactory
 
-@SuppressLint("UnrememberedGetBackStackEntry")
+@SuppressLint("UnrememberedGetBackStackEntry", "UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun AppNavGraph(
     context: Context,
@@ -138,6 +143,11 @@ fun AppNavGraph(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = shouldShowBottomBar(currentRoute)
+    val contentBackgroundColor = if (isVocabRelatedRoute(currentRoute)) {
+        vocabScreenBackground()
+    } else {
+        MaterialTheme.colorScheme.background
+    }
 
     Scaffold(
         bottomBar = {
@@ -150,18 +160,17 @@ fun AppNavGraph(
                 )
             }
         }
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = startDestination,
-            modifier = Modifier.padding(
-                bottom = if (showBottomBar) {
-                    innerPadding.calculateBottomPadding()
-                } else {
-                    0.dp
-                }
-            )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(contentBackgroundColor)
         ) {
+            NavHost(
+                navController = navController,
+                startDestination = startDestination,
+                modifier = Modifier.fillMaxSize()
+            ) {
             composable(Screen.Login.route) {
                 LoginScreen(
                     viewModel = authViewModel,
@@ -437,6 +446,7 @@ fun AppNavGraph(
                     }
                 )
             }
+            }
         }
     }
 }
@@ -444,19 +454,18 @@ fun AppNavGraph(
 
 private data class BottomNavItem(
     val label: String,
-    val shortLabel: String,
     val route: String,
     val icon: ImageVector
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(label = "Home", shortLabel = "Home", route = Screen.Home.route, icon = Icons.Rounded.Home),
-    BottomNavItem(label = "Lessons", shortLabel = "Lessons", route = Screen.TopicList.route, icon = Icons.Rounded.AutoStories),
-    BottomNavItem(label = "Vocabulary", shortLabel = "Vocab", route = Screen.Vocab.route, icon = Icons.Rounded.Translate),
-    BottomNavItem(label = "AI Scan", shortLabel = "Scan", route = Screen.AiScan.route, icon = Icons.Rounded.CameraAlt),
-    BottomNavItem(label = "Speaking", shortLabel = "Speak", route = Screen.Speaking.route, icon = Icons.Rounded.Mic),
-    BottomNavItem(label = "Progress", shortLabel = "Progress", route = Screen.Progress.route, icon = Icons.Rounded.BarChart),
-    BottomNavItem(label = "Profile", shortLabel = "Profile", route = Screen.Profile.route, icon = Icons.Rounded.Person)
+    BottomNavItem(label = "Home", route = Screen.Home.route, icon = Icons.Rounded.Home),
+    BottomNavItem(label = "Lessons", route = Screen.TopicList.route, icon = Icons.Rounded.AutoStories),
+    BottomNavItem(label = "Vocabulary", route = Screen.Vocab.route, icon = Icons.Rounded.Translate),
+    BottomNavItem(label = "AI Scan", route = Screen.AiScan.route, icon = Icons.Rounded.CameraAlt),
+    BottomNavItem(label = "Speaking", route = Screen.Speaking.route, icon = Icons.Rounded.Mic),
+    BottomNavItem(label = "Progress", route = Screen.Progress.route, icon = Icons.Rounded.BarChart),
+    BottomNavItem(label = "Profile", route = Screen.Profile.route, icon = Icons.Rounded.Person)
 )
 
 private fun shouldShowBottomBar(route: String?): Boolean {
@@ -475,23 +484,7 @@ private fun shouldShowBottomBar(route: String?): Boolean {
     )
     if (route in primary) return true
 
-    // Also show bottom bar on any Vocab-related screens (including parameterized routes)
-    val vocabPrefixes = listOf(
-        Screen.Vocab.route,                // "vocab"
-        Screen.VocabSearch.route,
-        Screen.SavedVocab.route,           // "saved_vocab"
-        Screen.ReviewQuiz.route,           // "review_quiz"
-        "review_quiz_listening",
-        "review_quiz_challenge",
-        Screen.LearnedWords.route,         // "learned_words"
-        "topic_detail/",
-        "cefr_detail/",
-        "cefr_level_detail/",
-        "flashcard/",
-        "study_flashcard/"
-    )
-
-    if (vocabPrefixes.any { route.startsWith(it) }) return true
+    if (isVocabRelatedRoute(route)) return true
 
     // keep lessons behavior
     if (route == Screen.LessonList.route) return true
@@ -499,9 +492,44 @@ private fun shouldShowBottomBar(route: String?): Boolean {
     return false
 }
 
+private fun isVocabRelatedRoute(route: String?): Boolean {
+    if (route == null) return false
+
+    // Also show bottom bar on any Vocab-related screens (including parameterized routes)
+    val vocabPrefixes = listOf(
+        Screen.Vocab.route,                // "vocab"
+        Screen.AllTopics.route,
+        Screen.VocabSearch.route,
+        Screen.UserTopics.route,
+        Screen.SavedVocab.route,           // "saved_vocab"
+        Screen.ReviewQuiz.route,           // "review_quiz"
+        "review_quiz_listening",
+        "review_quiz_challenge",
+        Screen.SelfPracticeNormal.route,
+        Screen.SelfPracticeListening.route,
+        Screen.SelfPracticeChallenge.route,
+        Screen.LearnedWords.route,         // "learned_words"
+        "user_topic_detail/",
+        "topic_detail/",
+        "cefr_detail/",
+        "cefr_level_detail/",
+        "flashcard/",
+        "study_flashcard/"
+    )
+
+    return vocabPrefixes.any { route.startsWith(it) }
+}
+
 private fun isBottomItemSelected(currentRoute: String?, itemRoute: String): Boolean {
     return when (itemRoute) {
         Screen.TopicList.route -> (currentRoute == Screen.TopicList.route || currentRoute == Screen.LessonList.route || currentRoute == Screen.LessonDetail.route)
+        Screen.Vocab.route -> currentRoute == Screen.Vocab.route ||
+            currentRoute == Screen.AllTopics.route ||
+            currentRoute == Screen.UserTopics.route ||
+            currentRoute == Screen.SelfPracticeNormal.route ||
+            currentRoute == Screen.SelfPracticeListening.route ||
+            currentRoute == Screen.SelfPracticeChallenge.route ||
+            currentRoute?.startsWith("user_topic_detail/") == true
         else -> currentRoute == itemRoute
     }
 }
@@ -520,14 +548,40 @@ private fun AppBottomNavigationBar(currentRoute: String?, onItemClick: (String) 
         NavigationBar(modifier = Modifier.height(72.dp), containerColor = Color.White, tonalElevation = 0.dp) {
             bottomNavItems.forEach { item ->
                 val selected = isBottomItemSelected(currentRoute = currentRoute, itemRoute = item.route)
-                NavigationBarItem(
-                    selected = selected,
-                    onClick = { onItemClick(item.route) },
-                    icon = { Icon(imageVector = item.icon, contentDescription = item.label) },
-                    label = { Text(text = item.shortLabel, fontSize = 9.sp, lineHeight = 10.sp, maxLines = 1, overflow = TextOverflow.Clip) },
-                    alwaysShowLabel = true,
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = Color(0xFF6C63FF), selectedTextColor = Color(0xFF6C63FF), indicatorColor = Color(0xFFE9E7FF), unselectedIconColor = Color(0xFF8D8A99), unselectedTextColor = Color(0xFF8D8A99))
-                )
+                val interactionSource = remember { MutableInteractionSource() }
+                val pressed by interactionSource.collectIsPressedAsState()
+                val hovered by interactionSource.collectIsHoveredAsState()
+                val showIconBackground = pressed || hovered
+                val iconColor = if (selected) Color(0xFF6C63FF) else Color(0xFF8D8A99)
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            onClick = { onItemClick(item.route) }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .background(
+                                color = if (showIconBackground) Color(0xFFD1CFE5) else Color.Transparent,
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.label,
+                            tint = iconColor,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                }
             }
         }
     }

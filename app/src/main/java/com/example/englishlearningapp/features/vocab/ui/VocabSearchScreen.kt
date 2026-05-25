@@ -269,7 +269,7 @@ fun VocabSearchScreen(
 
                 else -> {
                     LazyColumn(
-                        contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)
+                        contentPadding = PaddingValues(top = 8.dp, bottom = 120.dp)
                     ) {
                         items(
                             items = searchResults,

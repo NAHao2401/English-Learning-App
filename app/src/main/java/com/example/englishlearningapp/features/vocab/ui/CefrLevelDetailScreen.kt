@@ -236,7 +236,7 @@ fun CefrLevelDetailScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(
                             top = 32.dp,
-                            bottom = 32.dp
+                            bottom = 120.dp
                         ),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(32.dp)

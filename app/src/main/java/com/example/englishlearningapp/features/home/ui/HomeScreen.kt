@@ -143,7 +143,7 @@ fun HomeScreen(
                 start = 20.dp,
                 end = 20.dp,
                 top = 18.dp,
-                bottom = 28.dp
+                bottom = 120.dp
             ),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {

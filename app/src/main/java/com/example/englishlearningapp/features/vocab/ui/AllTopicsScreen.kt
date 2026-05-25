@@ -156,7 +156,7 @@ fun AllTopicsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(bottom = 24.dp)
+            contentPadding = PaddingValues(bottom = 120.dp)
         ) {
             item {
                 SectionHeader(

@@ -149,6 +149,7 @@ fun TopicDetailScreen(
                     .background(vocabScreenBackground())
                     .padding(horizontal = 16.dp, vertical = 10.dp)
                     .navigationBarsPadding()
+                    .padding(bottom = 72.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -260,7 +261,15 @@ fun TopicDetailScreen(
                     Text("Không có từ vựng nào", color = textSecondary)
                 }
 
-                else -> LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
+                else -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 8.dp,
+                        bottom = 120.dp
+                    )
+                ) {
                     items(items = topicVocabs, key = { it.id }, contentType = { "vocab" }) { vocab: VocabularyResponse ->
                         val mastery = topicProgress[vocab.id]?.masteryLevel ?: 0
 

@@ -272,6 +272,7 @@ fun UserTopicListScreen(
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
+                    .padding(bottom = 72.dp)
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 20.dp, vertical = 14.dp)
@@ -316,7 +317,7 @@ fun UserTopicListScreen(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 88.dp)
+                    .padding(end = 16.dp, bottom = 160.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,

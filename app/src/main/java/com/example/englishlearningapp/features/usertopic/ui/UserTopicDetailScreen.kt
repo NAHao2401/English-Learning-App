@@ -181,7 +181,15 @@ fun UserTopicDetailScreen(
                 else -> {
                     val learnedMastery by viewModel.learnedVocabMastery.collectAsState(initial = emptyMap())
 
-                    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 8.dp,
+                            bottom = 120.dp
+                        )
+                    ) {
                         items(items = topicVocabs, key = { it.id }, contentType = { "vocab" }) { vocab ->
                             val mastery = learnedMastery[vocab.id] ?: 0
 

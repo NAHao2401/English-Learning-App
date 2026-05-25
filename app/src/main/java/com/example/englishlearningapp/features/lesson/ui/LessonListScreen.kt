@@ -163,7 +163,7 @@ private fun LessonListContent(
             start = 20.dp,
             end = 20.dp,
             top = 16.dp,
-            bottom = 28.dp
+            bottom = 120.dp
         ),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {

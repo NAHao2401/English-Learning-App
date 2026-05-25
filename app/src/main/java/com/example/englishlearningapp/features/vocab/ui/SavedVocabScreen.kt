@@ -155,7 +155,7 @@ fun SavedVocabScreen(
                         start = 16.dp,
                         end = 16.dp,
                         top = 8.dp,
-                        bottom = if (savedVocabs.size >= 4) 96.dp else 16.dp
+                        bottom = 120.dp
                     ),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -183,7 +183,7 @@ fun SavedVocabScreen(
                     visible = savedVocabs.size >= 4,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 16.dp)
+                        .padding(bottom = 88.dp)
                 ) {
                     ExtendedFloatingActionButton(
                         onClick = {

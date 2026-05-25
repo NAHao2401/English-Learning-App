@@ -735,13 +735,6 @@ private fun ListeningPromptSection(
     audioUrl: String?
 ) {
     Column {
-        Text(
-            text = "Listening prompt",
-            style = MaterialTheme.typography.labelMedium,
-            color = Color(0xFF666274),
-            fontWeight = FontWeight.SemiBold
-        )
-
         Spacer(modifier = Modifier.height(8.dp))
 
         if (audioUrl.isNullOrBlank()) {
