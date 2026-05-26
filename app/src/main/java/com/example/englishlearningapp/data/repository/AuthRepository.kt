@@ -5,6 +5,7 @@ import com.example.englishlearningapp.core.util.ErrorParser
 import com.example.englishlearningapp.data.local.datastore.AppDataStore
 import com.example.englishlearningapp.data.remote.api.RetrofitClient
 import com.example.englishlearningapp.data.remote.api.request.ChangePasswordRequest
+import com.example.englishlearningapp.data.remote.api.request.GoogleLoginRequest
 import com.example.englishlearningapp.data.remote.api.request.LoginRequest
 import com.example.englishlearningapp.data.remote.api.request.RegisterRequest
 import org.json.JSONObject
@@ -36,6 +37,35 @@ class AuthRepository(context: Context) {
             } else {
                 val errorBody = response.errorBody()?.string()
                 val message = parseErrorMessage(errorBody) ?: "Login failed"
+                Result.failure(Exception(message))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception(e.message ?: "Network error"))
+        }
+    }
+
+    suspend fun loginWithGoogle(idToken: String): Result<Unit> {
+        return try {
+            val response = authApi.loginWithGoogle(GoogleLoginRequest(idToken))
+
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null) {
+                    appDataStore.saveAuthSession(
+                        userId = body.user.id,
+                        userName = body.user.name,
+                        userEmail = body.user.email,
+                        accessToken = body.access_token,
+                        tokenType = body.token_type,
+                        refreshToken = body.refresh_token
+                    )
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception("Response body is null"))
+                }
+            } else {
+                val errorBody = response.errorBody()?.string()
+                val message = parseErrorMessage(errorBody) ?: "Google login failed"
                 Result.failure(Exception(message))
             }
         } catch (e: Exception) {

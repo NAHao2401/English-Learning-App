@@ -1,24 +1,42 @@
+# Gradle
 .gradle/
 build/
 **/build/
+
+# Local config
 local.properties
+.env
+.env.*
+secret.properties
+secrets.properties
+keystore.properties
+
+# IDE
 .idea/
+.vscode/
 *.iml
-*.log
-.DS_Store
-Thumbs.db
+
+# Kotlin / Android build cache
 .kotlin/
 captures/
 .externalNativeBuild/
 .cxx/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Generated Android packages
 *.apk
 *.aab
+
+# Signing keys
 *.jks
-*.md
 *.keystore
-.env
-.env.*
-secret.properties
-keystore.properties
-*.md
-.vscode/
+
+# Google / Firebase config
+google-services.json
+GoogleService-Info.plist

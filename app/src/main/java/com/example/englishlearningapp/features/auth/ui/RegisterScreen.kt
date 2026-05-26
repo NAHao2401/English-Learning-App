@@ -364,44 +364,6 @@ fun RegisterScreen(
                             }
                         }
 
-                        RegisterOrContinueDivider(
-                            textColor = secondaryText,
-                            strokeColor = subtleStroke
-                        )
-
-                        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-
-                            RegisterSocialButton(
-                                label = "Continue with Google",
-                                iconText = "G",
-                                iconContainerColor = accentBlue,
-                                primaryText = primaryText,
-                                strokeColor = Color(0xFFE4EDFF),
-                                onClick = {
-                                    Toast.makeText(
-                                        context,
-                                        "Google login is coming soon",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            )
-
-                            RegisterSocialButton(
-                                label = "Continue with Apple",
-                                iconText = "A",
-                                iconContainerColor = primaryText,
-                                primaryText = primaryText,
-                                strokeColor = Color(0xFFE4EDFF),
-                                onClick = {
-                                    Toast.makeText(
-                                        context,
-                                        "Apple login is coming soon",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            )
-                        }
-
                         RegisterSignInPrompt(
                             onNavigateToLogin = {
                                 viewModel.clearError()

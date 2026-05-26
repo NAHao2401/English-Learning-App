@@ -39,6 +39,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +49,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -59,6 +61,14 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.englishlearningapp.features.auth.viewmodel.AuthViewModel
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
+import com.example.englishlearningapp.R
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -91,6 +101,8 @@ fun LoginScreen(
     var showSuccessDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val serverClientId = stringResource(id = R.string.default_web_client_id)
 
     LaunchedEffect(uiState.isRegisterSuccess) {
         if(uiState.isRegisterSuccess){
@@ -273,15 +285,6 @@ fun LoginScreen(
                                 strokeColor = subtleStroke
                             )
 
-                            Text(
-                                text = "Forgot password?",
-                                color = accentBlue,
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            )
-
                             if (uiState.errorMessage != null) {
                                 Text(
                                     text = uiState.errorMessage.orEmpty(),
@@ -340,26 +343,53 @@ fun LoginScreen(
                                 primaryText = primaryText,
                                 strokeColor = Color(0xFFE4EDFF),
                                 onClick = {
-                                    Toast.makeText(
-                                        context,
-                                        "Google login is coming soon",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            )
+                                    coroutineScope.launch {
+                                        try {
+                                            val credentialManager = CredentialManager.create(context)
 
-                            SocialLoginButton(
-                                label = "Continue with Apple",
-                                iconText = "A",
-                                iconContainerColor = primaryText,
-                                primaryText = primaryText,
-                                strokeColor = Color(0xFFE4EDFF),
-                                onClick = {
-                                    Toast.makeText(
-                                        context,
-                                        "Apple login is coming soon",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                            val googleIdOption = GetGoogleIdOption.Builder()
+                                                .setFilterByAuthorizedAccounts(false)
+                                                .setServerClientId(serverClientId)
+                                                .build()
+
+                                            val request = GetCredentialRequest.Builder()
+                                                .addCredentialOption(googleIdOption)
+                                                .build()
+
+                                            val result = credentialManager.getCredential(
+                                                context = context,
+                                                request = request
+                                            )
+
+                                            val credential = result.credential
+
+                                            if (
+                                                credential is CustomCredential &&
+                                                credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                                            ) {
+                                                val googleCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                                                viewModel.loginWithGoogle(googleCredential.idToken)
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Invalid Google credential",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        } catch (e: GetCredentialException) {
+                                            Toast.makeText(
+                                                context,
+                                                e.message ?: "Google sign-in was cancelled",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        } catch (e: Exception) {
+                                            Toast.makeText(
+                                                context,
+                                                e.message ?: "Google login failed",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
                                 }
                             )
                         }

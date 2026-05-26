@@ -1,6 +1,7 @@
 package com.example.englishlearningapp.data.remote.api
 
 import com.example.englishlearningapp.data.remote.api.request.ChangePasswordRequest
+import com.example.englishlearningapp.data.remote.api.request.GoogleLoginRequest
 import com.example.englishlearningapp.data.remote.api.request.LoginRequest
 import com.example.englishlearningapp.data.remote.api.request.RegisterRequest
 import com.example.englishlearningapp.data.remote.api.response.ChangePasswordResponse
@@ -23,8 +24,14 @@ interface AuthApiService {
         @Body request: LoginRequest
     ): Response<LoginResponse>
 
+    @POST("auth/google")
+    suspend fun loginWithGoogle(
+        @Body request: GoogleLoginRequest
+    ): Response<LoginResponse>
+
     @PUT("auth/me/password")
     suspend fun changePassword(
         @Body request: ChangePasswordRequest
     ): Response<ChangePasswordResponse>
+
 }

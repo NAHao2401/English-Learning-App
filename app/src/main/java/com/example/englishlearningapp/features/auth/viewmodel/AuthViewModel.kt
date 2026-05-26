@@ -36,6 +36,27 @@ class AuthViewModel(context: Context) : ViewModel() {
         }
     }
 
+    fun loginWithGoogle(idToken: String) {
+        if (idToken.isBlank()) {
+            _uiState.value = AuthUiState(errorMessage = "Google token is empty")
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+
+            val result = repository.loginWithGoogle(idToken)
+
+            _uiState.value = if (result.isSuccess) {
+                AuthUiState(isLoginSuccess = true)
+            } else {
+                AuthUiState(
+                    errorMessage = result.exceptionOrNull()?.message ?: "Google login failed"
+                )
+            }
+        }
+    }
+
     fun register(name: String, email: String, password: String, confirmPassword: String) {
         if (name.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
             _uiState.value = AuthUiState(errorMessage = "Please fill in all fields")
