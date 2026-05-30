@@ -91,12 +91,11 @@ fun UserTopicListScreen(
     val accentTextColor = if (isDarkTheme) Color(0xFF2E7D32) else Color(0xFF25684F)
     val accentSoftColor = if (isDarkTheme) Color(0xFFE8F5E9) else Color(0xFFEAF4EF)
     val borderColor = if (isDarkTheme) Color(0xFFE6E2F2) else Color(0xFFE2E7E4)
-    val panelColor = if (isDarkTheme) MaterialTheme.colorScheme.surface else Color(0xFFFCFBF7)
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
             MaterialTheme.colorScheme.background,
-            if (isDarkTheme) MaterialTheme.colorScheme.background else Color(0xFFF5F2EA),
-            panelColor
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface
         )
     )
 
@@ -123,7 +122,7 @@ fun UserTopicListScreen(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFE9E7FF))
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                     ) {
                         Icon(
                             Icons.Default.ArrowBack,

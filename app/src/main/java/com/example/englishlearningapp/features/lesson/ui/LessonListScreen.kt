@@ -129,12 +129,12 @@ fun LessonListScreen(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFE9E7FF))
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 },
@@ -336,7 +336,7 @@ private fun HeroStatChip(
             )
             Text(
                 text = label,
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
+                color = Color.White.copy(alpha = 0.88f),
                 style = MaterialTheme.typography.labelSmall
             )
         }
@@ -355,7 +355,7 @@ private fun SectionHeader() {
         Text(
             text = "Choose a lesson and continue where you left off",
             style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF7B778C)
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
         )
     }
 }
@@ -453,7 +453,7 @@ private fun LessonCard(
                                         text = lesson.title,
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.ExtraBold,
-                                        color = if (enabled) Color(0xFF242235) else lockedColors.title,
+                                        color = if (enabled) MaterialTheme.colorScheme.onSurface else lockedColors.title,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                         modifier = Modifier.weight(1f)
@@ -479,7 +479,7 @@ private fun LessonCard(
                                     text = lesson.description?.takeIf { it.isNotBlank() }
                                         ?: "Improve your English through this focused lesson.",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = if (enabled) Color(0xFF6E6A7D) else lockedColors.body,
+                                    color = if (enabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f) else lockedColors.body,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -509,8 +509,8 @@ private fun LessonCard(
                             LessonMetaPill(
                                 icon = Icons.Rounded.AccessTime,
                                 text = estimatedTime,
-                                background = if (enabled) Color(0xFFF5F4FA) else lockedColors.pillBackground,
-                                content = if (enabled) Color(0xFF6E6A7D) else lockedColors.pillContent
+                                background = if (enabled) MaterialTheme.colorScheme.surfaceVariant else lockedColors.pillBackground,
+                                content = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else lockedColors.pillContent
                             )
 
                             LessonMetaPill(
@@ -578,7 +578,7 @@ private fun LessonCard(
                                     else -> "Ready to begin this lesson"
                                 },
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (enabled) Color(0xFF7B778C) else lockedColors.muted,
+                                color = if (enabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f) else lockedColors.muted,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -889,22 +889,22 @@ private fun lockedLessonColors(): LockedLessonColors {
     return if (isSystemInDarkTheme()) {
         LockedLessonColors(
             container = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f),
-            strip = Color(0xFFD8D5E5),
-            iconBackground = Color(0xFFEAE8F1),
+            strip = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f),
+            iconBackground = MaterialTheme.colorScheme.surfaceVariant,
             iconContent = Color(0xFF8F8A9D),
-            title = Color(0xFF6E6A7D),
-            body = Color(0xFF6E6A7D),
-            muted = Color(0xFF7B778C),
-            pillBackground = Color(0xFFEAE8F1),
-            pillContent = Color(0xFF8F8A9D),
+            title = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f),
+            body = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+            muted = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.58f),
+            pillBackground = MaterialTheme.colorScheme.surfaceVariant,
+            pillContent = MaterialTheme.colorScheme.onSurfaceVariant,
             progress = Color(0xFFBDB8CC),
-            progressTrack = Color(0xFFF0EEF6),
-            orderBackground = Color(0xFFF4F2FF),
-            orderContent = Color(0xFF6C63FF),
+            progressTrack = MaterialTheme.colorScheme.surfaceVariant,
+            orderBackground = MaterialTheme.colorScheme.surfaceVariant,
+            orderContent = MaterialTheme.colorScheme.onSurfaceVariant,
             border = Color.Gray.copy(alpha = 0.2f),
             buttonContainer = MaterialTheme.colorScheme.surface,
             contentAlpha = 0.42f,
-            buttonBorder = Color(0xFFD4D0E0)
+            buttonBorder = MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)
         )
     } else {
         val lockedSurface = Color(0xFFF0F0F3)
@@ -977,7 +977,7 @@ private fun LoadingContent() {
             Text(
                 text = "Loading lessons...",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF6E6A7D)
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
             )
         }
     }
@@ -993,7 +993,7 @@ private fun EmptyContent() {
     ) {
         Surface(
             shape = RoundedCornerShape(28.dp),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.surface,
             shadowElevation = 4.dp
         ) {
             Column(
@@ -1004,13 +1004,13 @@ private fun EmptyContent() {
                     text = "No lessons yet",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF242235)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Lessons for this topic will appear here once they are available.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF6E6A7D)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f)
                 )
             }
         }

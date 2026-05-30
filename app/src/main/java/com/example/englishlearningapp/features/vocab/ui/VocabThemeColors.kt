@@ -12,20 +12,19 @@ fun vocabIsDarkTheme(): Boolean =
 
 @Composable
 fun vocabScreenBackground(): Color =
-    if (vocabIsDarkTheme()) MaterialTheme.colorScheme.background else Color(0xFFF7F3EA)
+    MaterialTheme.colorScheme.background
 
 @Composable
 fun vocabPanelBackground(): Color =
-    if (vocabIsDarkTheme()) MaterialTheme.colorScheme.surface else Color(0xFFFFFDF8)
+    MaterialTheme.colorScheme.surface
 
 @Composable
 fun vocabBackgroundBrush(): Brush {
-    val dark = vocabIsDarkTheme()
     return Brush.verticalGradient(
         listOf(
             MaterialTheme.colorScheme.background,
-            if (dark) MaterialTheme.colorScheme.background else Color(0xFFF5F2EA),
-            vocabPanelBackground()
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface
         )
     )
 }
@@ -56,7 +55,7 @@ fun vocabPrimaryAction(): Color =
 
 @Composable
 fun vocabCardContainer(): Color =
-    if (vocabIsDarkTheme()) MaterialTheme.colorScheme.surface else Color(0xFFFFFDF8)
+    MaterialTheme.colorScheme.surface
 
 @Composable
 fun vocabLevelCardContainer(level: String?): Color = if (vocabIsDarkTheme()) {

@@ -106,7 +106,7 @@ fun SelfPracticeListeningScreen(
                 modifier = Modifier
                     .padding(start = 8.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFE9E7FF))
+                    .background(MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
             }

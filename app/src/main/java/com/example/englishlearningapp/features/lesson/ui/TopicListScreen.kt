@@ -103,12 +103,12 @@ fun TopicListScreen(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFE9E7FF))
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 },
@@ -249,7 +249,7 @@ private fun PremiumHeroCard(topicCount: Int) {
                 Text(
                     text = "Choose a topic and build vocabulary through short, focused English lessons.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
+                    color = Color.White.copy(alpha = 0.88f),
                     lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
                 )
             }
@@ -274,7 +274,7 @@ private fun SectionHeader() {
             Text(
                 text = "Start with the topic you need most",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF7B778C)
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
             )
         }
     }
@@ -339,7 +339,7 @@ private fun PremiumTopicCard(
                                 text = topic.name,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFF242235),
+                                color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f)
@@ -365,7 +365,7 @@ private fun PremiumTopicCard(
                             text = topic.description?.takeIf { it.isNotBlank() }
                                 ?: "Practice useful English vocabulary and expressions in this topic.",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color(0xFF6E6A7D),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -391,8 +391,8 @@ private fun PremiumTopicCard(
 
                         TopicPill(
                             text = visual.tag,
-                            background = Color(0xFFF5F4FA),
-                            content = Color(0xFF6E6A7D)
+                            background = MaterialTheme.colorScheme.surfaceVariant,
+                            content = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -457,7 +457,7 @@ private fun LoadingContent() {
             Text(
                 text = "Loading topics...",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF6E6A7D)
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
             )
         }
     }
@@ -473,7 +473,7 @@ private fun EmptyContent() {
     ) {
         Surface(
             shape = RoundedCornerShape(28.dp),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.surface,
             shadowElevation = 4.dp
         ) {
             Column(
@@ -484,13 +484,13 @@ private fun EmptyContent() {
                     text = "No topics yet",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF242235)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Topics will appear here once they are available from the backend.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF6E6A7D)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f)
                 )
             }
         }

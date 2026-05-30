@@ -77,12 +77,11 @@ fun UserTopicDetailScreen(
     val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val accentColor = if (isDarkTheme) Color(0xFF4CAF50) else Color(0xFF2F7D62)
     val dividerColor = if (isDarkTheme) Color(0xFFE6E2F2) else Color(0xFFE2E7E4)
-    val panelColor = if (isDarkTheme) MaterialTheme.colorScheme.surface else Color(0xFFFCFBF7)
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
             MaterialTheme.colorScheme.background,
-            if (isDarkTheme) MaterialTheme.colorScheme.background else Color(0xFFF5F2EA),
-            panelColor
+            MaterialTheme.colorScheme.background,
+            MaterialTheme.colorScheme.surface
         )
     )
 
@@ -138,7 +137,7 @@ fun UserTopicDetailScreen(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFE9E7FF))
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,

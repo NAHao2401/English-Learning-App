@@ -293,7 +293,7 @@ private fun ScoreSummaryCard(
             Text(
                 text = "Lesson summary",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF242235),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
             )
 
@@ -442,14 +442,14 @@ private fun CompletionCard(
                     Text(
                         text = "Completion",
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF242235),
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
                     )
 
                     Text(
                         text = "Your progress for this lesson",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF7B778C)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
                     )
                 }
 
@@ -504,7 +504,7 @@ private fun FeedbackCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF242235),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
             )
 
@@ -513,7 +513,7 @@ private fun FeedbackCard(
             Text(
                 text = body,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF6E6A7D)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f)
             )
         }
     }
@@ -529,7 +529,7 @@ private fun ResultBottomBar(
     Surface(
         tonalElevation = 8.dp,
         shadowElevation = 8.dp,
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     ) {
         Column(
@@ -620,7 +620,7 @@ private fun EmptyResultContent() {
     ) {
         Surface(
             shape = RoundedCornerShape(28.dp),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.surface,
             shadowElevation = 4.dp
         ) {
             Column(
@@ -631,7 +631,7 @@ private fun EmptyResultContent() {
                     text = "No result available",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF242235),
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
 
@@ -640,7 +640,7 @@ private fun EmptyResultContent() {
                 Text(
                     text = "Complete a lesson first to see your result here.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF6E6A7D),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
                     textAlign = TextAlign.Center
                 )
             }

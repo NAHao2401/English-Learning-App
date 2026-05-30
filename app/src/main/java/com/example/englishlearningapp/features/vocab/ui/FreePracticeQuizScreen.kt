@@ -132,7 +132,7 @@ fun FreePracticeQuizScreen(
                     modifier = Modifier
                         .padding(start = 8.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFE9E7FF))
+                        .background(MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     androidx.compose.material3.Icon(
                         imageVector = Icons.Default.ArrowBack,

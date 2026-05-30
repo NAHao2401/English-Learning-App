@@ -26,7 +26,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val QuizBg = Color(0xFFF8F6FF)
 private val QuizCardBg = Color.White
 private val QuizBorder = Color(0xFFE0DDEB)
 private val QuizTextPrimary = Color(0xFF1D1B2F)
@@ -93,7 +92,7 @@ fun QuizResultScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(QuizBg),
+            .background(vocabScreenBackground()),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -201,7 +200,7 @@ fun SelfPracticeResultScreen(
     onFinish     : () -> Unit
 ) {
     Box(
-        Modifier.fillMaxSize().background(QuizBg),
+        Modifier.fillMaxSize().background(vocabScreenBackground()),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(32.dp)) {

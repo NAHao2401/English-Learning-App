@@ -102,12 +102,12 @@ fun ProgressScreen(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFE9E7FF))
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 },
@@ -317,7 +317,7 @@ private fun SectionHeader() {
         Text(
             text = "Your study stats, charts, and recent activities",
             style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF7B778C)
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
         )
     }
 }
@@ -474,7 +474,7 @@ private fun CompletionChartCard(summary: ProgressSummaryResponse) {
             Text(
                 text = "Completion chart",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF242235),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
             )
 
@@ -483,7 +483,7 @@ private fun CompletionChartCard(summary: ProgressSummaryResponse) {
             Text(
                 text = "Visual overview of your lesson progress",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF7B778C)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
             )
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -581,13 +581,13 @@ private fun DonutChart(
             Text(
                 text = "${(clampedProgress * 100).toInt()}%",
                 style = MaterialTheme.typography.headlineSmall,
-                color = Color(0xFF242235),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.ExtraBold
             )
             Text(
                 text = "Completed",
                 style = MaterialTheme.typography.labelMedium,
-                color = Color(0xFF7B778C)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
             )
         }
     }
@@ -615,13 +615,13 @@ private fun ChartLegendItem(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
-                color = Color(0xFF7B778C),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                 fontWeight = FontWeight.SemiBold
             )
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF242235),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -647,7 +647,7 @@ private fun WeeklyXpChartCard(weeklyXp: List<DailyXpResponse>) {
             Text(
                 text = "Weekly XP",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF242235),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
             )
 
@@ -656,7 +656,7 @@ private fun WeeklyXpChartCard(weeklyXp: List<DailyXpResponse>) {
             Text(
                 text = "XP earned during the last 7 days",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF7B778C)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -697,7 +697,7 @@ private fun WeeklyXpBar(
         Text(
             text = item.xp.toString(),
             style = MaterialTheme.typography.labelSmall,
-            color = Color(0xFF6E6A7D),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
             fontWeight = FontWeight.SemiBold,
             maxLines = 1
         )
@@ -731,7 +731,7 @@ private fun WeeklyXpBar(
         Text(
             text = shortDayLabel(item.date),
             style = MaterialTheme.typography.labelSmall,
-            color = Color(0xFF7B778C),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
             fontWeight = FontWeight.SemiBold,
             maxLines = 1
         )
@@ -783,13 +783,13 @@ private fun LevelProgressCard(summary: ProgressSummaryResponse) {
                     Text(
                         text = "Level progress",
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF242235),
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = if (level?.next_level != null) "$currentLevel → $nextLevel" else currentLevel,
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF7B778C)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
                     )
                 }
 
@@ -818,7 +818,7 @@ private fun LevelProgressCard(summary: ProgressSummaryResponse) {
             Text(
                 text = if (level?.next_level != null) "$xpToNext XP needed to reach $nextLevel" else "You reached the highest level",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF6E6A7D),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
                 fontWeight = FontWeight.SemiBold
             )
         }
@@ -864,13 +864,13 @@ private fun LearningProgressCard(
                     Text(
                         text = "Course completion",
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF242235),
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "${summary.completed_lessons} of ${summary.total_lessons} lessons completed",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF7B778C)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
                     )
                 }
 
@@ -909,7 +909,7 @@ private fun RecentActivitiesCard(activities: List<RecentActivityResponse>) {
             Text(
                 text = "Recent activities",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF242235),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
             )
 
@@ -918,7 +918,7 @@ private fun RecentActivitiesCard(activities: List<RecentActivityResponse>) {
             Text(
                 text = "Your latest lesson submissions",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF7B778C)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -927,7 +927,7 @@ private fun RecentActivitiesCard(activities: List<RecentActivityResponse>) {
                 Text(
                     text = "No recent activities yet. Complete a lesson to see your activity here.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF6E6A7D)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f)
                 )
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -945,7 +945,7 @@ private fun RecentActivityItem(activity: RecentActivityResponse) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = Color(0xFFF8F7FC)
+        color = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -972,7 +972,7 @@ private fun RecentActivityItem(activity: RecentActivityResponse) {
                 Text(
                     text = activity.lesson_title,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF242235),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -980,7 +980,7 @@ private fun RecentActivityItem(activity: RecentActivityResponse) {
                 Text(
                     text = "Score ${activity.score}% • +${activity.xp_earned} XP",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF6E6A7D)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f)
                 )
             }
         }
@@ -1027,7 +1027,7 @@ private fun MotivationCard(summary: ProgressSummaryResponse) {
                 Text(
                     text = "Today's motivation",
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color(0xFF242235),
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -1037,7 +1037,7 @@ private fun MotivationCard(summary: ProgressSummaryResponse) {
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF6E6A7D)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f)
             )
         }
     }
@@ -1055,7 +1055,7 @@ private fun LoadingContent() {
             Text(
                 text = "Loading progress...",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF6E6A7D)
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
             )
         }
     }
@@ -1071,7 +1071,7 @@ private fun EmptyProgressContent() {
     ) {
         Surface(
             shape = RoundedCornerShape(28.dp),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.surface,
             shadowElevation = 4.dp
         ) {
             Column(
@@ -1082,14 +1082,14 @@ private fun EmptyProgressContent() {
                     text = "No progress yet",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF242235),
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Complete your first lesson to see your progress here.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF6E6A7D),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
                     textAlign = TextAlign.Center
                 )
             }
