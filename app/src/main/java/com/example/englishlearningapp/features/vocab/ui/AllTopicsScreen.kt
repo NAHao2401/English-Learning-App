@@ -85,7 +85,8 @@ private data class CefrLevelItem(
     val emoji: String,
     val color: String,
     val sortOrder: Int,
-    val wordCount: Int = 0
+    val wordCount: Int = 0,
+    val learnedCount: Int = 0
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,11 +97,13 @@ fun AllTopicsScreen(
 ) {
     val topics by viewModel.topics.collectAsState()
     val vocabCountByLevel by viewModel.vocabCountByLevel.collectAsState()
+    val learnedCountByLevel by viewModel.learnedCountByLevel.collectAsState()
+    val topicLearnedCounts by viewModel.topicLearnedCounts.collectAsState()
 
     var cefrExpanded by remember { mutableStateOf(true) }
     var topicExpanded by remember { mutableStateOf(true) }
 
-    val cefrLevels = remember(vocabCountByLevel) {
+    val cefrLevels = remember(vocabCountByLevel, learnedCountByLevel) {
         listOf(
             CefrLevelItem("A0", "Mất Gốc", "🔤", "#9E9E9E", 0),
             CefrLevelItem("A1", "Beginner", "🟢", "#4CAF50", 1),
@@ -110,7 +113,10 @@ fun AllTopicsScreen(
             CefrLevelItem("C1", "Advanced", "🟠", "#FF9800", 5),
             CefrLevelItem("C2", "Mastery", "🔴", "#F44336", 6)
         ).map { item ->
-            item.copy(wordCount = vocabCountByLevel[item.code] ?: 0)
+            item.copy(
+                wordCount = vocabCountByLevel[item.code] ?: 0,
+                learnedCount = learnedCountByLevel[item.code] ?: 0
+            )
         }
     }
     val topicRows = remember(topics) { topics.chunked(2) }
@@ -136,7 +142,7 @@ fun AllTopicsScreen(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .clip(CircleShape)
-                            .background(cardColor.copy(alpha = 0.85f))
+                            .background(Color(0xFFE9E7FF))
                     ) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
@@ -228,9 +234,13 @@ fun AllTopicsScreen(
                     ) {
                         rowItems.forEach { topicWithCount ->
                             val remoteTopicId = topicWithCount.topic.remoteTopicId ?: topicWithCount.topic.id
+                            val learnedCount = topicLearnedCounts[remoteTopicId]
+                                ?: topicLearnedCounts[topicWithCount.topic.id]
+                                ?: 0
                             Box(modifier = Modifier.weight(1f)) {
                                 AllTopicsTopicCard(
                                     topicWithCount = topicWithCount,
+                                    learnedCount = learnedCount,
                                     onClick = {
                                         navController.navigate("topic_detail/$remoteTopicId")
                                     }
@@ -377,7 +387,7 @@ private fun AllTopicsCefrCard(
                         )
                         Spacer(Modifier.width(3.dp))
                         Text(
-                            text = "0/${item.wordCount}",
+                            text = "${item.learnedCount}/${item.wordCount}",
                             color = secondaryTextColor,
                             fontSize = 11.sp
                         )
@@ -405,6 +415,7 @@ private fun AllTopicsCefrCard(
 @Composable
 private fun AllTopicsTopicCard(
     topicWithCount: TopicWithCount,
+    learnedCount: Int,
     onClick: () -> Unit
 ) {
     val topic = topicWithCount.topic
@@ -484,7 +495,7 @@ private fun AllTopicsTopicCard(
                         )
                         Spacer(Modifier.width(3.dp))
                         Text(
-                            text = "0/${topicWithCount.wordCount}",
+                            text = "$learnedCount/${topicWithCount.wordCount}",
                             color = secondaryTextColor,
                             fontSize = 11.sp
                         )

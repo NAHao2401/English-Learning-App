@@ -133,7 +133,7 @@ fun TopicDetailScreen(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .clip(CircleShape)
-                            .background(vocabCardContainer().copy(alpha = 0.85f))
+                            .background(Color(0xFFE9E7FF))
                     ) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = textPrimary)
                     }

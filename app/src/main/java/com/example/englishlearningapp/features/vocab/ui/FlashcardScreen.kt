@@ -181,7 +181,7 @@ private fun ScaffoldFlashcard(navController: NavController, title: String, onClo
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .clip(CircleShape)
-                            .background(vocabCardContainer().copy(alpha = 0.85f))
+                            .background(Color(0xFFE9E7FF))
                     ) {
                         androidx.compose.material3.Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                     }

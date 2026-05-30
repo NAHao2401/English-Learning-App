@@ -2,6 +2,7 @@ package com.example.englishlearningapp.features.lesson.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Timelapse
 import androidx.compose.foundation.BorderStroke as M3BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -38,6 +40,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -46,6 +49,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -61,6 +65,26 @@ import com.example.englishlearningapp.data.remote.api.response.LessonResponse
 private data class LessonVisual(
     val accent: Color,
     val softAccent: Color
+)
+
+private data class LockedLessonColors(
+    val container: Color,
+    val strip: Color,
+    val iconBackground: Color,
+    val iconContent: Color,
+    val title: Color,
+    val body: Color,
+    val muted: Color,
+    val pillBackground: Color,
+    val pillContent: Color,
+    val progress: Color,
+    val progressTrack: Color,
+    val orderBackground: Color,
+    val orderContent: Color,
+    val border: Color,
+    val buttonContainer: Color,
+    val contentAlpha: Float,
+    val buttonBorder: Color
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -105,7 +129,7 @@ fun LessonListScreen(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
+                            .background(Color(0xFFE9E7FF))
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
@@ -344,21 +368,41 @@ private fun LessonCard(
     onClick: () -> Unit
 ) {
     val enabled = !lesson.is_locked
+    if (!enabled) {
+        LockedLessonCard(
+            lesson = lesson,
+            index = index
+        )
+        return
+    }
+
     val progress = (lesson.completion_percent.coerceIn(0, 100)) / 100f
+    val visibleProgress = if (enabled) progress else 0f
     val statusLabel = lessonStatusLabel(lesson.status, lesson.is_locked)
     val actionLabel = lessonActionLabel(lesson)
     val difficulty = lesson.difficulty ?: "Beginner"
     val estimatedTime = lesson.estimated_time?.let { "$it min" } ?: "5 min"
+    val lockedColors = lockedLessonColors()
 
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .alpha(if (enabled) 1f else 0.90f)
+            .then(
+                if (enabled) {
+                    Modifier
+                } else {
+                    Modifier.border(
+                        width = 1.dp,
+                        color = lockedColors.border,
+                        shape = RoundedCornerShape(28.dp)
+                    )
+                }
+            )
             .clickable(enabled = enabled, onClick = onClick),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 5.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = if (enabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)
+            containerColor = if (enabled) MaterialTheme.colorScheme.surface else lockedColors.container
         )
     ) {
         Box(
@@ -369,7 +413,7 @@ private fun LessonCard(
                     .width(7.dp)
                     .height(188.dp)
                     .align(Alignment.CenterStart)
-                    .background(if (enabled) visual.accent else Color(0xFFD8D5E5))
+                    .background(if (enabled) visual.accent else lockedColors.strip)
             )
 
             Column(
@@ -382,143 +426,164 @@ private fun LessonCard(
                         modifier = Modifier
                             .size(58.dp)
                             .clip(RoundedCornerShape(20.dp))
-                            .background(if (enabled) visual.softAccent else Color(0xFFEAE8F1)),
+                            .background(if (enabled) visual.softAccent else lockedColors.iconBackground),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = if (lesson.is_locked) Icons.Rounded.Lock else Icons.Rounded.MenuBook,
                             contentDescription = lesson.title,
-                            tint = if (enabled) visual.accent else Color(0xFF8F8A9D),
+                            tint = if (enabled) visual.accent else lockedColors.iconContent,
                             modifier = Modifier.size(28.dp)
                         )
                     }
 
                     Spacer(modifier = Modifier.width(14.dp))
 
-                    Column(
-                        modifier = Modifier.weight(1f)
+                    Box(modifier = Modifier.weight(1f)) {
+                    LockedLessonContent(
+                        enabled = enabled,
+                        mutedColor = lockedColors.muted,
+                        alpha = lockedColors.contentAlpha
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = lesson.title,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = if (enabled) Color(0xFF242235) else Color(0xFF6E6A7D),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f)
-                            )
+                            Column {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = lesson.title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = if (enabled) Color(0xFF242235) else lockedColors.title,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f)
+                                    )
 
-                            Surface(
-                                shape = RoundedCornerShape(50),
-                                color = Color(0xFFF4F2FF)
-                            ) {
+                                    Surface(
+                                        shape = RoundedCornerShape(50),
+                                        color = if (enabled) Color(0xFFF4F2FF) else lockedColors.orderBackground
+                                    ) {
+                                        Text(
+                                            text = "#${lesson.lesson_order ?: (index + 1)}",
+                                            modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = if (enabled) Color(0xFF6C63FF) else lockedColors.orderContent,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(7.dp))
+
                                 Text(
-                                    text = "#${lesson.lesson_order ?: (index + 1)}",
-                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color(0xFF6C63FF),
-                                    fontWeight = FontWeight.Bold
+                                    text = lesson.description?.takeIf { it.isNotBlank() }
+                                        ?: "Improve your English through this focused lesson.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = if (enabled) Color(0xFF6E6A7D) else lockedColors.body,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
-
-                        Spacer(modifier = Modifier.height(7.dp))
-
-                        Text(
-                            text = lesson.description?.takeIf { it.isNotBlank() }
-                                ?: "Improve your English through this focused lesson.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color(0xFF6E6A7D),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                LockedLessonContent(
+                    enabled = enabled,
+                    mutedColor = lockedColors.muted,
+                    alpha = lockedColors.contentAlpha
                 ) {
-                    LessonMetaPill(
-                        icon = Icons.Rounded.Timelapse,
-                        text = difficulty,
-                        background = if (enabled) visual.softAccent else Color(0xFFEAE8F1),
-                        content = if (enabled) visual.accent else Color(0xFF8F8A9D)
-                    )
+                    Column {
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    LessonMetaPill(
-                        icon = Icons.Rounded.AccessTime,
-                        text = estimatedTime,
-                        background = Color(0xFFF5F4FA),
-                        content = Color(0xFF6E6A7D)
-                    )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            LessonMetaPill(
+                                icon = Icons.Rounded.Timelapse,
+                                text = difficulty,
+                                background = if (enabled) visual.softAccent else lockedColors.pillBackground,
+                                content = if (enabled) visual.accent else lockedColors.pillContent
+                            )
 
-                    LessonMetaPill(
-                        icon = statusIconFor(lesson.status, lesson.is_locked),
-                        text = statusLabel,
-                        background = statusBackgroundFor(lesson.status, lesson.is_locked),
-                        content = statusContentFor(lesson.status, lesson.is_locked)
-                    )
+                            LessonMetaPill(
+                                icon = Icons.Rounded.AccessTime,
+                                text = estimatedTime,
+                                background = if (enabled) Color(0xFFF5F4FA) else lockedColors.pillBackground,
+                                content = if (enabled) Color(0xFF6E6A7D) else lockedColors.pillContent
+                            )
+
+                            LessonMetaPill(
+                                icon = statusIconFor(lesson.status, lesson.is_locked),
+                                text = statusLabel,
+                                background = statusBackgroundFor(lesson.status, lesson.is_locked, lockedColors),
+                                content = statusContentFor(lesson.status, lesson.is_locked, lockedColors)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "Progress",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (enabled) Color(0xFF666274) else lockedColors.muted,
+                            fontWeight = FontWeight.SemiBold
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            LinearProgressIndicator(
+                                progress = { visibleProgress },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(8.dp)
+                                    .clip(RoundedCornerShape(50)),
+                                color = if (enabled) visual.accent else lockedColors.progress,
+                                trackColor = if (enabled) Color(0xFFF0EEF6) else lockedColors.progressTrack
+                            )
+
+                            Spacer(modifier = Modifier.width(10.dp))
+
+                            Text(
+                                text = "${lesson.completion_percent}%",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (enabled) Color(0xFF4E4A5C) else lockedColors.title,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(18.dp))
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Progress",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color(0xFF666274),
-                    fontWeight = FontWeight.SemiBold
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    LinearProgressIndicator(
-                        progress = { progress },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(8.dp)
-                            .clip(RoundedCornerShape(50)),
-                        color = if (enabled) visual.accent else Color(0xFFBDB8CC),
-                        trackColor = Color(0xFFF0EEF6)
-                    )
-
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    Text(
-                        text = "${lesson.completion_percent}%",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Color(0xFF4E4A5C),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(18.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = when {
-                            lesson.is_locked -> "Complete previous lesson to unlock"
-                            lesson.status.equals("completed", true) -> "Lesson completed successfully"
-                            lesson.completion_percent > 0 -> "You can continue from your last attempt"
-                            else -> "Ready to begin this lesson"
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF7B778C),
-                        modifier = Modifier.weight(1f),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Box(modifier = Modifier.weight(1f)) {
+                        LockedLessonContent(
+                            enabled = enabled,
+                            mutedColor = lockedColors.muted,
+                            alpha = lockedColors.contentAlpha
+                        ) {
+                            Text(
+                                text = when {
+                                    lesson.is_locked -> "Complete previous lesson to unlock"
+                                    lesson.status.equals("completed", true) -> "Lesson completed successfully"
+                                    lesson.completion_percent > 0 -> "You can continue from your last attempt"
+                                    else -> "Ready to begin this lesson"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (enabled) Color(0xFF7B778C) else lockedColors.muted,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
 
                     Spacer(modifier = Modifier.width(12.dp))
 
@@ -548,9 +613,13 @@ private fun LessonCard(
                     } else {
                         OutlinedButton(
                             onClick = {},
-                            enabled = false,
+                            enabled = true,
                             shape = RoundedCornerShape(16.dp),
-                            border = M3BorderStroke(1.dp, Color(0xFFD4D0E0)),
+                            border = M3BorderStroke(1.dp, lockedColors.buttonBorder),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = lockedColors.buttonContainer,
+                                contentColor = lockedColors.iconContent
+                            ),
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
                         ) {
                             Icon(
@@ -573,15 +642,306 @@ private fun LessonCard(
 }
 
 @Composable
+private fun LockedLessonCard(
+    lesson: LessonResponse,
+    index: Int
+) {
+    val lockedColors = lockedLessonColors()
+    val difficulty = lesson.difficulty ?: "Beginner"
+    val estimatedTime = lesson.estimated_time?.let { "$it min" } ?: "5 min"
+    val lockedSurface = lockedColors.container
+    val lockIconBackground = if (isSystemInDarkTheme()) lockedSurface else Color(0xFFB7B9C7)
+
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = lockedColors.border,
+                shape = RoundedCornerShape(28.dp)
+            ),
+        shape = RoundedCornerShape(28.dp),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.elevatedCardColors(containerColor = lockedSurface)
+    ) {
+        Column(
+            modifier = Modifier.padding(start = 22.dp, end = 18.dp, top = 18.dp, bottom = 18.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(58.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(lockIconBackground),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Lock,
+                        contentDescription = lesson.title,
+                        tint = lockedColors.iconContent,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(14.dp))
+
+                Box(modifier = Modifier.weight(1f)) {
+                    LockedLessonContent(
+                        enabled = false,
+                        mutedColor = lockedColors.muted,
+                        alpha = lockedColors.contentAlpha
+                    ) {
+                        Column {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = lesson.title,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = lockedColors.title,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                Surface(
+                                    shape = RoundedCornerShape(50),
+                                    color = lockedSurface
+                                ) {
+                                    Text(
+                                        text = "#${lesson.lesson_order ?: (index + 1)}",
+                                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = lockedColors.orderContent,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(7.dp))
+
+                            Text(
+                                text = lesson.description?.takeIf { it.isNotBlank() }
+                                    ?: "Improve your English through this focused lesson.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = lockedColors.body,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+
+            LockedLessonContent(
+                enabled = false,
+                mutedColor = lockedColors.muted,
+                alpha = lockedColors.contentAlpha
+            ) {
+                Column {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        LessonMetaPill(
+                            icon = Icons.Rounded.Timelapse,
+                            text = difficulty,
+                            background = lockedColors.pillBackground,
+                            content = lockedColors.pillContent,
+                            border = lockedColors.buttonBorder
+                        )
+
+                        LessonMetaPill(
+                            icon = Icons.Rounded.AccessTime,
+                            text = estimatedTime,
+                            background = lockedColors.pillBackground,
+                            content = lockedColors.pillContent,
+                            border = lockedColors.buttonBorder
+                        )
+
+                        LessonMetaPill(
+                            icon = Icons.Rounded.Lock,
+                            text = "Locked",
+                            background = lockedColors.pillBackground,
+                            content = lockedColors.pillContent,
+                            border = lockedColors.buttonBorder
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "Progress",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = lockedColors.muted,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(lockedColors.progressTrack)
+                                .border(
+                                    width = 1.dp,
+                                    color = Color(0xFF9497A3),
+                                    shape = RoundedCornerShape(50)
+                                )
+                        )
+
+                        Spacer(modifier = Modifier.width(10.dp))
+
+                        Text(
+                            text = "${lesson.completion_percent}%",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = lockedColors.title,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(18.dp))
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    LockedLessonContent(
+                        enabled = false,
+                        mutedColor = lockedColors.muted,
+                        alpha = lockedColors.contentAlpha
+                    ) {
+                        Text(
+                            text = "Complete previous lesson to unlock",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = lockedColors.muted,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                OutlinedButton(
+                    onClick = {},
+                    enabled = true,
+                    shape = RoundedCornerShape(16.dp),
+                    border = M3BorderStroke(1.dp, lockedColors.buttonBorder),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = lockedColors.buttonContainer,
+                        contentColor = lockedColors.iconContent
+                    ),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Lock,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Locked",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LockedLessonContent(
+    enabled: Boolean,
+    mutedColor: Color,
+    alpha: Float,
+    content: @Composable () -> Unit
+) {
+    if (enabled) {
+        content()
+    } else {
+        CompositionLocalProvider(
+            LocalContentColor provides mutedColor.copy(alpha = alpha)
+        ) {
+            Box(modifier = Modifier.alpha(alpha)) {
+                content()
+            }
+        }
+    }
+}
+
+@Composable
+private fun lockedLessonColors(): LockedLessonColors {
+    return if (isSystemInDarkTheme()) {
+        LockedLessonColors(
+            container = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f),
+            strip = Color(0xFFD8D5E5),
+            iconBackground = Color(0xFFEAE8F1),
+            iconContent = Color(0xFF8F8A9D),
+            title = Color(0xFF6E6A7D),
+            body = Color(0xFF6E6A7D),
+            muted = Color(0xFF7B778C),
+            pillBackground = Color(0xFFEAE8F1),
+            pillContent = Color(0xFF8F8A9D),
+            progress = Color(0xFFBDB8CC),
+            progressTrack = Color(0xFFF0EEF6),
+            orderBackground = Color(0xFFF4F2FF),
+            orderContent = Color(0xFF6C63FF),
+            border = Color.Gray.copy(alpha = 0.2f),
+            buttonContainer = MaterialTheme.colorScheme.surface,
+            contentAlpha = 0.42f,
+            buttonBorder = Color(0xFFD4D0E0)
+        )
+    } else {
+        val lockedSurface = Color(0xFFF0F0F3)
+        LockedLessonColors(
+            container = lockedSurface,
+            strip = lockedSurface,
+            iconBackground = Color(0xFFFAFAFC),
+            iconContent = Color(0xFF4D4F60),
+            title = Color(0xFF34353D),
+            body = Color(0xFF50515B),
+            muted = Color(0xFF5B5D68),
+            pillBackground = Color(0xFFDCDDE4),
+            pillContent = Color(0xFF50525E),
+            progress = Color.Transparent,
+            progressTrack = Color(0xFFBFC1CB),
+            orderBackground = lockedSurface,
+            orderContent = Color(0xFF666666),
+            border = Color(0xFFD6D6DA),
+            buttonContainer = Color(0xFFE8E8EC),
+            contentAlpha = 0.78f,
+            buttonBorder = Color(0xFFBFC0C8)
+        )
+    }
+}
+
+@Composable
 private fun LessonMetaPill(
     icon: ImageVector,
     text: String,
     background: Color,
-    content: Color
+    content: Color,
+    border: Color? = null
 ) {
     Surface(
         shape = RoundedCornerShape(50),
-        color = background
+        color = background,
+        border = border?.let { BorderStroke(1.dp, it) }
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
@@ -751,8 +1111,12 @@ private fun statusIconFor(status: String, isLocked: Boolean): ImageVector {
     }
 }
 
-private fun statusBackgroundFor(status: String, isLocked: Boolean): Color {
-    if (isLocked) return Color(0xFFEAE8F1)
+private fun statusBackgroundFor(
+    status: String,
+    isLocked: Boolean,
+    lockedColors: LockedLessonColors
+): Color {
+    if (isLocked) return lockedColors.pillBackground
 
     return when (status.lowercase()) {
         "completed" -> Color(0xFFDDF7EF)
@@ -761,8 +1125,12 @@ private fun statusBackgroundFor(status: String, isLocked: Boolean): Color {
     }
 }
 
-private fun statusContentFor(status: String, isLocked: Boolean): Color {
-    if (isLocked) return Color(0xFF8F8A9D)
+private fun statusContentFor(
+    status: String,
+    isLocked: Boolean,
+    lockedColors: LockedLessonColors
+): Color {
+    if (isLocked) return lockedColors.pillContent
 
     return when (status.lowercase()) {
         "completed" -> Color(0xFF00A878)
