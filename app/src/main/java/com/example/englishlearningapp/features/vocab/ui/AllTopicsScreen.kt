@@ -46,7 +46,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -63,7 +62,6 @@ import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.times
 import androidx.navigation.NavController
-import androidx.core.graphics.toColorInt
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -330,15 +328,6 @@ private fun AllTopicsCefrCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            Text(
-                text = item.emoji,
-                fontSize = 52.sp,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(8.dp)
-                    .alpha(0.25f)
-            )
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -423,16 +412,6 @@ private fun AllTopicsTopicCard(
     val primaryTextColor = MaterialTheme.colorScheme.onSurface
     val secondaryTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
     val accentColor = vocabAccent()
-    val topicIconText = remember(topic.iconUrl) {
-        topic.iconUrl?.takeUnless { it.startsWith("#") } ?: "📚"
-    }
-    val topicAccentColor = remember(topic.iconUrl, topic.level) {
-        topic.iconUrl
-            ?.takeIf { it.startsWith("#") }
-            ?.let { Color(it.toColorInt()) }
-            ?: levelCodeColor(topic.level)
-    }
-
     Card(
         onClick = onClick,
         modifier = Modifier
@@ -443,15 +422,6 @@ private fun AllTopicsTopicCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            Text(
-                text = topicIconText,
-                fontSize = 52.sp,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(8.dp)
-                    .alpha(0.3f)
-            )
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -516,14 +486,6 @@ private fun AllTopicsTopicCard(
                     }
                 }
             }
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .size(18.dp)
-                    .padding(2.dp)
-                    .background(topicAccentColor.copy(alpha = 0.28f), RoundedCornerShape(999.dp))
-            )
         }
     }
 }

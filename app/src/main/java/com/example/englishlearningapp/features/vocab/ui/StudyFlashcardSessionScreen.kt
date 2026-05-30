@@ -20,13 +20,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FlipToBack
 import androidx.compose.material.icons.filled.FlipToFront
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import androidx.navigation.NavController
+import com.example.englishlearningapp.data.remote.NetworkConfig
 import com.example.englishlearningapp.data.remote.api.response.VocabularyResponse
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 
@@ -82,6 +83,7 @@ fun StudyFlashcardSessionScreen(
     val topicProgress by viewModel.topicProgress.collectAsState()
     val hasMoreWords by viewModel.hasMoreNewWords.collectAsState()
     val isRating by viewModel.isRating.collectAsState()
+    val audioPlayer = rememberVocabAudioPlayer()
 
     var currentBatch by remember { mutableStateOf<List<VocabularyResponse>>(emptyList()) }
     var currentIndex by remember { mutableIntStateOf(0) }
@@ -184,54 +186,56 @@ fun StudyFlashcardSessionScreen(
         return
     }
 
-    Scaffold(containerColor = vocabScreenBackground()) { padding ->
+    Scaffold(
+        containerColor = vocabScreenBackground(),
+        topBar = {
+            Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
+                IconButton(
+                    onClick = { navController.navigateUp() },
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 16.dp, bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Spacer(Modifier.width(16.dp))
+                    LinearProgressIndicator(
+                        progress = { (currentIndex + 1f) / totalInBatch.toFloat() },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp)),
+                        color = StudyGreen,
+                        trackColor = StudyDivider
+                    )
+                    Text(
+                        text = "${currentIndex + 1}/$totalInBatch",
+                        color = Color(0xFF77738A),
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                    Spacer(Modifier.width(12.dp))
+                }
+            }
+        }
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp)
         ) {
-            Spacer(Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = { }) {
-                    Icon(Icons.Default.BookmarkBorder, contentDescription = null, tint = Color(0xFF9A97A8))
-                }
-
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                ) {
-                    LinearProgressIndicator(
-                        progress = { (currentIndex + 1f) / totalInBatch.toFloat() },
-                        modifier = Modifier.fillMaxSize(),
-                        color = StudyGreen,
-                        trackColor = StudyDivider
-                    )
-                }
-
-                Spacer(Modifier.size(8.dp))
-
-                Text(
-                    text = "${currentIndex + 1}/$totalInBatch",
-                    color = Color(0xFF77738A),
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(horizontal = 4.dp)
-                )
-
-                IconButton(onClick = { }) {
-                    Icon(Icons.Default.Info, contentDescription = null, tint = Color(0xFF9A97A8))
-                }
-                IconButton(onClick = { }) {
-                    Icon(Icons.Default.Settings, contentDescription = null, tint = Color(0xFF9A97A8))
-                }
-            }
-
             Spacer(Modifier.height(8.dp))
 
             Row(
@@ -264,8 +268,9 @@ fun StudyFlashcardSessionScreen(
                     .fillMaxWidth()
                     .height(300.dp)
                     .graphicsLayer { rotationY = rotation }
-                    .clickable(enabled = !isFlipped && !isRating) {
-                        isFlipped = true
+                    .clickable(enabled = !isRating) {
+                        isFlipped = !isFlipped
+                        if (!isFlipped) showRating = false
                     },
                 colors = CardDefaults.cardColors(containerColor = vocabCardContainer()),
                 shape = RoundedCornerShape(16.dp),
@@ -305,12 +310,23 @@ fun StudyFlashcardSessionScreen(
                         )
                         if (!vocab.pronunciation.isNullOrBlank()) {
                             Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = vocab.pronunciation,
-                                color = Color(0xFF77738A),
-                                fontSize = 14.sp,
-                                fontStyle = FontStyle.Italic
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = vocab.pronunciation,
+                                    color = Color(0xFF77738A),
+                                    fontSize = 14.sp,
+                                    fontStyle = FontStyle.Italic
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                SpeakerIconButton(
+                                    audioUrl = vocab.audioUrl,
+                                    baseUrl = NetworkConfig.BASE_URL,
+                                    fallbackText = vocab.word,
+                                    audioPlayer = audioPlayer,
+                                    tint = StudyGreen,
+                                    size = 18.dp
+                                )
+                            }
                         }
                         Spacer(Modifier.weight(1f))
                         Row(

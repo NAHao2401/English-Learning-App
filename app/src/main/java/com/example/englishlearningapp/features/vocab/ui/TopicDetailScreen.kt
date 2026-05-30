@@ -186,7 +186,7 @@ fun TopicDetailScreen(
                     if (isAllLearned) {
                         Text("Không có từ nào cần luyện tập", color = textSecondary, fontSize = 14.sp)
                     } else {
-                        Text("🃏 Học từ mới ($newWordCount)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text("Học từ mới ($newWordCount)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     }
                 }
             }

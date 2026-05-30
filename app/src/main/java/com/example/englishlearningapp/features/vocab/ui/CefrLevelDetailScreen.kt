@@ -36,6 +36,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -111,82 +112,88 @@ fun CefrLevelDetailScreen(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            TopAppBar(
-                expandedHeight = 94.dp,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    scrolledContainerColor = Color.Transparent
-                ),
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navController.navigateUp() },
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer)
-                    ) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "back", tint = MaterialTheme.colorScheme.onSurface)
-                    }
-                },
-                title = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(72.dp),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
+            Column {
+                TopAppBar(
+                    expandedHeight = 94.dp,
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent
+                    ),
+                    navigationIcon = {
+                        IconButton(
+                            onClick = { navController.navigateUp() },
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .border(2.5.dp, Color(0xFFE6E2F2), CircleShape)
-                                    .padding(2.dp)
-                                    .clip(CircleShape)
-                                    .background(cefrLevelColor(level).copy(alpha = 0.16f)),
-                                contentAlignment = Alignment.Center
+                            Icon(Icons.Default.ArrowBack, contentDescription = "back", tint = MaterialTheme.colorScheme.onSurface)
+                        }
+                    },
+                    title = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(72.dp),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(
-                                    text = level,
-                                    color = cefrLevelColor(level),
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp
-                                )
-                            }
+                                Box(
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .border(2.5.dp, Color(0xFFE6E2F2), CircleShape)
+                                        .padding(2.dp)
+                                        .clip(CircleShape)
+                                        .background(cefrLevelColor(level).copy(alpha = 0.16f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = level,
+                                        color = cefrLevelColor(level),
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    )
+                                }
 
-                            Spacer(Modifier.width(12.dp))
+                                Spacer(Modifier.width(12.dp))
 
-                            Column(
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxHeight()
-                            ) {
-                                Text(
-                                    text = levelDisplayName(level),
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 17.sp
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Surface(
-                                        color = Color(0xFFE8F5E9),
-                                        shape = RoundedCornerShape(20.dp)
-                                    ) {
-                                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)) {
-                                            Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF4CAF50), modifier = Modifier.size(12.dp))
-                                            Spacer(Modifier.width(4.dp))
-                                            Text("$totalLearned/$totalWords đã học", color = Color(0xFF2E7D32), fontSize = 11.sp)
+                                Column(
+                                    verticalArrangement = Arrangement.Center,
+                                    modifier = Modifier.fillMaxHeight()
+                                ) {
+                                    Text(
+                                        text = levelDisplayName(level),
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 17.sp
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Surface(
+                                            color = Color(0xFFE8F5E9),
+                                            shape = RoundedCornerShape(20.dp)
+                                        ) {
+                                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)) {
+                                                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF4CAF50), modifier = Modifier.size(12.dp))
+                                                Spacer(Modifier.width(4.dp))
+                                                Text("$totalLearned/$totalWords đã học", color = Color(0xFF2E7D32), fontSize = 11.sp)
+                                            }
                                         }
+
                                     }
-                                    
                                 }
                             }
                         }
-                    }
-                },
-            )
+                    },
+                )
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.65f),
+                    thickness = 0.75.dp
+                )
+            }
         },
         bottomBar = {
             Column(

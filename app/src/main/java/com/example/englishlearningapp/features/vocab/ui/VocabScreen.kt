@@ -63,7 +63,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -89,7 +88,6 @@ import com.example.englishlearningapp.data.remote.api.response.VocabOverviewResp
 import com.example.englishlearningapp.features.usertopic.UserTopicViewModel
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModel
 import com.example.englishlearningapp.features.vocab.viewmodel.VocabViewModelFactory
-import androidx.core.graphics.toColorInt
 import com.example.englishlearningapp.features.usertopic.UserTopicViewModelFactory
 import com.example.englishlearningapp.navigation.Screen
 
@@ -423,7 +421,7 @@ fun MyFolderCard(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = "🃏  Học từ mới",
+                    text = "Học từ mới",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
@@ -1048,12 +1046,7 @@ private fun PracticeSectionCard(
                     .fillMaxWidth()
                     .height(48.dp)
             ) {
-                Icon(
-                    Icons.Default.Edit,
-                    contentDescription = null,
-                    tint = Color.White
-                )
-                Spacer(Modifier.width(8.dp))
+
                 Text(
                     "Luyện đặt câu",
                     color = Color.White,
@@ -1253,16 +1246,7 @@ fun CefrLevelCard(level: CefrLevel, onClick: () -> Unit) {
 
 @Composable
 fun TopicCard(topicWithCount: TopicWithCount, learnedCount: Int, onClick: () -> Unit) {
-    val colorScheme = MaterialTheme.colorScheme
     val bgColor = vocabLevelCardContainer(topicWithCount.topic.level)
-
-    val topicIconText = remember(topicWithCount.topic.iconUrl) { topicWithCount.topic.iconUrl?.takeUnless { it.startsWith("#") } ?: "📚" }
-    val topicAccentColor = remember(topicWithCount.topic.iconUrl, topicWithCount.topic.level) {
-        topicWithCount.topic.iconUrl
-            ?.takeIf { it.startsWith("#") }
-            ?.let { Color(it.toColorInt()) }
-            ?: levelCodeColor(topicWithCount.topic.level)
-    }
 
     Card(
         onClick = onClick,
@@ -1282,19 +1266,6 @@ fun TopicCard(topicWithCount: TopicWithCount, learnedCount: Int, onClick: () -> 
                 color = levelCodeColor(topicWithCount.topic.level),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold
-            )
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .size(18.dp)
-                    .background(topicAccentColor.copy(alpha = 0.28f), RoundedCornerShape(999.dp))
-            )
-            Text(
-                text = topicIconText,
-                fontSize = 40.sp,
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .alpha(0.6f)
             )
             Column(modifier = Modifier.align(Alignment.BottomStart)) {
                 Text(

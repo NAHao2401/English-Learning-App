@@ -110,115 +110,121 @@ fun UserTopicListScreen(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            TopAppBar(
-                expandedHeight = 94.dp,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    scrolledContainerColor = Color.Transparent
-                ),
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navController.navigateUp() },
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer)
-                    ) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "back",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                },
-                title = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(72.dp),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
+            Column {
+                TopAppBar(
+                    expandedHeight = 94.dp,
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent
+                    ),
+                    navigationIcon = {
+                        IconButton(
+                            onClick = { navController.navigateUp() },
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .border(2.5.dp, borderColor, androidx.compose.foundation.shape.CircleShape)
-                                    .padding(2.dp)
-                                    .clip(androidx.compose.foundation.shape.CircleShape)
-                                    .background(accentSoftColor),
-                                contentAlignment = Alignment.Center
+                            Icon(
+                                Icons.Default.ArrowBack,
+                                contentDescription = "back",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    },
+                    title = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(72.dp),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                if (!currentUser?.avatarUrl.isNullOrBlank()) {
-                                    AsyncImage(
-                                        model = currentUser!!.avatarUrl,
-                                        contentDescription = "avatar",
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                } else {
-                                    Text(
-                                        text = currentUser?.name?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-                                        color = accentColor,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-
-                            Spacer(Modifier.width(12.dp))
-
-                            Column(
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxHeight()
-                            ) {
-                                Text(
-                                    text = "Thư mục của tôi",
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 17.sp
-                                )
-
-                                Spacer(modifier = Modifier.height(3.dp))
-
-                                val totalWords = userTopics.sumOf { topic -> displayTopicWordCounts[topic.id] ?: topic.wordCount }
-                                val totalLearned = userTopics.sumOf { topic -> displayTopicLearnedCounts[topic.id] ?: topic.learnedCount }
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                Box(
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .border(2.5.dp, borderColor, androidx.compose.foundation.shape.CircleShape)
+                                        .padding(2.dp)
+                                        .clip(androidx.compose.foundation.shape.CircleShape)
+                                        .background(accentSoftColor),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Surface(
-                                        color = accentSoftColor,
-                                        shape = RoundedCornerShape(20.dp)
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.CheckCircle,
-                                                contentDescription = null,
-                                                tint = accentColor,
-                                                modifier = Modifier.size(12.dp)
-                                            )
-                                            Spacer(Modifier.width(4.dp))
-                                            Text(
-                                                text = "$totalLearned/$totalWords đã học",
-                                                color = accentTextColor,
-                                                fontSize = 11.sp,
-                                                fontWeight = FontWeight.Medium
-                                            )
-                                        }
+                                    if (!currentUser?.avatarUrl.isNullOrBlank()) {
+                                        AsyncImage(
+                                            model = currentUser!!.avatarUrl,
+                                            contentDescription = "avatar",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    } else {
+                                        Text(
+                                            text = currentUser?.name?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                                            color = accentColor,
+                                            fontWeight = FontWeight.Bold
+                                        )
                                     }
+                                }
 
-                                    
+                                Spacer(Modifier.width(12.dp))
+
+                                Column(
+                                    verticalArrangement = Arrangement.Center,
+                                    modifier = Modifier.fillMaxHeight()
+                                ) {
+                                    Text(
+                                        text = "Thư mục của tôi",
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 17.sp
+                                    )
+
+                                    Spacer(modifier = Modifier.height(3.dp))
+
+                                    val totalWords = userTopics.sumOf { topic -> displayTopicWordCounts[topic.id] ?: topic.wordCount }
+                                    val totalLearned = userTopics.sumOf { topic -> displayTopicLearnedCounts[topic.id] ?: topic.learnedCount }
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Surface(
+                                            color = accentSoftColor,
+                                            shape = RoundedCornerShape(20.dp)
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.CheckCircle,
+                                                    contentDescription = null,
+                                                    tint = accentColor,
+                                                    modifier = Modifier.size(12.dp)
+                                                )
+                                                Spacer(Modifier.width(4.dp))
+                                                Text(
+                                                    text = "$totalLearned/$totalWords đã học",
+                                                    color = accentTextColor,
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                            }
+                                        }
+
+
+                                    }
                                 }
                             }
                         }
-                    }
-                },
-            )
+                    },
+                )
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.65f),
+                    thickness = 0.75.dp
+                )
+            }
         },
         bottomBar = {
             Column(
