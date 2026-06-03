@@ -235,16 +235,6 @@ fun VocabScreen(
                 )
             }
 
-            item(key = "practice_section") {
-                PracticeSectionCard(
-                    onSentencePractice = {
-                        navController.navigateSafely("sentence_practice") {
-                            Toast.makeText(context, "Luyện đặt câu chưa sẵn sàng", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                )
-            }
-
             item(key = "my_folder_section") {
                 MyFolderCard(
                     user = currentUser,
@@ -1015,48 +1005,7 @@ private fun SearchResultItem(
     }
 }
 
-@Composable
-private fun PracticeSectionCard(
-    onSentencePractice: () -> Unit
-) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                "Học phải đi đôi với hành.",
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "0/$LEARNED_COUNT từ đã đặt câu",
-                color = vocabAccentColor(),
-                fontSize = 14.sp
-            )
-            Spacer(Modifier.height(12.dp))
-            Button(
-                onClick = onSentencePractice,
-                colors = ButtonDefaults.buttonColors(containerColor = vocabAccentColor()),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-            ) {
 
-                Text(
-                    "Luyện đặt câu",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun SectionHeader(title: String, subtitle: String, onClick: () -> Unit) {

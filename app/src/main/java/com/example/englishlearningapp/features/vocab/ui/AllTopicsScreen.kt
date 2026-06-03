@@ -25,7 +25,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.NightsStay
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -381,20 +380,7 @@ private fun AllTopicsCefrCard(
                             fontSize = 11.sp
                         )
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.NightsStay,
-                            tint = secondaryTextColor,
-                            modifier = Modifier.size(13.dp),
-                            contentDescription = null
-                        )
-                        Spacer(Modifier.width(3.dp))
-                        Text(
-                            text = "0",
-                            color = secondaryTextColor,
-                            fontSize = 11.sp
-                        )
-                    }
+                    
                 }
             }
         }
@@ -470,20 +456,7 @@ private fun AllTopicsTopicCard(
                             fontSize = 11.sp
                         )
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.NightsStay,
-                            tint = secondaryTextColor,
-                            modifier = Modifier.size(13.dp),
-                            contentDescription = null
-                        )
-                        Spacer(Modifier.width(3.dp))
-                        Text(
-                            text = "0",
-                            color = secondaryTextColor,
-                            fontSize = 11.sp
-                        )
-                    }
+                    
                 }
             }
         }

@@ -42,6 +42,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import com.example.englishlearningapp.features.vocab.ui.SeedMasteryIcon
 import com.example.englishlearningapp.features.vocab.ui.SpeakerIconButton
@@ -69,10 +70,14 @@ fun UserTopicDetailScreen(
     val error by viewModel.vocabsError.collectAsState()
     val savedVocabIds by viewModel.savedVocabIds.collectAsState()
     val removeSuccess by viewModel.removeSuccess.collectAsState()
+    val isDeletingTopic by viewModel.isDeletingTopic.collectAsState()
+    val deleteTopicSuccess by viewModel.deleteTopicSuccess.collectAsState()
+    val deleteTopicError by viewModel.deleteTopicError.collectAsState()
     val userTopics by viewModel.userTopics.collectAsState()
     val topic = userTopics.find { it.id == userTopicId }
 
     var pendingRemoveVocab by remember { mutableStateOf<com.example.englishlearningapp.data.remote.api.response.VocabularyResponse?>(null) }
+    var showDeleteTopicDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val accentColor = if (isDarkTheme) Color(0xFF4CAF50) else Color(0xFF2F7D62)
@@ -93,6 +98,24 @@ fun UserTopicDetailScreen(
                 duration = SnackbarDuration.Short
             )
             viewModel.clearRemoveFeedback()
+        }
+    }
+
+    LaunchedEffect(deleteTopicSuccess) {
+        if (deleteTopicSuccess) {
+            viewModel.clearDeleteTopicFeedback()
+            navController.navigateUp()
+        }
+    }
+
+    LaunchedEffect(deleteTopicError) {
+        if (!deleteTopicError.isNullOrBlank()) {
+            snackbarHostState.showSnackbar(
+                message = deleteTopicError!!,
+                withDismissAction = true,
+                duration = SnackbarDuration.Short
+            )
+            viewModel.clearDeleteTopicFeedback()
         }
     }
 
@@ -144,6 +167,27 @@ fun UserTopicDetailScreen(
                             contentDescription = "back",
                             tint = MaterialTheme.colorScheme.onSurface
                         )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = { showDeleteTopicDialog = true },
+                        enabled = !isDeletingTopic,
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        if (isDeletingTopic) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = Color(0xFFB71C1C)
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Xóa thư mục",
+                                tint = Color(0xFFB71C1C)
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -221,10 +265,36 @@ fun UserTopicDetailScreen(
                             if (vocabToRemove != null) {
                                 viewModel.removeVocabularyFromTopic(userTopicId, vocabToRemove.id)
                             }
-                        }) { Text("OK") }
+                        }) {
+                            Text("Xóa", color = Color(0xFFB71C1C))
+                        }
                     },
                     dismissButton = {
                         TextButton(onClick = { pendingRemoveVocab = null }) { Text("Không") }
+                    }
+                )
+            }
+
+            if (showDeleteTopicDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteTopicDialog = false },
+                    title = { Text("Xóa thư mục") },
+                    text = {
+                        Text(
+                            "Bạn có chắc muốn xóa thư mục \"${topic?.name ?: "này"}\"? " +
+                                "Các từ trong thư mục này sẽ bị gỡ khỏi thư mục."
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showDeleteTopicDialog = false
+                            viewModel.deleteUserTopic(userTopicId)
+                        }) {
+                            Text("Xóa", color = Color(0xFFB71C1C))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDeleteTopicDialog = false }) { Text("Không") }
                     }
                 )
             }

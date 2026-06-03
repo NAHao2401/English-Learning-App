@@ -68,6 +68,15 @@ class UserTopicViewModel(context: Context) : ViewModel() {
     private val _removeSuccess = MutableStateFlow<String?>(null)
     val removeSuccess: StateFlow<String?> = _removeSuccess.asStateFlow()
 
+    private val _isDeletingTopic = MutableStateFlow(false)
+    val isDeletingTopic: StateFlow<Boolean> = _isDeletingTopic.asStateFlow()
+
+    private val _deleteTopicSuccess = MutableStateFlow(false)
+    val deleteTopicSuccess: StateFlow<Boolean> = _deleteTopicSuccess.asStateFlow()
+
+    private val _deleteTopicError = MutableStateFlow<String?>(null)
+    val deleteTopicError: StateFlow<String?> = _deleteTopicError.asStateFlow()
+
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
@@ -172,6 +181,31 @@ class UserTopicViewModel(context: Context) : ViewModel() {
         }
     }
 
+    fun deleteUserTopic(userTopicId: Int) {
+        viewModelScope.launch {
+            _isDeletingTopic.value = true
+            _deleteTopicError.value = null
+            _deleteTopicSuccess.value = false
+            try {
+                vocabApiService.deleteUserTopic(userTopicId)
+                _userTopics.value = _userTopics.value.filterNot { it.id == userTopicId }
+                _topicWordCounts.update { current -> current - userTopicId }
+                _topicLearnedCounts.update { current -> current - userTopicId }
+                _topicVocabs.value = emptyList()
+                _deleteTopicSuccess.value = true
+            } catch (e: HttpException) {
+                _deleteTopicError.value = when (e.code()) {
+                    404 -> "Không tìm thấy thư mục"
+                    else -> "Xóa thư mục thất bại. Vui lòng thử lại."
+                }
+            } catch (e: Exception) {
+                _deleteTopicError.value = "Xóa thư mục thất bại. Vui lòng thử lại."
+            } finally {
+                _isDeletingTopic.value = false
+            }
+        }
+    }
+
     fun showCreateDialog() { _showCreateDialog.value = true }
     fun hideCreateDialog() { _showCreateDialog.value = false; _createError.value = null }
 
@@ -233,6 +267,11 @@ class UserTopicViewModel(context: Context) : ViewModel() {
 
     fun clearRemoveFeedback() {
         _removeSuccess.value = null
+    }
+
+    fun clearDeleteTopicFeedback() {
+        _deleteTopicSuccess.value = false
+        _deleteTopicError.value = null
     }
 
     fun createTopicAndSave(topicName: String, vocabularyId: Int) {

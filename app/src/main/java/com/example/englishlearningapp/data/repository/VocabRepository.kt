@@ -7,6 +7,7 @@ import com.example.englishlearningapp.data.local.db.entity.TopicEntity
 import com.example.englishlearningapp.data.local.db.entity.TopicWithCount
 import com.example.englishlearningapp.data.local.db.entity.UserVocabularyEntity
 import com.example.englishlearningapp.data.local.db.entity.VocabularyEntity
+import com.example.englishlearningapp.data.remote.api.response.TopicResponse
 import com.example.englishlearningapp.data.remote.api.response.VocabularyResponse
 import com.example.englishlearningapp.data.remote.api.VocabApiService
 import kotlinx.coroutines.flow.Flow
@@ -63,7 +64,7 @@ class VocabRepository(context: Context) {
 
 	fun getVocabCountByLevel(): Flow<Map<String, Int>> {
 		return vocabularyDao.getVocabCountByDifficulty()
-			.map { list -> list.associate { it.difficulty to it.count } }
+			.map { list -> list.associate { it.difficulty.uppercase() to it.count } }
 	}
 
 	fun getVocabsByIds(ids: List<Int>): Flow<List<VocabularyEntity>> {
@@ -100,22 +101,55 @@ class VocabRepository(context: Context) {
 	suspend fun syncTopicsFromApi(): Result<Unit> {
 		return try {
 			val remoteTopics = vocabApiService.getTopics()
-			val localTopics = topicDao.getAllTopics().firstOrNull() ?: emptyList()
-			
-			// Match local topics with remote topics by name and update with remoteTopicId
 			remoteTopics.forEach { remoteTopic ->
-				val matchingLocalTopic = localTopics.find { 
-					it.name.equals(remoteTopic.name, ignoreCase = true) 
+				val localTopic = upsertRemoteTopic(remoteTopic)
+				val remoteVocabs = try {
+					vocabApiService.getVocabulariesByTopic(remoteTopic.id)
+				} catch (_: Exception) {
+					emptyList()
 				}
-				if (matchingLocalTopic != null) {
-					val updatedTopic = matchingLocalTopic.copy(remoteTopicId = remoteTopic.id)
-					topicDao.updateTopic(updatedTopic)
+
+				if (remoteVocabs.isNotEmpty()) {
+					vocabularyDao.insertVocabularies(
+						remoteVocabs.map { vocab ->
+							vocab.toEntity(
+								localTopicId = localTopic.id,
+								fallbackDifficulty = remoteTopic.level
+							)
+						}
+					)
 				}
 			}
-			
+
 			Result.success(Unit)
 		} catch (e: Exception) {
 			Result.failure(Exception(e.message ?: "Failed to sync topics from API"))
+		}
+	}
+
+	private suspend fun upsertRemoteTopic(remoteTopic: TopicResponse): TopicEntity {
+		val localTopics = topicDao.getAllTopics().firstOrNull().orEmpty()
+		val matchingLocalTopic = localTopics.firstOrNull { it.remoteTopicId == remoteTopic.id }
+			?: localTopics.firstOrNull {
+				it.remoteTopicId == null &&
+					it.name.equals(remoteTopic.name, ignoreCase = true) &&
+					(it.level ?: "").equals(remoteTopic.level ?: "", ignoreCase = true)
+			}
+
+		val topicToSave = (matchingLocalTopic ?: TopicEntity(name = remoteTopic.name)).copy(
+			name = remoteTopic.name,
+			description = remoteTopic.description,
+			iconUrl = remoteTopic.iconEmoji ?: remoteTopic.color,
+			level = remoteTopic.level,
+			createdAt = matchingLocalTopic?.createdAt ?: System.currentTimeMillis(),
+			remoteTopicId = remoteTopic.id
+		)
+
+		return if (matchingLocalTopic == null) {
+			topicToSave.copy(id = topicDao.insertTopic(topicToSave).toInt())
+		} else {
+			topicDao.updateTopic(topicToSave)
+			topicToSave
 		}
 	}
 
@@ -129,6 +163,23 @@ class VocabRepository(context: Context) {
 			exampleSentence = exampleSentence,
 			audioUrl = audioUrl,
 			difficulty = difficulty
+		)
+	}
+
+	private fun VocabularyResponse.toEntity(
+		localTopicId: Int,
+		fallbackDifficulty: String?
+	): VocabularyEntity {
+		return VocabularyEntity(
+			id = id,
+			topicId = localTopicId,
+			word = word,
+			meaning = meaning,
+			pronunciation = pronunciation,
+			exampleSentence = exampleSentence,
+			audioUrl = audioUrl,
+			difficulty = difficulty ?: fallbackDifficulty,
+			createdAt = System.currentTimeMillis()
 		)
 	}
 }

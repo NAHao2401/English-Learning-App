@@ -299,7 +299,11 @@ fun AppNavGraph(
             composable(Screen.UserTopicDetail.route) { backStackEntry ->
                 val userTopicIdArg = backStackEntry.arguments?.getString("userTopicId")
                 val userTopicId = userTopicIdArg?.toIntOrNull() ?: return@composable
-                UserTopicDetailScreen(navController = navController, userTopicId = userTopicId)
+                UserTopicDetailScreen(
+                    navController = navController,
+                    userTopicVm = userTopicViewModel,
+                    userTopicId = userTopicId
+                )
             }
 
             composable(Screen.Flashcard.route) { backStackEntry ->
@@ -495,20 +499,27 @@ private fun shouldShowBottomBar(route: String?): Boolean {
 private fun isVocabRelatedRoute(route: String?): Boolean {
     if (route == null) return false
 
-    // Also show bottom bar on any Vocab-related screens (including parameterized routes)
-    val vocabPrefixes = listOf(
-        Screen.Vocab.route,                // "vocab"
+    val vocabRoutes = listOf(
+        Screen.Vocab.route,
+        Screen.Vocabulary.route,
         Screen.AllTopics.route,
         Screen.VocabSearch.route,
         Screen.UserTopics.route,
-        Screen.SavedVocab.route,           // "saved_vocab"
-        Screen.ReviewQuiz.route,           // "review_quiz"
-        "review_quiz_listening",
-        "review_quiz_challenge",
+        Screen.SavedVocab.route,
+        Screen.Review.route,
+        Screen.LearnedWords.route,
+        Screen.ReviewQuiz.route,
+        Screen.ReviewQuizListening.route,
+        Screen.ReviewQuizChallenge.route,
+        Screen.FreePracticeNormal.route,
+        Screen.FreePracticeListening.route,
+        Screen.FreePracticeChallenge.route,
         Screen.SelfPracticeNormal.route,
         Screen.SelfPracticeListening.route,
-        Screen.SelfPracticeChallenge.route,
-        Screen.LearnedWords.route,         // "learned_words"
+        Screen.SelfPracticeChallenge.route
+    )
+
+    val vocabRoutePrefixes = listOf(
         "user_topic_detail/",
         "topic_detail/",
         "cefr_detail/",
@@ -517,19 +528,13 @@ private fun isVocabRelatedRoute(route: String?): Boolean {
         "study_flashcard/"
     )
 
-    return vocabPrefixes.any { route.startsWith(it) }
+    return route in vocabRoutes || vocabRoutePrefixes.any { route.startsWith(it) }
 }
 
 private fun isBottomItemSelected(currentRoute: String?, itemRoute: String): Boolean {
     return when (itemRoute) {
         Screen.TopicList.route -> (currentRoute == Screen.TopicList.route || currentRoute == Screen.LessonList.route || currentRoute == Screen.LessonDetail.route)
-        Screen.Vocab.route -> currentRoute == Screen.Vocab.route ||
-            currentRoute == Screen.AllTopics.route ||
-            currentRoute == Screen.UserTopics.route ||
-            currentRoute == Screen.SelfPracticeNormal.route ||
-            currentRoute == Screen.SelfPracticeListening.route ||
-            currentRoute == Screen.SelfPracticeChallenge.route ||
-            currentRoute?.startsWith("user_topic_detail/") == true
+        Screen.Vocab.route -> isVocabRelatedRoute(currentRoute)
         else -> currentRoute == itemRoute
     }
 }

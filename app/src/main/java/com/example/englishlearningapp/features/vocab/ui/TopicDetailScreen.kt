@@ -29,7 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
@@ -97,8 +97,11 @@ fun TopicDetailScreen(
     val difficultyFilter by viewModel.difficultyFilter.collectAsState()
     val savedVocabs by viewModel.savedVocabs.collectAsState()
     val savedIds by remember(savedVocabs) { derivedStateOf { savedVocabs.map { it.id }.toSet() } }
-    val topicWithCount: TopicWithCount? = topicsWithCount.find { it.topic.id == topicId }
+    val topicWithCount: TopicWithCount? = topicsWithCount.find {
+        it.topic.id == topicId || it.topic.remoteTopicId == topicId
+    }
     val topic = topicWithCount?.topic
+    val remoteTopicId = topic?.remoteTopicId ?: topicId
     var selectedVocab by remember { mutableStateOf<VocabularyResponse?>(null) }
 
     // New state from ViewModel (topic progress / study session)
@@ -117,9 +120,9 @@ fun TopicDetailScreen(
     val accentColor = vocabAccent()
     val primaryActionColor = vocabPrimaryAction()
 
-    LaunchedEffect(topicId) {
+    LaunchedEffect(remoteTopicId) {
         viewModel.setDifficultyFilter(null)
-        viewModel.loadTopicDetail(topicId)
+        viewModel.loadTopicDetail(remoteTopicId)
     }
 
     Scaffold(
@@ -135,7 +138,7 @@ fun TopicDetailScreen(
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primaryContainer)
                     ) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = textPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = textPrimary)
                     }
                 },
                 actions = {},
@@ -172,7 +175,7 @@ fun TopicDetailScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Button(
-                    onClick = { if (!isAllLearned) navController.navigate(Screen.StudyFlashcard.createRoute(topicId)) },
+                    onClick = { if (!isAllLearned) navController.navigate(Screen.StudyFlashcard.createRoute(remoteTopicId)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
