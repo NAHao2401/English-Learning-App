@@ -10,8 +10,13 @@ object RetrofitClient {
     private const val BASE_URL = "http://127.0.0.1:8000/"
 
     private lateinit var retrofit: Retrofit
+    @Volatile
+    private var isInitialized = false
 
+    @Synchronized
     fun init(context: Context) {
+        if (isInitialized) return
+
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor(AuthInterceptor(context))
             .build()
@@ -21,6 +26,7 @@ object RetrofitClient {
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+        isInitialized = true
     }
 
     val authApiService: AuthApiService by lazy {
@@ -37,5 +43,9 @@ object RetrofitClient {
 
     val progressApiService: ProgressApiService by lazy {
         retrofit.create(ProgressApiService::class.java)
+    }
+
+    val notificationApiService: NotificationApiService by lazy {
+        retrofit.create(NotificationApiService::class.java)
     }
 }

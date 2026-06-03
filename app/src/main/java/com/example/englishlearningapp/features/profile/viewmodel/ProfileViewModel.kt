@@ -103,7 +103,7 @@ class ProfileViewModel(
 
     fun logout(onLoggedOut: () -> Unit) {
         viewModelScope.launch {
-            appDataStore.logout()
+            authRepository.logout()
             onLoggedOut()
         }
     }

@@ -1,6 +1,7 @@
 package com.example.englishlearningapp.features.vocab.viewmodel
 
 import android.content.Context
+import com.example.englishlearningapp.core.notification.ReviewReminderManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.englishlearningapp.data.local.db.DatabaseProvider
@@ -48,6 +49,7 @@ class VocabViewModel(context: Context) : ViewModel() {
     private val repository = VocabRepository(appContext)
     private val vocabApiService: VocabApiService = RetrofitClient.vocabApiService
     private val appDataStore = AppDataStore(appContext)
+    private val reviewReminderManager = ReviewReminderManager(appContext)
     private val _searchQuery = MutableStateFlow("")
     private val _searchResults = MutableStateFlow<List<VocabularyResponse>>(emptyList())
     private val _isSearching = MutableStateFlow(false)
@@ -401,6 +403,7 @@ class VocabViewModel(context: Context) : ViewModel() {
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
+            reviewReminderManager.suppressAfterReviewActivity()
             _isRating.value = true
             try {
                 val result = vocabApiService.rateVocabulary(
@@ -443,6 +446,7 @@ class VocabViewModel(context: Context) : ViewModel() {
         }
 
         viewModelScope.launch {
+            reviewReminderManager.suppressAfterReviewActivity()
             try {
                 vocabApiService.rateVocabulary(
                     RateVocabRequest(vocabularyId, newRating)
