@@ -36,7 +36,13 @@ Thumbs.db
 # Signing keys
 *.jks
 *.keystore
-
 # Google / Firebase config
 google-services.json
 GoogleService-Info.plist
+.env
+.env.*
+secret.properties
+keystore.properties
+*.md
+!README.md
+.vscode/

@@ -1,6 +1,7 @@
 package com.example.englishlearningapp.data.repository
 
 import android.content.Context
+import com.example.englishlearningapp.core.notification.ReviewReminderManager
 import com.example.englishlearningapp.core.util.ErrorParser
 import com.example.englishlearningapp.data.local.datastore.AppDataStore
 import com.example.englishlearningapp.data.remote.api.RetrofitClient
@@ -14,6 +15,8 @@ class AuthRepository(context: Context) {
 
     private val authApi = RetrofitClient.authApiService
     private val appDataStore = AppDataStore(context.applicationContext)
+    private val reviewReminderManager = ReviewReminderManager(context.applicationContext)
+    private val pushTokenRepository = PushTokenRepository(context.applicationContext)
 
     suspend fun login(email: String, password: String): Result<Unit> {
         return try {
@@ -30,6 +33,7 @@ class AuthRepository(context: Context) {
                         tokenType = body.token_type,
                         refreshToken = body.refresh_token
                     )
+                    pushTokenRepository.registerCurrentToken()
                     Result.success(Unit)
                 } else {
                     Result.failure(Exception("Response body is null"))
@@ -90,6 +94,8 @@ class AuthRepository(context: Context) {
     }
 
     suspend fun logout() {
+        pushTokenRepository.unregisterCurrentToken()
+        reviewReminderManager.clear()
         appDataStore.logout()
     }
 

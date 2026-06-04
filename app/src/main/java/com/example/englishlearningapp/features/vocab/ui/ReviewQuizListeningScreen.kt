@@ -31,6 +31,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -111,17 +112,24 @@ fun ReviewQuizListeningScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFFF8F6FF),
+        containerColor = vocabScreenBackground(),
         topBar = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .statusBarsPadding()
             ) {
-                IconButton(onClick = { navController.navigateUp() }) {
+                IconButton(
+                    onClick = { navController.navigateUp() },
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                ) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color(0xFF1D1B2F)
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Row(
@@ -168,7 +176,7 @@ fun ReviewQuizListeningScreen(
             ) {
                 Text(
                     "Chọn nghĩa",
-                    color = Color(0xFF1D1B2F),
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
                 )

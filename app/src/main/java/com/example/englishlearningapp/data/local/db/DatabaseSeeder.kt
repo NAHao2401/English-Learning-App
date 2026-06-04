@@ -71,7 +71,8 @@ object DatabaseSeeder {
                             description = t.description,
                             iconUrl = t.iconEmoji ?: t.color,
                             level = t.level,
-                            createdAt = System.currentTimeMillis()
+                            createdAt = System.currentTimeMillis(),
+                            remoteTopicId = t.id
                         )
                     ).toInt()
 

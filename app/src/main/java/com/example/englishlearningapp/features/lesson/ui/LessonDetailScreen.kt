@@ -63,6 +63,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.example.englishlearningapp.data.remote.NetworkConfig
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,12 +116,12 @@ fun LessonDetailScreen(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 },
@@ -356,7 +357,7 @@ private fun QuestionCard(
                         Text(
                             text = "Question ${question.question_order ?: index + 1}",
                             style = MaterialTheme.typography.labelMedium,
-                            color = Color(0xFF7B778C),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                             fontWeight = FontWeight.SemiBold
                         )
 
@@ -365,7 +366,7 @@ private fun QuestionCard(
                         Text(
                             text = question.question_text,
                             style = MaterialTheme.typography.titleMedium,
-                            color = Color(0xFF242235),
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -431,10 +432,10 @@ private fun MultipleChoiceAnswerSection(
                     .fillMaxWidth()
                     .clickable { onSelectAnswer(option.option_text) },
                 shape = RoundedCornerShape(18.dp),
-                color = if (isSelected) Color(0xFFEAE5FF) else Color(0xFFF8F7FC),
+                color = if (isSelected) Color(0xFFEAE5FF) else MaterialTheme.colorScheme.surfaceVariant,
                 border = androidx.compose.foundation.BorderStroke(
                     width = 1.dp,
-                    color = if (isSelected) Color(0xFF7B61FF) else Color(0xFFE7E3F0)
+                    color = if (isSelected) Color(0xFF7B61FF) else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                 )
             ) {
                 Row(
@@ -477,7 +478,7 @@ private fun MultipleChoiceAnswerSection(
                     Text(
                         text = option.option_text,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = Color(0xFF2F2B3A),
+                        color = if (isSelected) Color(0xFF2F2B3A) else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                     )
                 }
@@ -497,24 +498,24 @@ private fun TextInputAnswerSection(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         textStyle = MaterialTheme.typography.bodyLarge.copy(
-            color = Color(0xFF242235)
+            color = MaterialTheme.colorScheme.onSurface
         ),
         placeholder = {
             Text(
                 text = "Type your answer here",
-                color = Color(0xFF7B778C)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
             )
         },
         singleLine = false,
         minLines = 3,
         maxLines = 5,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color(0xFF242235),
-            unfocusedTextColor = Color(0xFF242235),
-            focusedPlaceholderColor = Color(0xFF7B778C),
-            unfocusedPlaceholderColor = Color(0xFF7B778C),
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
             focusedBorderColor = Color(0xFF7B61FF),
-            unfocusedBorderColor = Color(0xFFE7E3F0),
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
             cursorColor = Color(0xFF7B61FF)
         )
     )
@@ -569,7 +570,7 @@ private fun BottomActionBar(
     Surface(
         tonalElevation = 8.dp,
         shadowElevation = 8.dp,
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     ) {
         Column(
@@ -581,7 +582,7 @@ private fun BottomActionBar(
             Text(
                 text = "$answeredCount / $totalQuestions questions answered",
                 style = MaterialTheme.typography.titleSmall,
-                color = Color(0xFF242235),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
             )
 
@@ -594,7 +595,7 @@ private fun BottomActionBar(
                     else -> "Your answers are saved as you go."
                 },
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF7B778C),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -638,7 +639,7 @@ private fun LoadingContent() {
             Text(
                 text = "Loading questions...",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF6E6A7D)
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
             )
         }
     }
@@ -654,7 +655,7 @@ private fun EmptyContent() {
     ) {
         Surface(
             shape = RoundedCornerShape(28.dp),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.surface,
             shadowElevation = 4.dp
         ) {
             Column(
@@ -665,13 +666,13 @@ private fun EmptyContent() {
                     text = "No questions yet",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF242235)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Questions for this lesson will appear here once they are available.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF6E6A7D)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f)
                 )
             }
         }
@@ -734,13 +735,6 @@ private fun ListeningPromptSection(
     audioUrl: String?
 ) {
     Column {
-        Text(
-            text = "Listening prompt",
-            style = MaterialTheme.typography.labelMedium,
-            color = Color(0xFF666274),
-            fontWeight = FontWeight.SemiBold
-        )
-
         Spacer(modifier = Modifier.height(8.dp))
 
         if (audioUrl.isNullOrBlank()) {
@@ -756,10 +750,10 @@ private fun AudioUnavailableCard() {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = Color(0xFFF5F4FA),
+        color = MaterialTheme.colorScheme.surfaceVariant,
         border = androidx.compose.foundation.BorderStroke(
             width = 1.dp,
-            color = Color(0xFFE7E3F0)
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
         )
     ) {
         Row(
@@ -788,14 +782,14 @@ private fun AudioUnavailableCard() {
                 Text(
                     text = "Audio will be available soon",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF242235),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold
                 )
 
                 Text(
                     text = "This fill-in-the-blank question is designed to support listening practice.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF7B778C)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f)
                 )
             }
         }
@@ -821,10 +815,10 @@ private fun AudioPlayerCard(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = Color(0xFFEAE5FF),
+        color = MaterialTheme.colorScheme.surfaceVariant,
         border = androidx.compose.foundation.BorderStroke(
             width = 1.dp,
-            color = Color(0xFFD8D0FF)
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
         )
     ) {
         Row(
@@ -850,11 +844,12 @@ private fun AudioPlayerCard(
                                 isPlaying = true
                             } else {
                                 isPreparing = true
+                                val fullAudioUrl = resolveAudioUrl(audioUrl)
 
                                 try {
                                     val player = MediaPlayer()
 
-                                    player.setDataSource(audioUrl)
+                                    player.setDataSource(fullAudioUrl)
                                     player.setOnPreparedListener {
                                         isPreparing = false
                                         it.start()
@@ -919,14 +914,14 @@ private fun AudioPlayerCard(
                 Text(
                     text = if (isPlaying) "Playing audio" else "Tap to listen",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF242235),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold
                 )
 
                 Text(
                     text = errorMessage ?: "Listen carefully, then type your answer below.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (errorMessage == null) Color(0xFF6E6A7D) else Color(0xFFB3261E)
+                    color = if (errorMessage == null) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f) else Color(0xFFB3261E)
                 )
             }
 
@@ -937,5 +932,17 @@ private fun AudioPlayerCard(
                 modifier = Modifier.size(24.dp)
             )
         }
+    }
+}
+
+private fun resolveAudioUrl(audioUrl: String): String {
+    if (audioUrl.startsWith("http://") || audioUrl.startsWith("https://")) {
+        return audioUrl
+    }
+
+    return if (audioUrl.startsWith("/")) {
+        NetworkConfig.BASE_URL.trimEnd('/') + audioUrl
+    } else {
+        NetworkConfig.BASE_URL + audioUrl
     }
 }

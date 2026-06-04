@@ -22,13 +22,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
@@ -43,6 +44,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -95,8 +97,11 @@ fun TopicDetailScreen(
     val difficultyFilter by viewModel.difficultyFilter.collectAsState()
     val savedVocabs by viewModel.savedVocabs.collectAsState()
     val savedIds by remember(savedVocabs) { derivedStateOf { savedVocabs.map { it.id }.toSet() } }
-    val topicWithCount: TopicWithCount? = topicsWithCount.find { it.topic.id == topicId }
+    val topicWithCount: TopicWithCount? = topicsWithCount.find {
+        it.topic.id == topicId || it.topic.remoteTopicId == topicId
+    }
     val topic = topicWithCount?.topic
+    val remoteTopicId = topic?.remoteTopicId ?: topicId
     var selectedVocab by remember { mutableStateOf<VocabularyResponse?>(null) }
 
     // New state from ViewModel (topic progress / study session)
@@ -110,35 +115,44 @@ fun TopicDetailScreen(
     val isAllLearned = newWordCount == 0 && totalWords > 0
 
     val audioPlayer = rememberVocabAudioPlayer()
-    val textPrimary = Color(0xFF1D1B2F)
-    val textSecondary = Color(0xFF77738A)
+    val textPrimary = MaterialTheme.colorScheme.onSurface
+    val textSecondary = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+    val accentColor = vocabAccent()
+    val primaryActionColor = vocabPrimaryAction()
 
-    LaunchedEffect(topicId) {
+    LaunchedEffect(remoteTopicId) {
         viewModel.setDifficultyFilter(null)
-        viewModel.loadTopicDetail(topicId)
+        viewModel.loadTopicDetail(remoteTopicId)
     }
 
     Scaffold(
+        containerColor = vocabScreenBackground(),
         topBar = {
             CenterAlignedTopAppBar(
-                windowInsets = WindowInsets(0),
                 title = { Text(topic?.name ?: "Topic", color = textPrimary) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = textPrimary)
+                    IconButton(
+                        onClick = { navController.navigateUp() },
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = textPrimary)
                     }
                 },
                 actions = {},
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFFF8F6FF))
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent)
             )
         },
         bottomBar = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFF8F6FF))
+                    .background(vocabScreenBackground())
                     .padding(horizontal = 16.dp, vertical = 10.dp)
                     .navigationBarsPadding()
+                    .padding(bottom = 72.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -149,10 +163,10 @@ fun TopicDetailScreen(
                         imageVector = Icons.Filled.CheckCircle,
                         contentDescription = null,
                         modifier = Modifier.size(13.dp),
-                        tint = Color(0xFF4CAF50)
+                        tint = accentColor
                     )
                     Spacer(Modifier.size(4.dp))
-                    Text("$learnedCount/$totalWords đã học", color = Color(0xFF4CAF50), fontSize = 12.sp)
+                    Text("$learnedCount/$totalWords đã học", color = accentColor, fontSize = 12.sp)
                     if (newWordCount > 0) {
                         Spacer(Modifier.width(12.dp))
                         Text("• $newWordCount từ mới", color = textSecondary, fontSize = 12.sp)
@@ -161,21 +175,21 @@ fun TopicDetailScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Button(
-                    onClick = { if (!isAllLearned) navController.navigate(Screen.StudyFlashcard.createRoute(topicId)) },
+                    onClick = { if (!isAllLearned) navController.navigate(Screen.StudyFlashcard.createRoute(remoteTopicId)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
                     enabled = !isAllLearned,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isAllLearned) Color(0xFFE0DDEB) else Color(0xFF1565C0),
-                        disabledContainerColor = Color(0xFFE0DDEB)
+                        containerColor = if (isAllLearned) vocabDividerColor() else primaryActionColor,
+                        disabledContainerColor = vocabDividerColor()
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     if (isAllLearned) {
                         Text("Không có từ nào cần luyện tập", color = textSecondary, fontSize = 14.sp)
                     } else {
-                        Text("🃏 Học từ mới ($newWordCount)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text("Học từ mới ($newWordCount)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     }
                 }
             }
@@ -188,7 +202,7 @@ fun TopicDetailScreen(
             // Header card
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = levelBgColor(topic?.level)),
+                colors = CardDefaults.cardColors(containerColor = vocabLevelCardContainer(topic?.level)),
                 shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)
             ) {
                 // Determine display icon vs color
@@ -221,10 +235,10 @@ fun TopicDetailScreen(
                         Text(topic?.description ?: "", color = textSecondary, fontSize = 13.sp)
                         Spacer(modifier = Modifier.height(6.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Badge(containerColor = Color.White) {
+                            Badge(containerColor = vocabCardContainer()) {
                                 Text(topic?.level ?: "", color = textPrimary, fontSize = 11.sp)
                             }
-                            Badge(containerColor = Color.White) {
+                            Badge(containerColor = vocabCardContainer()) {
                                 Text("${topicVocabs.size} từ", color = textPrimary, fontSize = 11.sp)
                             }
                         }
@@ -239,7 +253,7 @@ fun TopicDetailScreen(
             val filterLabels = listOf("Tất cả", "A0", "A1", "A2", "B1", "B2")
             LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(filterOptions.zip(filterLabels)) { (value, label) ->
-                    FilterChip(selected = difficultyFilter == value, onClick = { viewModel.setDifficultyFilter(value) }, label = { Text(label) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF4CAF50), selectedLabelColor = Color.White, containerColor = Color(0xFFF3F1FA), labelColor = textSecondary))
+                    FilterChip(selected = difficultyFilter == value, onClick = { viewModel.setDifficultyFilter(value) }, label = { Text(label) }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accentColor, selectedLabelColor = Color.White, containerColor = vocabCardContainer(), labelColor = textSecondary))
                 }
             }
 
@@ -250,7 +264,15 @@ fun TopicDetailScreen(
                     Text("Không có từ vựng nào", color = textSecondary)
                 }
 
-                else -> LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
+                else -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 8.dp,
+                        bottom = 120.dp
+                    )
+                ) {
                     items(items = topicVocabs, key = { it.id }, contentType = { "vocab" }) { vocab: VocabularyResponse ->
                         val mastery = topicProgress[vocab.id]?.masteryLevel ?: 0
 
@@ -262,7 +284,7 @@ fun TopicDetailScreen(
                         )
 
                         androidx.compose.material3.HorizontalDivider(
-                            color = Color(0xFFE6E2F2),
+                            color = vocabDividerColor(),
                             thickness = 0.5.dp,
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
@@ -340,7 +362,7 @@ fun WordItem(
     val displayPron = remember(vocab.pronunciation) { vocab.pronunciation }
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = vocabCardContainer()),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -349,7 +371,7 @@ fun WordItem(
         Column(Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(vocab.word, color = Color(0xFF1D1B2F), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(vocab.word, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     if (!displayPron.isNullOrBlank()) Text(displayPron, color = Color.Gray, fontSize = 12.sp, fontStyle = FontStyle.Italic)
                 }
 
@@ -373,7 +395,7 @@ fun WordItem(
                     Spacer(modifier = Modifier.height(8.dp))
                     Row {
                         Text("Nghĩa  ", color = Color.Gray, fontSize = 12.sp)
-                        Text(vocab.meaning, color = Color(0xFF1D1B2F), fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                        Text(vocab.meaning, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, fontWeight = FontWeight.Medium)
                     }
                     if (!vocab.exampleSentence.isNullOrBlank()) {
                         Spacer(modifier = Modifier.height(6.dp))

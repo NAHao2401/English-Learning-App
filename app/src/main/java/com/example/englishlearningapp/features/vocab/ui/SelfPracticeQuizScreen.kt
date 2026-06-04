@@ -5,6 +5,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -101,11 +103,17 @@ fun SelfPracticeQuizScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFFF8F6FF),
+        containerColor = vocabScreenBackground(),
         topBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                IconButton(onClick = { navController.navigateUp() }) {
-                    Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back", tint = Color(0xFF1D1B2F))
+            Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
+                IconButton(
+                    onClick = { navController.navigateUp() },
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                 }
                 Row(
                     modifier = Modifier
@@ -134,7 +142,13 @@ fun SelfPracticeQuizScreen(
             }
         }
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(padding)
+                .padding(start = 16.dp, end = 16.dp, bottom = 120.dp)
+        ) {
 
             Spacer(Modifier.height(8.dp))
 
@@ -145,7 +159,7 @@ fun SelfPracticeQuizScreen(
                     ) {
                         Text(
                             "Chọn nghĩa",
-                            color = Color(0xFF1D1B2F),
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
                         )
@@ -156,11 +170,11 @@ fun SelfPracticeQuizScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(16.dp), elevation = CardDefaults.cardElevation(6.dp)) {
+            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = vocabCardContainer()), shape = RoundedCornerShape(16.dp), elevation = CardDefaults.cardElevation(6.dp)) {
                 Column(modifier = Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("Từ sau đây mang nghĩa là gì?", color = Color(0xFF77738A), fontSize = 14.sp, textAlign = TextAlign.Center)
                     Spacer(Modifier.height(16.dp))
-                    Text(text = question?.word ?: "", color = Color(0xFF1D1B2F), fontWeight = FontWeight.ExtraBold, fontSize = 32.sp, textAlign = TextAlign.Center)
+                    Text(text = question?.word ?: "", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.ExtraBold, fontSize = 32.sp, textAlign = TextAlign.Center)
                     if (!question?.pronunciation.isNullOrBlank()) {
                         Spacer(Modifier.height(6.dp))
                         Text(text = question?.pronunciation ?: "", color = Color(0xFF77738A), fontSize = 15.sp, fontStyle = FontStyle.Italic, textAlign = TextAlign.Center)
@@ -171,16 +185,19 @@ fun SelfPracticeQuizScreen(
             Spacer(Modifier.height(24.dp))
 
             val optionLabels = listOf("A", "B", "C", "D")
+            val optionBgColor = vocabCardContainer()
+            val optionBorderColor = vocabDividerColor()
+            val optionTextColor = MaterialTheme.colorScheme.onSurface
 
             question?.options?.forEachIndexed { index, option ->
                 val isSelected = selectedIndex == index
                 val isThisCorrect = index == question.correctIndex
 
                 val (bgColor, borderColor, textColor) = when {
-                    !isAnswered -> Triple(Color.White, Color(0xFFE0DDEB), Color(0xFF1D1B2F))
+                    !isAnswered -> Triple(optionBgColor, optionBorderColor, optionTextColor)
                     isThisCorrect -> Triple(Color(0xFFE8F5E9), Color(0xFF4CAF50), Color(0xFF2E7D32))
                     isSelected && !isThisCorrect -> Triple(Color(0xFFFFEDEC), Color(0xFFF44336), Color(0xFFC62828))
-                    else -> Triple(Color(0xFFF3F1FA), Color(0xFFE0DDEB), Color(0xFF9A97A8))
+                    else -> Triple(vocabPanelBackground(), optionBorderColor, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                 }
 
                 Card(onClick = { handleAnswer(index) }, enabled = !isAnswered, modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp), colors = CardDefaults.cardColors(containerColor = bgColor), border = BorderStroke(1.5.dp, borderColor), shape = RoundedCornerShape(12.dp)) {

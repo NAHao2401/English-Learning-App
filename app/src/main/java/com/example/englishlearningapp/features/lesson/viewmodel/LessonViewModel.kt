@@ -31,7 +31,7 @@ class LessonViewModel : ViewModel() {
             _uiState.value = result.fold(
                 onSuccess = { topics ->
                     _uiState.value.copy(
-                        topics = topics,
+                        topics = topics.filter { it.id <= LESSON_TOPIC_MAX_ID },
                         isLoading = false
                     )
                 },
@@ -268,5 +268,9 @@ class LessonViewModel : ViewModel() {
 
     fun clearLessonState() {
         _uiState.value = LessonUiState()
+    }
+
+    private companion object {
+        const val LESSON_TOPIC_MAX_ID = 6
     }
 }

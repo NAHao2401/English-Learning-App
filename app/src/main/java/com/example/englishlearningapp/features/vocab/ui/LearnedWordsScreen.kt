@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -36,6 +37,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -106,16 +108,20 @@ fun LearnedWordsScreen(
     var showFreePracticeSheet by remember { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = DarkBg,
+        containerColor = vocabScreenBackground(),
         topBar = {
             TopAppBar(
-                windowInsets = WindowInsets(0),
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DarkBg
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent
                 ),
                 navigationIcon = {
                     IconButton(
-                        onClick = { navController.navigateUp() }
+                        onClick = { navController.navigateUp() },
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                     ) {
                         Icon(
                             Icons.Default.ArrowBack,
@@ -137,14 +143,14 @@ fun LearnedWordsScreen(
         bottomBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = CardBg,
+                color = vocabCardContainer(),
                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 84.dp)
                 ) {
                     if (dueCount > 0) {
                         Button(
@@ -349,7 +355,7 @@ fun LearnedWordsFreePracticeModeBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color.White,
+        containerColor = vocabCardContainer(),
         dragHandle = {
             Box(
                 Modifier
@@ -488,7 +494,7 @@ fun LearnedWordRow(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(DarkBg)
+            .background(vocabScreenBackground())
     ) {
         Row(
             modifier = Modifier

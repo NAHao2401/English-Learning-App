@@ -1,0 +1,123 @@
+# FCM vocabulary review notifications
+
+The Android app registers its Firebase Cloud Messaging token with these authenticated endpoints:
+
+```http
+POST /notifications/device-tokens
+DELETE /notifications/device-tokens
+```
+
+Both endpoints use this JSON body:
+
+```json
+{
+  "token": "fcm-registration-token",
+  "platform": "android"
+}
+```
+
+The server must upsert a token on `POST`. A token is owned by the currently authenticated user.
+The server should delete the token on `DELETE`, but also remove invalid tokens when Firebase reports
+that they are no longer registered.
+
+## Firebase setup
+
+1. Create a Firebase project and add the Android app with package name
+   `com.example.englishlearningapp`.
+2. Download `google-services.json` and place it at `app/google-services.json`.
+3. Create a service account for the backend and configure Firebase Admin SDK credentials on the
+   server. Do not place the service-account JSON file in the Android project.
+
+## Suggested database table
+
+```sql
+CREATE TABLE device_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token TEXT NOT NULL UNIQUE,
+    platform VARCHAR(20) NOT NULL DEFAULT 'android',
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+## FastAPI example
+
+```python
+from datetime import datetime, timezone
+from pydantic import BaseModel
+
+class DeviceTokenRequest(BaseModel):
+    token: str
+    platform: str = "android"
+
+@router.post("/notifications/device-tokens", status_code=204)
+def register_device_token(body: DeviceTokenRequest, user=Depends(get_current_user), db=Depends(get_db)):
+    db.execute(
+        """
+        INSERT INTO device_tokens (user_id, token, platform, updated_at)
+        VALUES (:user_id, :token, :platform, :updated_at)
+        ON CONFLICT (token) DO UPDATE SET
+            user_id = EXCLUDED.user_id,
+            platform = EXCLUDED.platform,
+            updated_at = EXCLUDED.updated_at
+        """,
+        {
+            "user_id": user.id,
+            "token": body.token,
+            "platform": body.platform,
+            "updated_at": datetime.now(timezone.utc),
+        },
+    )
+    db.commit()
+
+@router.delete("/notifications/device-tokens", status_code=204)
+def unregister_device_token(body: DeviceTokenRequest, user=Depends(get_current_user), db=Depends(get_db)):
+    db.execute(
+        "DELETE FROM device_tokens WHERE user_id = :user_id AND token = :token",
+        {"user_id": user.id, "token": body.token},
+    )
+    db.commit()
+```
+
+## Review notification job
+
+Run a scheduled backend job every few minutes. It must query the database at execution time, so a
+manual database update to `next_review_at` is reflected by the next job run.
+
+The job should:
+
+1. Count due words for each user where `next_review_at <= NOW()`.
+2. Send a data-only FCM message to each active token belonging to that user.
+3. Record the last sent due-word signature or reminder time to avoid sending duplicates every run.
+4. Remove tokens rejected by Firebase as unregistered.
+
+The Android client expects:
+
+```json
+{
+  "data": {
+    "type": "vocabulary_review",
+    "due_count": "3"
+  }
+}
+```
+
+Example with Firebase Admin SDK:
+
+```python
+from firebase_admin import messaging
+
+def send_review_reminder(token: str, due_count: int) -> None:
+    message = messaging.Message(
+        token=token,
+        data={
+            "type": "vocabulary_review",
+            "due_count": str(due_count),
+        },
+        android=messaging.AndroidConfig(priority="high"),
+    )
+    messaging.send(message)
+```
+
+Use a durable scheduler such as Celery Beat, APScheduler, or the hosting platform's cron facility.
+Do not schedule one in-process timer per vocabulary item.

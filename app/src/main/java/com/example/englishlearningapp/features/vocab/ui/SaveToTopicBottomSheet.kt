@@ -65,7 +65,7 @@ fun SaveToTopicBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color.White,
+        containerColor = vocabCardContainer(),
         dragHandle = {
             Box(
                 modifier = Modifier
@@ -84,7 +84,7 @@ fun SaveToTopicBottomSheet(
         ) {
             Text(
                 text = vocab.word,
-                color = Color(0xFF1D1B2F),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = Bold,
                 fontSize = 20.sp
             )
@@ -204,7 +204,7 @@ fun SaveToTopicBottomSheet(
                             )
                             Spacer(Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(topic.name, color = Color(0xFF1D1B2F), fontSize = 15.sp, fontWeight = Medium)
+                                Text(topic.name, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, fontWeight = Medium)
 
                             }
                             if (isAlreadySaved) {

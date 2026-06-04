@@ -18,18 +18,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -52,14 +48,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
-data class HomeFeatureItem(
-    val title: String,
-    val subtitle: String,
-    val icon: ImageVector,
-    val isAvailable: Boolean = true,
-    val onClick: () -> Unit
-)
-
 @Composable
 fun HomeScreen(
     userName: String = "Learner",
@@ -79,49 +67,6 @@ fun HomeScreen(
     onContinueLearningClick: () -> Unit = {},
     onNavigateToChat: () -> Unit = {}
 ) {
-    val featureItems = listOf(
-        HomeFeatureItem(
-            title = "Lessons",
-            subtitle = "Learn by topics",
-            icon = Icons.Default.AutoStories,
-            onClick = onLessonsClick
-        ),
-        HomeFeatureItem(
-            title = "Vocabulary",
-            subtitle = "Word practice",
-            icon = Icons.Default.Translate,
-            isAvailable = true,
-            onClick = onVocabularyClick
-        ),
-        HomeFeatureItem(
-            title = "Progress",
-            subtitle = "View your stats",
-            icon = Icons.Default.BarChart,
-            onClick = onProgressClick
-        ),
-        HomeFeatureItem(
-            title = "AI Scan",
-            subtitle = "Coming soon",
-            icon = Icons.Default.CameraAlt,
-            isAvailable = true,
-            onClick = onAiScanClick
-        ),
-        HomeFeatureItem(
-            title = "Speaking",
-            subtitle = "Coming soon",
-            icon = Icons.Default.Mic,
-            isAvailable = true,
-            onClick = onSpeakingClick
-        ),
-        HomeFeatureItem(
-            title = "AI Chat",
-            subtitle = "Practice with AI",
-            icon = Icons.Default.AutoStories,
-            isAvailable = true,
-            onClick = onNavigateToChat
-        )
-    )
-
     val safeCompletionPercent = completionPercent.coerceIn(0, 100)
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
@@ -143,7 +88,7 @@ fun HomeScreen(
                 start = 20.dp,
                 end = 20.dp,
                 top = 18.dp,
-                bottom = 28.dp
+                bottom = 120.dp
             ),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
@@ -181,53 +126,10 @@ fun HomeScreen(
             }
 
             item {
-                ContinueLearningCard(
-                    completedLessons = completedLessons,
-                    totalLessons = totalLessons,
-                    onContinueLearningClick = onContinueLearningClick
-                )
+                AiChatAccessCard(onNavigateToChat = onNavigateToChat)
             }
 
-            item {
-                SectionTitle(
-                    title = "Explore",
-                    subtitle = "Choose what you want to practice today"
-                )
-            }
-
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    featureItems.chunked(2).forEach { rowItems ->
-                        if (rowItems.size == 1) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                FeatureCard(
-                                    item = rowItems.first(),
-                                    modifier = Modifier.fillMaxWidth(0.48f)
-                                )
-                            }
-                        } else {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                rowItems.forEach { item ->
-                                    FeatureCard(
-                                        item = item,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            item {
-                DailyMotivationCard(streakCount = streakCount)
-            }
+            
         }
     }
 }
@@ -495,15 +397,14 @@ private fun StatCard(
 }
 
 @Composable
-private fun ContinueLearningCard(
-    completedLessons: Int,
-    totalLessons: Int,
-    onContinueLearningClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
+private fun AiChatAccessCard(onNavigateToChat: () -> Unit) {
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onNavigateToChat),
         shape = RoundedCornerShape(26.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
     ) {
         Row(
             modifier = Modifier
@@ -515,13 +416,13 @@ private fun ContinueLearningCard(
                 modifier = Modifier
                     .size(54.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(Color(0xFFFFA726).copy(alpha = 0.18f)),
+                    .background(Color(0xFF6C63FF).copy(alpha = 0.14f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.AutoStories,
+                    imageVector = Icons.AutoMirrored.Filled.Chat,
                     contentDescription = null,
-                    tint = Color(0xFFFF8A00),
+                    tint = Color(0xFF6C63FF),
                     modifier = Modifier.size(30.dp)
                 )
             }
@@ -530,175 +431,27 @@ private fun ContinueLearningCard(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Today's practice",
+                    text = "AI Chat",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = if (totalLessons > 0) {
-                        "You have ${totalLessons - completedLessons} lessons left to explore."
-                    } else {
-                        "Pick a topic and complete your first lesson."
-                    },
+                    text = "Practice English with your AI tutor.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
                 )
             }
 
-            TextButton(onClick = onContinueLearningClick) {
+            TextButton(onClick = onNavigateToChat) {
                 Text("Go")
             }
         }
     }
 }
 
-@Composable
-private fun SectionTitle(
-    title: String,
-    subtitle: String
-) {
-    Column {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            text = subtitle,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
-        )
-    }
-}
 
-@Composable
-private fun FeatureCard(
-    item: HomeFeatureItem,
-    modifier: Modifier = Modifier
-) {
-    ElevatedCard(
-        modifier = modifier
-            .height(132.dp)
-            .clickable(enabled = item.isAvailable) { item.onClick() },
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = if (item.isAvailable) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)
-        ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = if (item.isAvailable) 3.dp else 0.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(46.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            if (item.isAvailable) {
-                                Color(0xFF6C63FF).copy(alpha = 0.12f)
-                            } else {
-                                MaterialTheme.colorScheme.onBackground.copy(alpha = 0.12f)
-                            }
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.title,
-                        tint = if (item.isAvailable) Color(0xFF6C63FF) else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
-                    )
-                }
-
-                if (!item.isAvailable) {
-                    Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = "Coming soon",
-                        tint = Color(0xFFAAA6B8),
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-
-            Column {
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (item.isAvailable) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f),
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(3.dp))
-                Text(
-                    text = item.subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun DailyMotivationCard(streakCount: Int) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(26.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(18.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(46.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFFFE3D3)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.LocalFireDepartment,
-                    contentDescription = null,
-                    tint = Color(0xFFFF6D00)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column {
-                Text(
-                    text = if (streakCount > 0) "Great streak: $streakCount days" else "Build your first streak",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Practice a little every day, and your English will grow faster.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun InlineInfoCard(message: String) {

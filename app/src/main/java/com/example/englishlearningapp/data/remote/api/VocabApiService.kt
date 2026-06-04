@@ -51,6 +51,9 @@ interface VocabApiService {
     @POST("vocabularies/user-topics")
     suspend fun createUserTopic(@Body request: UserTopicCreateRequest): UserTopicResponse
 
+    @DELETE("vocabularies/user-topics/{user_topic_id}")
+    suspend fun deleteUserTopic(@Path("user_topic_id") userTopicId: Int)
+
     @GET("vocabularies/user-topics/{user_topic_id}/vocabularies")
     suspend fun getUserTopicVocabularies(@Path("user_topic_id") userTopicId: Int): List<VocabularyResponse>
 
