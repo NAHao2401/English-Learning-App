@@ -176,7 +176,8 @@ class SpeakingViewModel(
             return
         }
 
-        val calculatedScore = calculateScore(currentSentence.text, spoken)
+        val sampleText = currentSentence.safeText
+        val calculatedScore = calculateScore(sampleText, spoken)
         val calculatedFeedback = getFeedback(calculatedScore)
 
         _uiState.update {
@@ -194,7 +195,7 @@ class SpeakingViewModel(
         viewModelScope.launch {
             savePracticeResult(
                 sentenceId = currentSentence.id,
-                sample = currentSentence.text,
+                sample = sampleText,
                 spoken = spoken,
                 score = calculatedScore
             )

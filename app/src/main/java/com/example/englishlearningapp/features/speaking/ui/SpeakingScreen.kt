@@ -140,7 +140,7 @@ private fun TopicSelectionScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = topic.name,
+                            text = topic.displayName,
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
@@ -215,7 +215,7 @@ private fun PracticeScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = sentence.text,
+                        text = sentence.displayText,
                         style = MaterialTheme.typography.titleMedium,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
@@ -228,7 +228,7 @@ private fun PracticeScreen(
                         )
                     }
                     Text(
-                        text = sentence.difficulty,
+                        text = sentence.displayDifficulty,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
