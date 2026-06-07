@@ -53,6 +53,7 @@ import androidx.navigation.navArgument
 import com.example.englishlearningapp.core.session.SessionManager
 import com.example.englishlearningapp.data.local.datastore.AppDataStore
 import com.example.englishlearningapp.data.local.db.DatabaseProvider
+import com.example.englishlearningapp.data.remote.api.RetrofitClient
 import com.example.englishlearningapp.features.auth.ui.LoginScreen
 import com.example.englishlearningapp.features.auth.ui.RegisterScreen
 import com.example.englishlearningapp.features.auth.viewmodel.AuthViewModel
@@ -154,9 +155,7 @@ fun AppNavGraph(
             if (showBottomBar) {
                 AppBottomNavigationBar(
                     currentRoute = currentRoute,
-                    onItemClick = { route ->
-                        navController.navigateBottomItem(route)
-                    }
+                    onItemClick = { route -> navController.navigateBottomItem(route) }
                 )
             }
         }
@@ -171,290 +170,312 @@ fun AppNavGraph(
                 startDestination = startDestination,
                 modifier = Modifier.fillMaxSize()
             ) {
-            composable(Screen.Login.route) {
-                LoginScreen(
-                    viewModel = authViewModel,
-                    onNavigateToRegister = {
-                        navController.navigate(Screen.Register.route)
-                    },
-                    onLoginSuccess = {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Login.route) {
-                                inclusive = true
+                composable(Screen.Login.route) {
+                    LoginScreen(
+                        viewModel = authViewModel,
+                        onNavigateToRegister = { navController.navigate(Screen.Register.route) },
+                        onLoginSuccess = {
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(Screen.Login.route) { inclusive = true }
+                                launchSingleTop = true
                             }
+                        }
+                    )
+                }
+
+                composable(Screen.Register.route) {
+                    RegisterScreen(
+                        viewModel = authViewModel,
+                        onNavigateToLogin = { navController.popBackStack() },
+                        onRegisterSuccess = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Screen.Home.route) {
+                    LaunchedEffect(Unit) { progressViewModel.loadProgress() }
+                    HomeScreen(
+                        userName = userName.ifBlank { "Learner" },
+                        totalXp = progressUiState.summary?.total_xp ?: 0,
+                        streakCount = progressUiState.summary?.streak_count ?: 0,
+                        completedLessons = progressUiState.summary?.completed_lessons ?: 0,
+                        totalLessons = progressUiState.summary?.total_lessons ?: 0,
+                        completionPercent = progressUiState.summary?.completion_percent ?: 0,
+                        currentLevel = progressUiState.summary?.current_level ?: "Beginner",
+                        isProgressLoading = progressUiState.isLoading,
+                        progressErrorMessage = progressUiState.errorMessage,
+                        onLessonsClick = { navController.navigateBottomItem(Screen.TopicList.route) },
+                        onVocabularyClick = { navController.navigateBottomItem(Screen.Vocab.route) },
+                        onProgressClick = { navController.navigateBottomItem(Screen.Progress.route) },
+                        onAiScanClick = { navController.navigateBottomItem(Screen.AiScan.route) },
+                        onSpeakingClick = { navController.navigateBottomItem(Screen.Speaking.route) },
+                        onContinueLearningClick = { navController.navigateBottomItem(Screen.TopicList.route) },
+                        onNavigateToChat = { navController.navigate(Screen.Chat.route) }
+                    )
+                }
+
+                composable(Screen.Vocab.route) {
+                    VocabScreen(navController = navController, vocabVm = vocabViewModel)
+                }
+
+                composable(Screen.AllTopics.route) {
+                    AllTopicsScreen(navController = navController, viewModel = vocabViewModel)
+                }
+
+                composable(Screen.VocabSearch.route) {
+                    VocabSearchScreen(navController = navController, vocabVm = vocabViewModel)
+                }
+
+                composable(Screen.Vocabulary.route) {
+                    ComingSoonScreen(
+                        title = "Vocabulary",
+                        subtitle = "Practice and review your saved words"
+                    )
+                }
+
+                composable(Screen.LearnedWords.route) {
+                    LearnedWordsScreen(navController = navController)
+                }
+
+                composable(Screen.ReviewQuiz.route) {
+                    ReviewQuizScreen(navController = navController)
+                }
+
+                composable(Screen.ReviewQuizListening.route) {
+                    ReviewQuizListeningScreen(navController = navController)
+                }
+
+                composable(Screen.ReviewQuizChallenge.route) {
+                    ReviewQuizChallengeScreen(
+                        navController = navController,
+                        viewModel = composeViewModel(factory = VocabViewModelFactory(context))
+                    )
+                }
+
+                composable(Screen.FreePracticeNormal.route) {
+                    FreePracticeQuizScreen(navController = navController, vocabViewModel = vocabViewModel)
+                }
+
+                composable(Screen.FreePracticeListening.route) {
+                    FreePracticeListeningScreen(navController = navController, vocabViewModel = vocabViewModel)
+                }
+
+                composable(Screen.FreePracticeChallenge.route) {
+                    FreePracticeChallengeScreen(navController = navController, vocabViewModel = vocabViewModel)
+                }
+
+                composable(Screen.SelfPracticeNormal.route) {
+                    SelfPracticeQuizScreen(navController = navController, userTopicViewModel = userTopicViewModel)
+                }
+
+                composable(Screen.SelfPracticeListening.route) {
+                    SelfPracticeListeningScreen(navController = navController, userTopicViewModel = userTopicViewModel)
+                }
+
+                composable(Screen.SelfPracticeChallenge.route) {
+                    SelfPracticeChallengeScreen(navController = navController, userTopicViewModel = userTopicViewModel)
+                }
+
+                composable(Screen.UserTopics.route) {
+                    UserTopicListScreen(navController = navController, userTopicVm = userTopicViewModel)
+                }
+
+                composable(Screen.SavedVocab.route) {
+                    SavedVocabScreen(navController = navController)
+                }
+
+                composable(Screen.TopicDetail.route) { backStackEntry ->
+                    val topicId = backStackEntry.arguments?.getString("topicId")?.toIntOrNull()
+                        ?: return@composable
+                    TopicDetailScreen(navController = navController, topicId = topicId)
+                }
+
+                composable(
+                    route = Screen.CefrLevelDetail.route,
+                    arguments = listOf(navArgument("level") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val level = backStackEntry.arguments?.getString("level") ?: return@composable
+                    CefrLevelDetailScreen(navController = navController, level = level)
+                }
+
+                composable(Screen.UserTopicDetail.route) { backStackEntry ->
+                    val userTopicId = backStackEntry.arguments?.getString("userTopicId")?.toIntOrNull()
+                        ?: return@composable
+                    UserTopicDetailScreen(
+                        navController = navController,
+                        userTopicVm = userTopicViewModel,
+                        userTopicId = userTopicId
+                    )
+                }
+
+                composable(Screen.Flashcard.route) { backStackEntry ->
+                    val topicId = backStackEntry.arguments?.getString("topicId")?.toIntOrNull()
+                        ?: return@composable
+                    FlashcardScreen(navController = navController, topicId = topicId)
+                }
+
+                composable(
+                    route = Screen.StudyFlashcard.route,
+                    arguments = listOf(navArgument("topicId") { type = NavType.IntType })
+                ) { backStackEntry ->
+                    val topicId = backStackEntry.arguments?.getInt("topicId") ?: return@composable
+                    StudyFlashcardSessionScreen(navController = navController, topicId = topicId)
+                }
+
+                composable(Screen.TopicList.route) {
+                    LaunchedEffect(Unit) { lessonViewModel.loadTopics() }
+                    TopicListScreen(
+                        topics = lessonUiState.topics,
+                        isLoading = lessonUiState.isLoading,
+                        errorMessage = lessonUiState.errorMessage,
+                        onTopicClick = { topicId -> navController.navigate(Screen.LessonList.createRoute(topicId)) },
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
+
+                composable(
+                    route = Screen.LessonList.route,
+                    arguments = listOf(navArgument("topicId") { type = NavType.IntType })
+                ) { backStackEntry ->
+                    val topicId = backStackEntry.arguments?.getInt("topicId") ?: return@composable
+                    LaunchedEffect(topicId) { lessonViewModel.loadLessonsByTopic(topicId) }
+                    LessonListScreen(
+                        lessons = lessonUiState.lessons,
+                        isLoading = lessonUiState.isLoading,
+                        errorMessage = lessonUiState.errorMessage,
+                        onLessonClick = { lessonId -> navController.navigate(Screen.LessonDetail.createRoute(lessonId)) },
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
+
+                composable(
+                    route = Screen.LessonDetail.route,
+                    arguments = listOf(navArgument("lessonId") { type = NavType.IntType })
+                ) { backStackEntry ->
+                    val lessonId = backStackEntry.arguments?.getInt("lessonId") ?: return@composable
+                    LaunchedEffect(lessonId) { lessonViewModel.loadQuestions(lessonId) }
+                    LessonDetailScreen(
+                        questions = lessonUiState.questions,
+                        selectedAnswers = lessonUiState.selectedAnswers,
+                        isLoading = lessonUiState.isLoading,
+                        isSavingAnswer = lessonUiState.isSavingAnswer,
+                        errorMessage = lessonUiState.errorMessage,
+                        onSelectAnswer = { questionId, answer ->
+                            lessonViewModel.selectAnswer(
+                                lessonId = lessonId,
+                                questionId = questionId,
+                                answer = answer
+                            )
+                        },
+                        onSubmitClick = {
+                            lessonViewModel.submitLesson(
+                                lessonId = lessonId,
+                                onSuccess = { navController.navigate(Screen.LessonResult.route) }
+                            )
+                        },
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Screen.LessonResult.route) {
+                    LessonResultScreen(
+                        result = lessonUiState.submitResult,
+                        onRetryClick = { navController.popBackStack() },
+                        onContinueClick = {
+                            navController.navigate(Screen.TopicList.route) {
+                                popUpTo(Screen.TopicList.route) { inclusive = true }
+                            }
+                        },
+                        onProgressClick = { navController.navigate(Screen.Progress.route) }
+                    )
+                }
+
+                composable(Screen.Progress.route) {
+                    LaunchedEffect(Unit) { progressViewModel.loadProgress() }
+                    ProgressScreen(
+                        summary = progressUiState.summary,
+                        isLoading = progressUiState.isLoading,
+                        errorMessage = progressUiState.errorMessage,
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Screen.AiScan.route) {
+                    val factory = ScanViewModelFactory(context)
+                    val scanViewModel: ScanViewModel = viewModel(factory = factory)
+                    ScanScreen(
+                        viewModel = scanViewModel,
+                        onNavigateToResult = {
+                            navController.navigate(Screen.ScanResult.route) {
+                                launchSingleTop = true
+                            }
+                        },
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Screen.Scan.route) {
+                    LaunchedEffect(Unit) {
+                        navController.navigate(Screen.AiScan.route) {
+                            popUpTo(Screen.Scan.route) { inclusive = true }
                             launchSingleTop = true
                         }
-                    }
-                )
-            }
-
-            composable(Screen.Register.route) {
-                RegisterScreen(
-                    viewModel = authViewModel,
-                    onNavigateToLogin = { navController.popBackStack() },
-                    onRegisterSuccess = { navController.popBackStack() }
-                )
-            }
-
-            composable(Screen.Home.route) {
-                LaunchedEffect(Unit) { progressViewModel.loadProgress() }
-                HomeScreen(
-                    userName = userName.ifBlank { "Learner" },
-                    totalXp = progressUiState.summary?.total_xp ?: 0,
-                    streakCount = progressUiState.summary?.streak_count ?: 0,
-                    completedLessons = progressUiState.summary?.completed_lessons ?: 0,
-                    totalLessons = progressUiState.summary?.total_lessons ?: 0,
-                    completionPercent = progressUiState.summary?.completion_percent ?: 0,
-                    currentLevel = progressUiState.summary?.current_level ?: "Beginner",
-                    isProgressLoading = progressUiState.isLoading,
-                    progressErrorMessage = progressUiState.errorMessage,
-                    onLessonsClick = { navController.navigateBottomItem(Screen.TopicList.route) },
-                    onVocabularyClick = { navController.navigateBottomItem(Screen.Vocab.route) },
-                    onProgressClick = { navController.navigateBottomItem(Screen.Progress.route) },
-                    onAiScanClick = { navController.navigateBottomItem(Screen.AiScan.route) },
-                    onSpeakingClick = { navController.navigateBottomItem(Screen.Speaking.route) },
-                    onContinueLearningClick = { navController.navigateBottomItem(Screen.TopicList.route) },
-                    onNavigateToChat = { navController.navigate(Screen.Chat.route) }
-                )
-            }
-
-            // Core app routes from previous merge: keep both 'Vocabulary' (bottom nav) and 'Vocab' (full feature)
-            composable(Screen.Vocab.route) {
-                VocabScreen(navController = navController, vocabVm = vocabViewModel)
-            }
-
-            composable(Screen.AllTopics.route) {
-                AllTopicsScreen(navController = navController, viewModel = vocabViewModel)
-            }
-
-            composable(Screen.VocabSearch.route) {
-                VocabSearchScreen(navController = navController, vocabVm = vocabViewModel)
-            }
-
-            composable(Screen.Vocabulary.route) {
-                ComingSoonScreen(
-                    title = "Vocabulary",
-                    subtitle = "Practice and review your saved words"
-                )
-            }
-
-            composable(Screen.LearnedWords.route) { LearnedWordsScreen(navController = navController) }
-
-            composable(Screen.ReviewQuiz.route) { ReviewQuizScreen(navController = navController) }
-
-            composable(Screen.ReviewQuizListening.route) { ReviewQuizListeningScreen(navController = navController) }
-
-            composable(Screen.ReviewQuizChallenge.route) {
-                ReviewQuizChallengeScreen(
-                    navController = navController,
-                    viewModel = composeViewModel(factory = VocabViewModelFactory(context))
-                )
-            }
-
-            composable(Screen.FreePracticeNormal.route) {
-                FreePracticeQuizScreen(navController = navController, vocabViewModel = vocabViewModel)
-            }
-
-            composable(Screen.FreePracticeListening.route) {
-                FreePracticeListeningScreen(navController = navController, vocabViewModel = vocabViewModel)
-            }
-
-            composable(Screen.FreePracticeChallenge.route) {
-                FreePracticeChallengeScreen(navController = navController, vocabViewModel = vocabViewModel)
-            }
-
-            // Self practice flows (do NOT call rateQuizAnswer or rateVocabulary here)
-            composable(Screen.SelfPracticeNormal.route) {
-                SelfPracticeQuizScreen(navController = navController, userTopicViewModel = userTopicViewModel)
-            }
-
-            composable(Screen.SelfPracticeListening.route) {
-                SelfPracticeListeningScreen(navController = navController, userTopicViewModel = userTopicViewModel)
-            }
-
-            composable(Screen.SelfPracticeChallenge.route) {
-                SelfPracticeChallengeScreen(navController = navController, userTopicViewModel = userTopicViewModel)
-            }
-
-            composable(Screen.UserTopics.route) { UserTopicListScreen(navController = navController, userTopicVm = userTopicViewModel) }
-
-            composable(Screen.SavedVocab.route) { SavedVocabScreen(navController = navController) }
-
-            composable(Screen.TopicDetail.route) { backStackEntry ->
-                val topicIdArg = backStackEntry.arguments?.getString("topicId")
-                val topicId = topicIdArg?.toIntOrNull() ?: return@composable
-                TopicDetailScreen(navController = navController, topicId = topicId)
-            }
-
-
-
-            composable(
-                route = Screen.CefrLevelDetail.route,
-                arguments = listOf(navArgument("level") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val level = backStackEntry.arguments?.getString("level") ?: return@composable
-                CefrLevelDetailScreen(navController = navController, level = level)
-            }
-
-            composable(Screen.UserTopicDetail.route) { backStackEntry ->
-                val userTopicIdArg = backStackEntry.arguments?.getString("userTopicId")
-                val userTopicId = userTopicIdArg?.toIntOrNull() ?: return@composable
-                UserTopicDetailScreen(
-                    navController = navController,
-                    userTopicVm = userTopicViewModel,
-                    userTopicId = userTopicId
-                )
-            }
-
-            composable(Screen.Flashcard.route) { backStackEntry ->
-                val topicIdArg = backStackEntry.arguments?.getString("topicId")
-                val topicId = topicIdArg?.toIntOrNull() ?: return@composable
-                FlashcardScreen(navController = navController, topicId = topicId)
-            }
-
-            composable(
-                route = Screen.StudyFlashcard.route,
-                arguments = listOf(navArgument("topicId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val topicId = backStackEntry.arguments?.getInt("topicId") ?: return@composable
-                StudyFlashcardSessionScreen(navController = navController, topicId = topicId)
-            }
-
-            composable(Screen.TopicList.route) {
-                LaunchedEffect(Unit) { lessonViewModel.loadTopics() }
-                TopicListScreen(
-                    topics = lessonUiState.topics,
-                    isLoading = lessonUiState.isLoading,
-                    errorMessage = lessonUiState.errorMessage,
-                    onTopicClick = { topicId -> navController.navigate(Screen.LessonList.createRoute(topicId)) },
-                    onBackClick = { navController.popBackStack() }
-                )
-            }
-
-            composable(
-                route = Screen.LessonList.route,
-                arguments = listOf(navArgument("topicId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val topicId = backStackEntry.arguments?.getInt("topicId") ?: return@composable
-                LaunchedEffect(topicId) { lessonViewModel.loadLessonsByTopic(topicId) }
-                LessonListScreen(
-                    lessons = lessonUiState.lessons,
-                    isLoading = lessonUiState.isLoading,
-                    errorMessage = lessonUiState.errorMessage,
-                    onLessonClick = { lessonId -> navController.navigate(Screen.LessonDetail.createRoute(lessonId)) },
-                    onBackClick = { navController.popBackStack() }
-                )
-            }
-
-            composable(
-                route = Screen.LessonDetail.route,
-                arguments = listOf(navArgument("lessonId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val lessonId = backStackEntry.arguments?.getInt("lessonId") ?: return@composable
-                LaunchedEffect(lessonId) { lessonViewModel.loadQuestions(lessonId) }
-                LessonDetailScreen(
-                    questions = lessonUiState.questions,
-                    selectedAnswers = lessonUiState.selectedAnswers,
-                    isLoading = lessonUiState.isLoading,
-                    isSavingAnswer = lessonUiState.isSavingAnswer,
-                    errorMessage = lessonUiState.errorMessage,
-                    onSelectAnswer = { questionId, answer ->
-                        lessonViewModel.selectAnswer(lessonId = lessonId, questionId = questionId, answer = answer)
-                    },
-                    onSubmitClick = {
-                        lessonViewModel.submitLesson(lessonId = lessonId, onSuccess = { navController.navigate(Screen.LessonResult.route) })
-                    },
-                    onBackClick = { navController.popBackStack() }
-                )
-            }
-
-            composable(Screen.LessonResult.route) {
-                LessonResultScreen(
-                    result = lessonUiState.submitResult,
-                    onRetryClick = { navController.popBackStack() },
-                    onContinueClick = {
-                        navController.navigate(Screen.TopicList.route) { popUpTo(Screen.TopicList.route) { inclusive = true } }
-                    },
-                    onProgressClick = { navController.navigate(Screen.Progress.route) }
-                )
-            }
-
-            composable(Screen.Progress.route) {
-                LaunchedEffect(Unit) { progressViewModel.loadProgress() }
-                ProgressScreen(summary = progressUiState.summary, isLoading = progressUiState.isLoading, errorMessage = progressUiState.errorMessage, onBackClick = { navController.popBackStack() })
-            }
-
-            composable(Screen.AiScan.route) {
-                val factory = ScanViewModelFactory(context)
-                val vm: ScanViewModel = viewModel(factory = factory)
-                ScanScreen(
-                    viewModel = vm,
-                    onNavigateToResult = { navController.navigate(Screen.ScanResult.route) }
-                )
-            }
-
-            composable(Screen.Scan.route) {
-                LaunchedEffect(Unit) {
-                    navController.navigate(Screen.AiScan.route) {
-                        popUpTo(Screen.Scan.route) { inclusive = true }
-                        launchSingleTop = true
                     }
                 }
-            }
 
-            composable(Screen.ScanResult.route) {
-                val vm: ScanViewModel = viewModel(
-                    viewModelStoreOwner = navController.getBackStackEntry(Screen.AiScan.route),
-                    factory = ScanViewModelFactory(context)
-                )
-                ScanResultScreen(
-                    viewModel = vm,
-                    onBack = { navController.popBackStack() },
-                    onScanAgain = { navController.popBackStack() }
-                )
-            }
-
-            composable(Screen.Speaking.route) {
-                val factory = SpeakingViewModelFactory(
-                    context = context.applicationContext,
-                    speakingPracticeDao = appDatabase.speakingPracticeDao()
-                )
-                val speakingViewModel: SpeakingViewModel = viewModel(factory = factory)
-
-                SpeakingScreen(
-                    viewModel = speakingViewModel,
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    }
-                )
-            }
-
-            composable(Screen.Chat.route) {
-                ChatScreen(
-                    onNavigateBack = { navController.popBackStack() }
-                )
-            }
-
-            composable(Screen.Profile.route) {
-                ProfileScreen(
-                    viewModel = profileViewModel,
-                    onLogoutSuccess = {
-                        authViewModel.resetState()
-
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                inclusive = true
-                            }
-                            launchSingleTop = true
+                composable(Screen.ScanResult.route) {
+                    val scanViewModel: ScanViewModel = viewModel(
+                        viewModelStoreOwner = navController.getBackStackEntry(Screen.AiScan.route),
+                        factory = ScanViewModelFactory(context)
+                    )
+                    ScanResultScreen(
+                        viewModel = scanViewModel,
+                        onBack = {
+                            scanViewModel.clearResults()
+                            navController.popBackStack()
+                        },
+                        onScanAgain = {
+                            scanViewModel.clearResults()
+                            navController.popBackStack()
                         }
-                    }
-                )
-            }
+                    )
+                }
+
+                composable(Screen.Speaking.route) {
+                    val factory = SpeakingViewModelFactory(
+                        context = context.applicationContext,
+                        speakingPracticeDao = appDatabase.speakingPracticeDao(),
+                        speakingApiService = RetrofitClient.speakingApiService,
+                        appDataStore = appDataStore
+                    )
+                    val speakingViewModel: SpeakingViewModel = viewModel(factory = factory)
+                    SpeakingScreen(
+                        viewModel = speakingViewModel,
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Screen.Chat.route) {
+                    ChatScreen(onNavigateBack = { navController.popBackStack() })
+                }
+
+                composable(Screen.Profile.route) {
+                    ProfileScreen(
+                        viewModel = profileViewModel,
+                        onLogoutSuccess = {
+                            authViewModel.resetState()
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
+                        }
+                    )
+                }
             }
         }
     }
 }
-
 
 private data class BottomNavItem(
     val label: String,
@@ -475,7 +496,6 @@ private val bottomNavItems = listOf(
 private fun shouldShowBottomBar(route: String?): Boolean {
     if (route == null) return false
 
-    // Always show for primary bottom-nav routes
     val primary = listOf(
         Screen.Home.route,
         Screen.TopicList.route,
@@ -486,14 +506,11 @@ private fun shouldShowBottomBar(route: String?): Boolean {
         Screen.Progress.route,
         Screen.Profile.route
     )
-    if (route in primary) return true
 
+    if (route in primary) return true
     if (isVocabRelatedRoute(route)) return true
 
-    // keep lessons behavior
-    if (route == Screen.LessonList.route) return true
-
-    return false
+    return route == Screen.LessonList.route
 }
 
 private fun isVocabRelatedRoute(route: String?): Boolean {
@@ -533,7 +550,11 @@ private fun isVocabRelatedRoute(route: String?): Boolean {
 
 private fun isBottomItemSelected(currentRoute: String?, itemRoute: String): Boolean {
     return when (itemRoute) {
-        Screen.TopicList.route -> (currentRoute == Screen.TopicList.route || currentRoute == Screen.LessonList.route || currentRoute == Screen.LessonDetail.route)
+        Screen.TopicList.route -> {
+            currentRoute == Screen.TopicList.route ||
+                currentRoute == Screen.LessonList.route ||
+                currentRoute == Screen.LessonDetail.route
+        }
         Screen.Vocab.route -> isVocabRelatedRoute(currentRoute)
         else -> currentRoute == itemRoute
     }
@@ -541,7 +562,9 @@ private fun isBottomItemSelected(currentRoute: String?, itemRoute: String): Bool
 
 private fun NavController.navigateBottomItem(route: String) {
     navigate(route) {
-        popUpTo(graph.findStartDestination().id) { saveState = true }
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
         launchSingleTop = true
         restoreState = true
     }
@@ -549,15 +572,28 @@ private fun NavController.navigateBottomItem(route: String) {
 
 @Composable
 private fun AppBottomNavigationBar(currentRoute: String?, onItemClick: (String) -> Unit) {
-    Surface(color = Color.White, tonalElevation = 8.dp, shadowElevation = 10.dp, shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)) {
-        NavigationBar(modifier = Modifier.height(72.dp), containerColor = Color.White, tonalElevation = 0.dp) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 8.dp,
+        shadowElevation = 10.dp,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    ) {
+        NavigationBar(
+            modifier = Modifier.height(72.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp
+        ) {
             bottomNavItems.forEach { item ->
                 val selected = isBottomItemSelected(currentRoute = currentRoute, itemRoute = item.route)
                 val interactionSource = remember { MutableInteractionSource() }
                 val pressed by interactionSource.collectIsPressedAsState()
                 val hovered by interactionSource.collectIsHoveredAsState()
                 val showIconBackground = pressed || hovered
-                val iconColor = if (selected) Color(0xFF6C63FF) else Color(0xFF8D8A99)
+                val iconColor = if (selected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
 
                 Box(
                     modifier = Modifier
@@ -574,7 +610,7 @@ private fun AppBottomNavigationBar(currentRoute: String?, onItemClick: (String) 
                         modifier = Modifier
                             .size(50.dp)
                             .background(
-                                color = if (showIconBackground) Color(0xFFD1CFE5) else Color.Transparent,
+                                color = if (showIconBackground) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent,
                                 shape = CircleShape
                             ),
                         contentAlignment = Alignment.Center
@@ -594,10 +630,25 @@ private fun AppBottomNavigationBar(currentRoute: String?, onItemClick: (String) 
 
 @Composable
 private fun ComingSoonScreen(title: String, subtitle: String) {
-    Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF8F6FF)).padding(24.dp), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8F6FF))
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = title, style = MaterialTheme.typography.headlineSmall, color = Color(0xFF1D1B2F))
-            Text(text = subtitle, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF77738A), modifier = Modifier.padding(top = 8.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color(0xFF1D1B2F)
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF77738A),
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
     }
 }

@@ -45,7 +45,13 @@ object RetrofitClient {
         retrofit.create(ProgressApiService::class.java)
     }
 
+
     val notificationApiService: NotificationApiService by lazy {
         retrofit.create(NotificationApiService::class.java)
     }
+    val speakingApiService: SpeakingApiService by lazy {
+        retrofit.create(SpeakingApiService::class.java)
+    }
+
+
 }

@@ -5,13 +5,12 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.englishlearningapp.BuildConfig
 import com.example.englishlearningapp.data.local.datastore.AppDataStore
 import com.example.englishlearningapp.data.local.db.dao.ScanExtractedItemDao
 import com.example.englishlearningapp.data.local.db.dao.ScanSessionDao
 import com.example.englishlearningapp.data.local.db.entity.ScanExtractedItemEntity
 import com.example.englishlearningapp.data.local.db.entity.ScanSessionEntity
-import com.google.ai.client.generativeai.GenerativeModel
+import com.example.englishlearningapp.data.remote.ai.GeminiClient
 import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,21 +24,27 @@ class ScanViewModel(
     private val context: Context,
     private val scanSessionDao: ScanSessionDao,
     private val scanExtractedItemDao: ScanExtractedItemDao,
-    private val appDataStore: AppDataStore
+    private val appDataStore: AppDataStore,
+    private val geminiClient: GeminiClient = GeminiClient()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ScanUiState())
     val uiState: StateFlow<ScanUiState> = _uiState.asStateFlow()
 
-    // Gemini model
-    private val generativeModel = GenerativeModel(
-        modelName = "gemini-2.5-flash",
-        apiKey = BuildConfig.GEMINI_API_KEY,
-    )
-
     fun selectImage(uri: Uri) {
         // Store uri and clear any previously extracted words
         _uiState.update { it.copy(selectedImageUri = uri, extractedWords = emptyList()) }
+    }
+
+    fun clearResults() {
+        _uiState.update {
+            it.copy(
+                extractedWords = emptyList(),
+                isSaving = false,
+                isSaveSuccess = false,
+                errorMessage = null
+            )
+        }
     }
 
     fun analyzeImage() {
@@ -64,8 +69,8 @@ class ScanViewModel(
                     """.trimIndent())
                 }
 
-                val response = generativeModel.generateContent(inputContent)
-                val jsonText = response.text ?: throw Exception("Empty response")
+                val jsonText = geminiClient.generateText(inputContent)
+                    .getOrElse { throw it }
 
                 // Parse JSON
                 val words = parseWordsFromJson(jsonText)

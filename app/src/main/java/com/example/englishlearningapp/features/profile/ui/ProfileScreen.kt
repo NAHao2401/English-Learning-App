@@ -198,27 +198,6 @@ fun ProfileScreen(
                         titleColor = primaryTextColor,
                         descriptionColor = secondaryTextColor
                     )
-
-                    Divider(
-                        modifier = Modifier.padding(vertical = 14.dp),
-                        color = if (uiState.isDarkMode) Color(0xFF2E2E2E) else Color(0xFFEDEAF8)
-                    )
-
-                    SettingSwitchRow(
-                        icon = if (uiState.isSoundEnabled) Icons.Rounded.VolumeUp else Icons.Rounded.VolumeOff,
-                        title = "Sound",
-                        description = if (uiState.isSoundEnabled) {
-                            "Vocabulary sound is enabled"
-                        } else {
-                            "Vocabulary sound is disabled"
-                        },
-                        checked = uiState.isSoundEnabled,
-                        onCheckedChange = viewModel::setSoundEnabled,
-                        iconBackground = Color(0xFFFFF3E0),
-                        iconTint = Color(0xFFFF9800),
-                        titleColor = primaryTextColor,
-                        descriptionColor = secondaryTextColor
-                    )
                 }
             }
 
