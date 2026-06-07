@@ -39,6 +39,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.example.englishlearningapp.features.scan.viewmodel.ScanViewModel
@@ -47,7 +59,8 @@ import java.io.File
 @Composable
 fun ScanScreen(
     viewModel: ScanViewModel,
-    onNavigateToResult: () -> Unit
+    onNavigateToResult: () -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -79,12 +92,63 @@ fun ScanScreen(
         if (uiState.extractedWords.isNotEmpty()) onNavigateToResult()
     }
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+    @OptIn(ExperimentalMaterial3Api::class)
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Column {
+                        Text(
+                            text = "Scan",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+
+                        Text(
+                            text = "Extract vocabulary from images",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
+                        )
+                    }
+                },
+
+                navigationIcon = {
+                    IconButton(
+                        onClick = onNavigateBack,
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                },
+
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent
+                )
+            )
+        }
+    ) { innerPadding ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 120.dp
+                ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Scan ảnh lấy từ vựng", style = MaterialTheme.typography.headlineMedium)
 
         // Preview ảnh đã chọn
         if (uiState.selectedImageUri != null) {
@@ -142,5 +206,7 @@ fun ScanScreen(
             Text(msg, color = MaterialTheme.colorScheme.error)
         }
     }
+
+        }
 }
 

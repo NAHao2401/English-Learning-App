@@ -2,44 +2,62 @@ package com.example.englishlearningapp.features.speaking.viewmodel
 
 import android.content.Context
 import android.content.Intent
-import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.englishlearningapp.data.local.datastore.AppDataStore
-import com.example.englishlearningapp.data.local.db.DatabaseProvider
 import com.example.englishlearningapp.data.local.db.dao.SpeakingPracticeDao
 import com.example.englishlearningapp.data.local.db.entity.SpeakingPracticeEntity
+<<<<<<< HEAD
 import com.example.englishlearningapp.data.local.db.entity.UserEntity
 import com.example.englishlearningapp.data.remote.api.SpeakingApiService
+=======
+import com.example.englishlearningapp.data.remote.api.SpeakingApiService
+import com.example.englishlearningapp.data.remote.dto.SpeakingResultRequest
+>>>>>>> a96e346 (fix ui + speaking)
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 class SpeakingViewModel(
+<<<<<<< HEAD
     context: Context,
     private val speakingPracticeDao: SpeakingPracticeDao,
     private val apiService: SpeakingApiService
+=======
+    private val context: Context,
+    private val speakingDao: SpeakingPracticeDao,
+    private val speakingApiService: SpeakingApiService,
+    private val appDataStore: AppDataStore
+>>>>>>> a96e346 (fix ui + speaking)
 ) : ViewModel() {
-
-    private val appContext = context.applicationContext
-    private val appDataStore = AppDataStore(appContext)
-    private val userDao = DatabaseProvider.getDatabase(appContext).userDao()
-    private var speechRecognizer: SpeechRecognizer? = null
 
     private val _uiState = MutableStateFlow(SpeakingUiState())
     val uiState: StateFlow<SpeakingUiState> = _uiState.asStateFlow()
 
+<<<<<<< HEAD
+=======
+    private var speechRecognizer: SpeechRecognizer? = null
+    private var currentUserId: Int = -1
+
+    init {
+        // Đọc userId từ DataStore khi ViewModel khởi tạo
+        viewModelScope.launch {
+            currentUserId = appDataStore.userId.first()
+        }
+    }
+
+>>>>>>> a96e346 (fix ui + speaking)
     fun loadTopics() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
+<<<<<<< HEAD
                 val topics = apiService.getSpeakingTopics()
                 _uiState.update { it.copy(topics = topics, isLoading = false) }
             } catch (e: Exception) {
@@ -49,10 +67,26 @@ class SpeakingViewModel(
                         errorMessage = "Failed to load topics: ${e.message}"
                     )
                 }
+=======
+                val topics = speakingApiService.getSpeakingTopics()
+                _uiState.update {
+                    it.copy(
+                        topics = topics,
+                        selectedTopic = null,
+                        sentences = emptyList(),
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = "Could not load topics")
+                }
+>>>>>>> a96e346 (fix ui + speaking)
             }
         }
     }
 
+<<<<<<< HEAD
     fun selectTopic(topic: com.example.englishlearningapp.data.remote.dto.SpeakingTopicDto) {
         viewModelScope.launch {
             _uiState.update {
@@ -71,20 +105,52 @@ class SpeakingViewModel(
                         currentSentence = sentences.firstOrNull(),
                         isLoading = false,
                         progress = if (sentences.isNotEmpty()) 1f / sentences.size else 0f
+=======
+    fun selectTopic(topic: String) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(isLoading = true, selectedTopic = topic, errorMessage = null)
+            }
+            try {
+                val dtos = speakingApiService.getSpeakingSentences(topic = topic, limit = 20)
+                val items = dtos.map { dto ->
+                    SpeakingSentenceItem(
+                        id = dto.id,
+                        sentence = dto.sentence,
+                        translation = dto.translation,
+                        difficulty = dto.difficulty,
+                        topic = dto.topic
+                    )
+                }
+                _uiState.update {
+                    it.copy(
+                        sentences = items,
+                        currentIndex = 0,
+                        isLoading = false,
+                        hasResult = false,
+                        spokenText = "",
+                        score = 0,
+                        feedback = ""
+>>>>>>> a96e346 (fix ui + speaking)
                     )
                 }
             } catch (e: Exception) {
                 _uiState.update {
+<<<<<<< HEAD
                     it.copy(
                         isLoading = false,
                         errorMessage = "Failed to load sentences: ${e.message}"
                     )
+=======
+                    it.copy(isLoading = false, errorMessage = "Could not load sentences")
+>>>>>>> a96e346 (fix ui + speaking)
                 }
             }
         }
     }
 
     fun nextSentence() {
+<<<<<<< HEAD
         val currentState = _uiState.value
         val nextIndex = currentState.currentIndex + 1
         if (nextIndex < currentState.sentences.size) {
@@ -122,39 +188,99 @@ class SpeakingViewModel(
 
     fun startListening() {
         if (!SpeechRecognizer.isRecognitionAvailable(appContext)) {
+=======
+        if (_uiState.value.currentIndex < _uiState.value.sentences.size - 1) {
+>>>>>>> a96e346 (fix ui + speaking)
             _uiState.update {
                 it.copy(
-                    isListening = false,
-                    errorMessage = "Speech recognition is not available on this device"
+                    currentIndex = it.currentIndex + 1,
+                    hasResult = false,
+                    spokenText = "",
+                    score = 0,
+                    feedback = "",
+                    errorMessage = null
                 )
             }
-            return
         }
+    }
 
-        speechRecognizer?.destroy()
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(appContext).apply {
-            setRecognitionListener(createRecognitionListener())
+    fun previousSentence() {
+        if (_uiState.value.currentIndex > 0) {
+            _uiState.update {
+                it.copy(
+                    currentIndex = it.currentIndex - 1,
+                    hasResult = false,
+                    spokenText = "",
+                    score = 0,
+                    feedback = "",
+                    errorMessage = null
+                )
+            }
+        }
+    }
+
+    fun backToTopics() {
+        speechRecognizer?.stopListening()
+        _uiState.update {
+            SpeakingUiState(topics = it.topics)
+        }
+    }
+
+    fun startListening() {
+        if (!SpeechRecognizer.isRecognitionAvailable(context)) {
+            _uiState.update {
+                it.copy(errorMessage = "This device does not support speech recognition")
+            }
+            return
         }
 
         _uiState.update {
             it.copy(
                 isListening = true,
-                errorMessage = null,
                 hasResult = false,
                 spokenText = "",
-                score = 0,
-                feedback = ""
+                errorMessage = null
             )
+        }
+
+        speechRecognizer?.destroy()
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
+            setRecognitionListener(object : RecognitionListener {
+                override fun onResults(results: android.os.Bundle?) {
+                    val matches = results
+                        ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    val spoken = matches?.firstOrNull() ?: ""
+                    processResult(spoken)
+                }
+
+                override fun onError(error: Int) {
+                    val msg = when (error) {
+                        SpeechRecognizer.ERROR_NO_MATCH      -> "Could not hear you, please try again"
+                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Timeout, please speak louder"
+                        SpeechRecognizer.ERROR_AUDIO         -> "Microphone error"
+                        else                                  -> "Recognition error ($error)"
+                    }
+                    _uiState.update { it.copy(isListening = false, errorMessage = msg) }
+                }
+
+                override fun onReadyForSpeech(params: android.os.Bundle?) {}
+                override fun onBeginningOfSpeech() {}
+                override fun onRmsChanged(rmsdB: Float) {}
+                override fun onBufferReceived(buffer: ByteArray?) {}
+                override fun onEndOfSpeech() {
+                    _uiState.update { it.copy(isListening = false) }
+                }
+                override fun onPartialResults(partialResults: android.os.Bundle?) {}
+                override fun onEvent(eventType: Int, params: android.os.Bundle?) {}
+            })
         }
 
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(
-                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-            )
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
         }
-
         speechRecognizer?.startListening(intent)
     }
 
@@ -163,6 +289,7 @@ class SpeakingViewModel(
         _uiState.update { it.copy(isListening = false) }
     }
 
+<<<<<<< HEAD
     fun processResult(spoken: String) {
         val currentSentence = _uiState.value.currentSentence
         if (currentSentence == null) {
@@ -179,47 +306,91 @@ class SpeakingViewModel(
         val sampleText = currentSentence.safeText
         val calculatedScore = calculateScore(sampleText, spoken)
         val calculatedFeedback = getFeedback(calculatedScore)
+=======
+    private fun processResult(spoken: String) {
+        val sample = _uiState.value.currentSentence?.sentence ?: return
+        val score = calculateScore(sample, spoken)
+        val isMatched = score >= 70
+        val feedback = getFeedback(score)
+>>>>>>> a96e346 (fix ui + speaking)
 
         _uiState.update {
             it.copy(
-                isLoading = false,
-                isListening = false,
                 spokenText = spoken,
-                score = calculatedScore,
-                feedback = calculatedFeedback,
+                score = score,
+                feedback = feedback,
                 hasResult = true,
-                errorMessage = null
+                isListening = false
             )
         }
 
         viewModelScope.launch {
+<<<<<<< HEAD
             savePracticeResult(
                 sentenceId = currentSentence.id,
                 sample = sampleText,
                 spoken = spoken,
                 score = calculatedScore
+=======
+            // Lưu vào Room DB
+            speakingDao.insertSpeakingPractice(
+                SpeakingPracticeEntity(
+                    userId      = currentUserId,
+                    lessonId    = null,
+                    targetText  = sample,
+                    spokenText  = spoken,
+                    isMatched   = isMatched,
+                    score       = score,
+                    createdAt   = System.currentTimeMillis()
+                )
+>>>>>>> a96e346 (fix ui + speaking)
             )
+
+            // Gửi lên backend — không block UI nếu lỗi
+            try {
+                speakingApiService.saveSpeakingResult(
+                    SpeakingResultRequest(
+                        targetText = sample,
+                        spokenText = spoken,
+                        score      = score,
+                        isMatched  = isMatched,
+                        lessonId   = null
+                    )
+                )
+            } catch (_: Exception) {}
         }
     }
 
+<<<<<<< HEAD
     fun calculateScore(sample: String, spoken: String): Int {
         val sampleWords = normalize(sample)
         val spokenWords = normalize(spoken)
 
-        if (sampleWords.isEmpty()) return 0
-
-        val matchingWords = sampleWords.count { sampleWord ->
-            spokenWords.contains(sampleWord)
+=======
+    private fun calculateScore(sample: String, spoken: String): Int {
+        val normalize = { s: String ->
+            s.lowercase().replace(Regex("[^a-z0-9 ]"), "").trim()
         }
+        val sampleWords = normalize(sample).split(" ").filter { it.isNotEmpty() }
+        val spokenWords  = normalize(spoken).split(" ").filter { it.isNotEmpty() }
+>>>>>>> a96e346 (fix ui + speaking)
+        if (sampleWords.isEmpty()) return 0
+        val matched = sampleWords.count { it in spokenWords }
+        return ((matched.toFloat() / sampleWords.size) * 100).toInt().coerceIn(0, 100)
+    }
 
-        return ((matchingWords.toDouble() / sampleWords.size) * 100).toInt()
+    private fun getFeedback(score: Int) = when {
+        score >= 90 -> "Excellent! Perfect pronunciation!"
+        score >= 70 -> "Great job! Almost perfect."
+        score >= 50 -> "Not bad, keep practicing!"
+        else        -> "Keep going, don't give up!"
     }
 
     override fun onCleared() {
-        speechRecognizer?.destroy()
-        speechRecognizer = null
         super.onCleared()
+        speechRecognizer?.destroy()
     }
+<<<<<<< HEAD
 
     private fun createRecognitionListener(): RecognitionListener {
         return object : RecognitionListener {
@@ -349,3 +520,6 @@ class SpeakingViewModel(
         }
     }
 }
+=======
+}
+>>>>>>> a96e346 (fix ui + speaking)

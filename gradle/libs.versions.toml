@@ -20,6 +20,11 @@ foundation = "1.11.1"
 benchmarkTraceprocessor = "1.4.1"
 compiler = "3.2.0-alpha11"
 playServicesCastFramework = "22.3.1"
+<<<<<<< HEAD
+=======
+foundationLayoutVersion = "1.11.2"
+firebaseAppdistributionGradle = "5.2.1"
+>>>>>>> a96e346 (fix ui + speaking)
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -49,8 +54,13 @@ androidx-compose-foundation = { group = "androidx.compose.foundation", name = "f
 androidx-benchmark-traceprocessor = { group = "androidx.benchmark", name = "benchmark-traceprocessor", version.ref = "benchmarkTraceprocessor" }
 androidx-compiler = { group = "androidx.databinding", name = "compiler", version.ref = "compiler" }
 play-services-cast-framework = { group = "com.google.android.gms", name = "play-services-cast-framework", version.ref = "playServicesCastFramework" }
+<<<<<<< HEAD
 
 
+=======
+androidx-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayoutVersion" }
+firebase-appdistribution-gradle = { group = "com.google.firebase", name = "firebase-appdistribution-gradle", version.ref = "firebaseAppdistributionGradle" }
+>>>>>>> a96e346 (fix ui + speaking)
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

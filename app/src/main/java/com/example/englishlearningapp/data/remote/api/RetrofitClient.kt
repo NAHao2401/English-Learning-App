@@ -38,4 +38,8 @@ object RetrofitClient {
     val speakingApiService: SpeakingApiService by lazy {
         retrofit.create(SpeakingApiService::class.java)
     }
+
+    val speakingApiService: SpeakingApiService by lazy {
+        retrofit.create(SpeakingApiService::class.java)
+    }
 }

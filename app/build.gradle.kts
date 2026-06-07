@@ -45,6 +45,18 @@ android {
         buildConfig = true
         compose = true
     }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/DEPENDENCIES"
+            excludes += "/META-INF/INDEX.LIST"
+            excludes += "/META-INF/io.netty.versions.properties"
+            excludes += "/META-INF/*.kotlin_module"
+            excludes += "/META-INF/*.version"
+            excludes += "/META-INF/LICENSE*"
+            excludes += "/META-INF/NOTICE*"
+        }
+    }
 }
 
 dependencies {
@@ -61,7 +73,10 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.datastore.core)
     implementation(libs.androidx.compose.foundation)
-
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation(libs.androidx.foundation.layout)
+    implementation(libs.firebase.appdistribution.gradle)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
